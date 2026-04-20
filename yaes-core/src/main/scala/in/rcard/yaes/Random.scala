@@ -56,7 +56,7 @@ object Random {
     * @return
     *   A random long
     */
-  def nextLong(using r: Random): Long     = r.nextLong()
+  def nextLong(using r: Random): Long = r.nextLong()
 
   /** Generates an RFC 4122 version 4 UUID using the current Random effect.
     *
@@ -73,7 +73,12 @@ object Random {
     val rawLsb = r.nextLong()
     val msb    = (rawMsb & 0xffffffffffff0fffL) | 0x0000000000004000L
     val lsb    = (rawLsb & 0x3fffffffffffffffL) | 0x8000000000000000L
-    f"${(msb >>> 32) & 0xffffffffL}%08x-${(msb >>> 16) & 0xffffL}%04x-${msb & 0xffffL}%04x-${(lsb >>> 48) & 0xffffL}%04x-${lsb & 0xffffffffffffL}%012x"
+    val timeLow  = (msb >>> 32) & 0xffffffffL
+    val timeMid  = (msb >>> 16) & 0xffffL
+    val timeHi   = msb & 0xffffL
+    val clockSeq = (lsb >>> 48) & 0xffffL
+    val node     = lsb & 0xffffffffffffL
+    f"$timeLow%08x-$timeMid%04x-$timeHi%04x-$clockSeq%04x-$node%012x"
   }
 
   /** Runs a computation that requires the Random effect.
@@ -97,8 +102,8 @@ object Random {
     override def nextDouble(): Double   = scala.util.Random.nextDouble()
   }
 
-  /** An effect trait representing random number generation effects. It provides basic random
-    * number generation operations that can be used in effectful computations.
+  /** An effect trait representing random number generation effects. It provides basic random number
+    * generation operations that can be used in effectful computations.
     *
     * This trait is unsafe because it provides direct access to the random number generator
     * implementation.
