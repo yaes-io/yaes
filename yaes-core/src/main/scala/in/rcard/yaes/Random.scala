@@ -58,6 +58,24 @@ object Random {
     */
   def nextLong(using r: Random): Long     = r.nextLong()
 
+  /** Generates a random RFC 4122 version 4 UUID using the current Random effect.
+    *
+    * The UUID is derived from two calls to [[Unsafe.nextLong]] so that the handler of the
+    * [[Random]] effect fully controls the result, keeping the operation mockable and testable.
+    *
+    * @param r
+    *   The implicit Random effect
+    * @return
+    *   A lowercase canonical UUID v4 string (`xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx`)
+    */
+  def nextUuid(using r: Random): String = {
+    val rawMsb = r.nextLong()
+    val rawLsb = r.nextLong()
+    val msb    = (rawMsb & 0xffffffffffff0fffL) | 0x0000000000004000L
+    val lsb    = (rawLsb & 0x3fffffffffffffffL) | 0x8000000000000000L
+    f"${(msb >>> 32) & 0xffffffffL}%08x-${(msb >>> 16) & 0xffffL}%04x-${msb & 0xffffL}%04x-${(lsb >>> 48) & 0xffffL}%04x-${lsb & 0xffffffffffffL}%012x"
+  }
+
   /** Runs a computation that requires the Random effect.
     *
     * This method provides a handler that executes the Random effects using the default Scala random

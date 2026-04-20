@@ -93,7 +93,10 @@ val randomInt: Random ?=> Int = Random.nextInt
 val randomIntInRange: Random ?=> Int = Random.nextInt(100) // 0 to 99
 val randomLong: Random ?=> Long = Random.nextLong
 val randomDouble: Random ?=> Double = Random.nextDouble // 0.0 to 1.0
+val randomUuid: Random ?=> String = Random.nextUuid // RFC 4122 v4 UUID
 ```
+
+`Random.nextUuid` produces a canonical lowercase UUID v4 string (for example `01234567-89ab-4def-bedc-ba9876543210`). It is derived from two `nextLong` calls, so replacing the `Random.Unsafe` handler in tests yields deterministic UUIDs.
 
 ### Running Random Effects
 
