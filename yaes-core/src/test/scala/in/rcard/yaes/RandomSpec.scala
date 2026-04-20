@@ -81,7 +81,10 @@ class RandomSpec extends AsyncFlatSpec with Matchers {
 
   it should "produce a deterministic UUID from a stub Random.Unsafe" in {
     val stub = new Random.Unsafe {
-      private val longs                   = Iterator(0x0123456789abcdefL, 0xfedcba9876543210L)
+      private val longs = Iterator(
+        0x0123456789abcdefL,
+        0xfedcba9876543210L
+      )
       override def nextInt(): Int         = 0
       override def nextBoolean(): Boolean = false
       override def nextDouble(): Double   = 0.0
