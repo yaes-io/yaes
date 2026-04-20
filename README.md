@@ -992,6 +992,7 @@ The other random content we can generate is:
 - `nextInt`: Generates a random integer.
 - `nextDouble`: Generates a random double.
 - `nextLong`: Generates a random long.
+- `nextUuid`: Generates an RFC 4122 version 4 UUID as a lowercase `String`. Derived from two `nextLong` calls so the handler fully controls the result.
 
 As usual, we can run the effectful computation using the provided handlers:
 
