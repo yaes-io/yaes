@@ -58,7 +58,7 @@ object Random {
     */
   def nextLong(using r: Random): Long     = r.nextLong()
 
-  /** Generates a random RFC 4122 version 4 UUID using the current Random effect.
+  /** Generates an RFC 4122 version 4 UUID using the current Random effect.
     *
     * The UUID is derived from two calls to [[Unsafe.nextLong]] so that the handler of the
     * [[Random]] effect fully controls the result, keeping the operation mockable and testable.
