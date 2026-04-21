@@ -21,54 +21,54 @@ class HttpResponseSpec extends AnyFlatSpec with Matchers:
 
   "HttpResponse.as" should "decode 200 body via BodyCodec" in {
     val resp = HttpResponse(200,Map.empty, "42")
-    val result = Raise.either[HttpError | DecodingError, Int] { resp.as[Int] }
+    val result = Raise.either[HttpError | List[DecodingError], Int] { resp.as[Int] }
     result shouldBe Right(42)
   }
 
   it should "decode 201 body (any 2xx)" in {
     val resp = HttpResponse(201,Map.empty, "99")
-    val result = Raise.either[HttpError | DecodingError, Int] { resp.as[Int] }
+    val result = Raise.either[HttpError | List[DecodingError], Int] { resp.as[Int] }
     result shouldBe Right(99)
   }
 
   it should "raise UnexpectedStatus for 301 (non-2xx)" in {
     val resp = HttpResponse(301,Map.empty, "moved")
-    val result = Raise.either[HttpError | DecodingError, Int] { resp.as[Int] }
+    val result = Raise.either[HttpError | List[DecodingError], Int] { resp.as[Int] }
     result shouldBe Left(HttpError.UnexpectedStatus(301, "moved"))
   }
 
   it should "raise NotFound for 404" in {
     val resp = HttpResponse(404,Map.empty, "not found")
-    val result = Raise.either[HttpError | DecodingError, Int] { resp.as[Int] }
+    val result = Raise.either[HttpError | List[DecodingError], Int] { resp.as[Int] }
     result shouldBe Left(HttpError.NotFound("not found"))
   }
 
   it should "raise InternalServerError for 500" in {
     val resp = HttpResponse(500,Map.empty, "fail")
-    val result = Raise.either[HttpError | DecodingError, Int] { resp.as[Int] }
+    val result = Raise.either[HttpError | List[DecodingError], Int] { resp.as[Int] }
     result shouldBe Left(HttpError.InternalServerError("fail"))
   }
 
   it should "raise OtherClientError for 418" in {
     val resp = HttpResponse(418,Map.empty, "teapot")
-    val result = Raise.either[HttpError | DecodingError, Int] { resp.as[Int] }
+    val result = Raise.either[HttpError | List[DecodingError], Int] { resp.as[Int] }
     result shouldBe Left(HttpError.OtherClientError(418, "teapot"))
   }
 
-  it should "raise DecodingError for invalid body on 200" in {
+  it should "raise List[DecodingError] for invalid body on 200" in {
     val resp = HttpResponse(200,Map.empty, "not-a-number")
-    val result = Raise.either[HttpError | DecodingError, Int] { resp.as[Int] }
-    result.left.getOrElse(fail()) shouldBe a[DecodingError]
+    val result = Raise.either[HttpError | List[DecodingError], Int] { resp.as[Int] }
+    result shouldBe Left(List(DecodingError.ParseError("Invalid integer: not-a-number")))
   }
 
-  it should "raise DecodingError for empty body on 200" in {
+  it should "raise List[DecodingError] for empty body on 200" in {
     val resp = HttpResponse(200,Map.empty, "")
-    val result = Raise.either[HttpError | DecodingError, Int] { resp.as[Int] }
-    result.left.getOrElse(fail()) shouldBe a[DecodingError]
+    val result = Raise.either[HttpError | List[DecodingError], Int] { resp.as[Int] }
+    result shouldBe Left(List(DecodingError.ParseError("Invalid integer: ")))
   }
 
   it should "raise HttpError for 404 without attempting decode" in {
     val resp = HttpResponse(404,Map.empty, "not valid as int either")
-    val result = Raise.either[HttpError | DecodingError, Int] { resp.as[Int] }
+    val result = Raise.either[HttpError | List[DecodingError], Int] { resp.as[Int] }
     result shouldBe Left(HttpError.NotFound("not valid as int either"))
   }
