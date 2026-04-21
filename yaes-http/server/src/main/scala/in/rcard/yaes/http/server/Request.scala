@@ -50,10 +50,10 @@ object Request {
       * Example:
       * {{{
       * // With a custom User codec in scope
-      * val user: User raises DecodingError = request.as[User]
+      * val user: User raises List[DecodingError] = request.as[User]
       *
-      * // In a handler that declares Raise[DecodingError]
-      * def handleCreateUser(req: Request): Response raises DecodingError = {
+      * // In a handler that declares Raise[List[DecodingError]]
+      * def handleCreateUser(req: Request): Response raises List[DecodingError] = {
       *   val user = req.as[User]
       *   // ... process user ...
       *   Response.created(user)
@@ -65,7 +65,7 @@ object Request {
       * @return
       *   The decoded value
       */
-    def as[A](using codec: BodyCodec[A]): A raises DecodingError =
+    def as[A](using codec: BodyCodec[A]): A raises List[DecodingError] =
       codec.decode(req.body)
 
     /** Get a header value by name (case-insensitive).
