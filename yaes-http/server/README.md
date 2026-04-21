@@ -338,7 +338,7 @@ This ensures graceful shutdown even when the process is killed.
 
 ## Body Codecs (JSON, etc.)
 
-The server uses the `BodyCodec[A]` typeclass for automatic body encoding/decoding. Built-in codecs exist for `String`, `Int`, `Long`, `Double`, and `Boolean`.
+The server uses the `BodyCodec[A]` typeclass for automatic body encoding/decoding. Built-in codecs exist for `String`, `Int`, `Long`, `Double`, and `Boolean`. Decoding errors are returned as a non-empty `List[DecodingError]`, so all failures found in a single body are surfaced together.
 
 ```scala
 // Built-in codecs work automatically
@@ -369,9 +369,9 @@ case class User(id: Int, name: String)
 given BodyCodec[User] with {
   def contentType: String = "application/json"
   def encode(user: User): String = user.asJson.noSpaces
-  def decode(body: String): User raises DecodingError =
+  def decode(body: String): User raises List[DecodingError] =
     decode[User](body).fold(
-      error => Raise.raise(DecodingError(error.getMessage)),
+      error => Raise.raise(List(DecodingError.ParseError(error.getMessage))),
       user => user
     )
 }
@@ -386,8 +386,8 @@ POST(p"/users") { req =>
   Raise.fold {
     val user = req.as[User]  // Automatically decoded from JSON
     Response.created(user)
-  } { case error: DecodingError =>
-    Response.badRequest(error.message)
+  } { case errors: List[DecodingError] =>
+    Response.badRequest(errors.map(_.message).mkString(", "))
   }
 }
 ```

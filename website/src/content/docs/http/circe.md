@@ -70,8 +70,8 @@ Sync.runBlocking(Duration.Inf) {
           Raise.fold {
             val user = req.as[User]
             Response.created(user)
-          } { case error: DecodingError =>
-            Response.badRequest(error.message)
+          } { case errors: List[DecodingError] =>
+            Response.badRequest(errors.map(_.message).mkString(", "))
           }
         }
       )
@@ -150,15 +150,15 @@ codec.encode(Person("Alice", Address("123 Main St", "Springfield")))
 
 ## Error Handling
 
-When JSON decoding fails, the codec raises the appropriate `DecodingError` variant. A `ParsingFailure` (invalid JSON syntax) becomes `DecodingError.ParseError` with the original exception attached, while a `DecodingFailure` (valid JSON but wrong shape) becomes `DecodingError.ValidationError`. Use `Raise.fold` to handle decoding errors in your routes:
+When JSON decoding fails, the codec raises a non-empty `List[DecodingError]` accumulating all errors found in the body. A `ParsingFailure` (invalid JSON syntax) becomes `DecodingError.ParseError` with the original exception attached, while each `DecodingFailure` (valid JSON but wrong shape) becomes `DecodingError.ValidationError`. Use `Raise.fold` to handle decoding errors in your routes:
 
 ```scala
 POST(p"/users") { req =>
   Raise.fold {
     val user = req.as[User]
     Response.created(user)
-  } { case error: DecodingError =>
-    Response.badRequest(error.message)
+  } { case errors: List[DecodingError] =>
+    Response.badRequest(errors.map(_.message).mkString(", "))
   }
 }
 ```
@@ -207,8 +207,8 @@ object JsonServer extends App {
               val newUser = req.as[CreateUser]
               val created = User(1, newUser.name, newUser.email)
               Response.created(created)
-            } { case error: DecodingError =>
-              Response.badRequest(error.message)
+            } { case errors: List[DecodingError] =>
+              Response.badRequest(errors.map(_.message).mkString(", "))
             }
           }
         )
