@@ -14,7 +14,7 @@ import in.rcard.yaes.*
   * given BodyCodec[User] with {
   *   def contentType: String = "application/json"
   *   def encode(user: User): String = s"""{"name":"${user.name}","age":${user.age}}"""
-  *   def decode(body: String): User raises DecodingError = {
+  *   def decode(body: String): User raises List[DecodingError] = {
   *     // JSON parsing logic
   *     ???
   *   }
@@ -34,8 +34,8 @@ trait BodyCodec[A] {
   /** Encode a value to a string representation */
   def encode(value: A): String
 
-  /** Decode a string body to a value, raising DecodingError on failure */
-  def decode(body: String): A raises DecodingError
+  /** Decode a string body to a value, raising a non-empty `List[DecodingError]` on failure. The list aggregates every error found during decoding; implementations MUST NOT raise an empty list. */
+  def decode(body: String): A raises List[DecodingError]
 }
 
 object BodyCodec {
@@ -43,7 +43,7 @@ object BodyCodec {
   given BodyCodec[String] with {
     def contentType: String = "text/plain; charset=UTF-8"
     def encode(value: String): String = value
-    def decode(body: String): String raises DecodingError = body
+    def decode(body: String): String raises List[DecodingError] = body
   }
 
   /** Built-in codec for Int (text/plain) */
@@ -52,11 +52,11 @@ object BodyCodec {
 
     def encode(value: Int): String = value.toString
 
-    def decode(body: String): Int raises DecodingError =
+    def decode(body: String): Int raises List[DecodingError] =
       body.toIntOption match {
         case Some(i) => i
         case None =>
-          Raise.raise(DecodingError.ParseError(s"Invalid integer: $body"))
+          Raise.raise(List(DecodingError.ParseError(s"Invalid integer: $body")))
       }
   }
 
@@ -66,11 +66,11 @@ object BodyCodec {
 
     def encode(value: Long): String = value.toString
 
-    def decode(body: String): Long raises DecodingError =
+    def decode(body: String): Long raises List[DecodingError] =
       body.toLongOption match {
         case Some(l) => l
         case None =>
-          Raise.raise(DecodingError.ParseError(s"Invalid long: $body"))
+          Raise.raise(List(DecodingError.ParseError(s"Invalid long: $body")))
       }
   }
 
@@ -80,11 +80,11 @@ object BodyCodec {
 
     def encode(value: Double): String = value.toString
 
-    def decode(body: String): Double raises DecodingError =
+    def decode(body: String): Double raises List[DecodingError] =
       body.toDoubleOption match {
         case Some(d) => d
         case None =>
-          Raise.raise(DecodingError.ParseError(s"Invalid double: $body"))
+          Raise.raise(List(DecodingError.ParseError(s"Invalid double: $body")))
       }
   }
 
@@ -94,11 +94,11 @@ object BodyCodec {
 
     def encode(value: Boolean): String = value.toString
 
-    def decode(body: String): Boolean raises DecodingError =
+    def decode(body: String): Boolean raises List[DecodingError] =
       body.toBooleanOption match {
         case Some(b) => b
         case None =>
-          Raise.raise(DecodingError.ParseError(s"Invalid boolean: $body"))
+          Raise.raise(List(DecodingError.ParseError(s"Invalid boolean: $body")))
       }
   }
 }
