@@ -45,7 +45,7 @@ object Request {
     /** Decode request body using the implicit codec.
       *
       * The codec is resolved automatically from the context using Scala 3's `using` clauses. Decoding
-      * failures are raised as typed errors via the `Raise[DecodingError]` effect.
+      * failures are raised as typed errors via the `Raise[List[DecodingError]]` effect.
       *
       * Example:
       * {{{
