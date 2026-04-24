@@ -33,7 +33,7 @@ class BodyCodecSpec extends AnyFlatSpec with Matchers {
     result shouldBe Right(123)
   }
 
-  it should "raise DecodingError for invalid integers" in {
+  it should "raise List[DecodingError] for invalid integers" in {
     val codec = summon[BodyCodec[Int]]
     val result = Raise.either[List[DecodingError], Int] {
       codec.decode("not a number")
@@ -56,7 +56,7 @@ class BodyCodecSpec extends AnyFlatSpec with Matchers {
     result shouldBe Right(987654321L)
   }
 
-  it should "raise DecodingError for invalid longs" in {
+  it should "raise List[DecodingError] for invalid longs" in {
     val codec = summon[BodyCodec[Long]]
     val result = Raise.either[List[DecodingError], Long] {
       codec.decode("not a long")
@@ -79,7 +79,7 @@ class BodyCodecSpec extends AnyFlatSpec with Matchers {
     result shouldBe Right(2.718)
   }
 
-  it should "raise DecodingError for invalid doubles" in {
+  it should "raise List[DecodingError] for invalid doubles" in {
     val codec = summon[BodyCodec[Double]]
     val result = Raise.either[List[DecodingError], Double] {
       codec.decode("not a double")
@@ -107,7 +107,7 @@ class BodyCodecSpec extends AnyFlatSpec with Matchers {
     resultFalse shouldBe Right(false)
   }
 
-  it should "raise DecodingError for invalid booleans" in {
+  it should "raise List[DecodingError] for invalid booleans" in {
     val codec = summon[BodyCodec[Boolean]]
     val result = Raise.either[List[DecodingError], Boolean] {
       codec.decode("not a boolean")
@@ -155,7 +155,7 @@ class BodyCodecSpec extends AnyFlatSpec with Matchers {
     result shouldBe Right(User("Bob", 25))
   }
 
-  it should "raise DecodingError for invalid JSON" in {
+  it should "raise List[DecodingError] for invalid JSON" in {
     val codec = summon[BodyCodec[User]]
     val result = Raise.either[List[DecodingError], User] {
       codec.decode("""{"invalid":"json"}""")
@@ -164,7 +164,7 @@ class BodyCodecSpec extends AnyFlatSpec with Matchers {
     result.left.get shouldBe List(DecodingError.ParseError("""Invalid User JSON: {"invalid":"json"}"""))
   }
 
-  it should "raise DecodingError for malformed JSON" in {
+  it should "raise List[DecodingError] for malformed JSON" in {
     val codec = summon[BodyCodec[User]]
     val result = Raise.either[List[DecodingError], User] {
       codec.decode("not json at all")

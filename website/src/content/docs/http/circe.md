@@ -12,7 +12,7 @@ JSON body codec integration for the λÆS HTTP server using [Circe](https://circ
 - **Automatic BodyCodec derivation** - Any type with Circe `Encoder` and `Decoder` gets a `BodyCodec` for free
 - **Compact JSON encoding** - Values are serialized using `asJson.noSpaces`
 - **Content-Type handling** - Automatically sets `Content-Type: application/json`
-- **Error mapping** - Circe `ParsingFailure` maps to `DecodingError.ParseError`, `DecodingFailure` maps to `DecodingError.ValidationError`
+- **Accumulating error mapping** - Decoding raises a non-empty `List[DecodingError]` accumulating all failures; Circe `ParsingFailure` maps to `DecodingError.ParseError`, each `DecodingFailure` maps to `DecodingError.ValidationError`
 
 **Requirements:**
 - Java 25+ (for Virtual Threads and Structured Concurrency)
@@ -100,7 +100,7 @@ This instance implements the three methods of the `BodyCodec` trait:
 |---|---|
 | `contentType` | Returns `"application/json"` |
 | `encode(value: A)` | Serializes using `value.asJson.noSpaces` (compact JSON) |
-| `decode(body: String)` | Parses using Circe's `decode[A]`, raising `DecodingError.ParseError` for invalid JSON syntax or `DecodingError.ValidationError` for schema mismatches |
+| `decode(body: String)` | Parses using Circe's `decodeAccumulating[A]`, raising a non-empty `List[DecodingError]`: `DecodingError.ParseError` for invalid JSON syntax, or one `DecodingError.ValidationError` per accumulated schema mismatch |
 
 Because the instance is parameterized over `A`, it works for **any** type with the required Circe typeclasses — no per-type boilerplate is needed.
 

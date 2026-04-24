@@ -338,7 +338,7 @@ This ensures graceful shutdown even when the process is killed.
 
 ## Body Codecs (JSON, etc.)
 
-The server uses the `BodyCodec[A]` typeclass for automatic body encoding/decoding. Built-in codecs exist for `String`, `Int`, `Long`, `Double`, and `Boolean`. Decoding errors are returned as a non-empty `List[DecodingError]`, so all failures found in a single body are surfaced together.
+The server uses the `BodyCodec[A]` typeclass for automatic body encoding/decoding. Built-in codecs exist for `String`, `Int`, `Long`, `Double`, and `Boolean`. Decoding failures are raised via `Raise[List[DecodingError]]`, so all failures found in a single body can be surfaced together.
 
 ```scala
 // Built-in codecs work automatically

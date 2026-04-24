@@ -68,7 +68,7 @@ The module provides a single `given` instance:
 given circeBodyCodec[A](using Encoder[A], Decoder[A]): BodyCodec[A]
 ```
 
-For any type `A` with both a Circe `Encoder` and `Decoder` in scope, a `BodyCodec[A]` is automatically derived. Decoding errors are returned as a non-empty `List[DecodingError]`, so all failures found in a single body are surfaced together. This codec:
+For any type `A` with both a Circe `Encoder` and `Decoder` in scope, a `BodyCodec[A]` is automatically derived. Decoding errors are raised as a non-empty `List[DecodingError]`, so all failures found in a single body are surfaced together. This codec:
 
 - **Encodes** values as compact JSON using `asJson.noSpaces`
 - **Sets** the `Content-Type` header to `application/json`
