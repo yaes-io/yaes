@@ -49,8 +49,8 @@ Shutdown.run {
         Raise.fold {
           val user = req.as[User]
           Response.created(user)
-        } { case error: DecodingError =>
-          Response.badRequest(error.message)
+        } { case errors: List[DecodingError] =>
+          Response.badRequest(errors.map(_.message).mkString(", "))
         }
       }
     )
@@ -68,7 +68,7 @@ The module provides a single `given` instance:
 given circeBodyCodec[A](using Encoder[A], Decoder[A]): BodyCodec[A]
 ```
 
-For any type `A` with both a Circe `Encoder` and `Decoder` in scope, a `BodyCodec[A]` is automatically derived. This codec:
+For any type `A` with both a Circe `Encoder` and `Decoder` in scope, a `BodyCodec[A]` is automatically derived. Decoding errors are raised as a non-empty `List[DecodingError]`, so all failures found in a single body are surfaced together. This codec:
 
 - **Encodes** values as compact JSON using `asJson.noSpaces`
 - **Sets** the `Content-Type` header to `application/json`
@@ -110,15 +110,15 @@ codec.encode(Person("Alice", Address("123 Main St", "Springfield")))
 
 ## Error Handling
 
-When JSON decoding fails, the codec raises a `DecodingError.ParseError` containing the original Circe error message and exception. Use `Raise.fold` to handle decoding errors in routes:
+When JSON decoding fails, the codec raises a non-empty `List[DecodingError]` accumulating all errors found in the body. Use `Raise.fold` to handle decoding errors in routes:
 
 ```scala
 POST(p"/users") { req =>
   Raise.fold {
     val user = req.as[User]
     Response.created(user)
-  } { case error: DecodingError =>
-    Response.badRequest(error.message)
+  } { case errors: List[DecodingError] =>
+    Response.badRequest(errors.map(_.message).mkString(", "))
   }
 }
 ```

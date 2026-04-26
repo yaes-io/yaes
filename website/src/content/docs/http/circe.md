@@ -12,7 +12,7 @@ JSON body codec integration for the λÆS HTTP server using [Circe](https://circ
 - **Automatic BodyCodec derivation** - Any type with Circe `Encoder` and `Decoder` gets a `BodyCodec` for free
 - **Compact JSON encoding** - Values are serialized using `asJson.noSpaces`
 - **Content-Type handling** - Automatically sets `Content-Type: application/json`
-- **Error mapping** - Circe `ParsingFailure` maps to `DecodingError.ParseError`, `DecodingFailure` maps to `DecodingError.ValidationError`
+- **Accumulating error mapping** - Decoding raises a non-empty `List[DecodingError]` accumulating all failures; Circe `ParsingFailure` maps to `DecodingError.ParseError`, each `DecodingFailure` maps to `DecodingError.ValidationError`
 
 **Requirements:**
 - Java 25+ (for Virtual Threads and Structured Concurrency)
@@ -70,8 +70,8 @@ Sync.runBlocking(Duration.Inf) {
           Raise.fold {
             val user = req.as[User]
             Response.created(user)
-          } { case error: DecodingError =>
-            Response.badRequest(error.message)
+          } { case errors: List[DecodingError] =>
+            Response.badRequest(errors.map(_.message).mkString(", "))
           }
         }
       )
@@ -100,7 +100,7 @@ This instance implements the three methods of the `BodyCodec` trait:
 |---|---|
 | `contentType` | Returns `"application/json"` |
 | `encode(value: A)` | Serializes using `value.asJson.noSpaces` (compact JSON) |
-| `decode(body: String)` | Parses using Circe's `decode[A]`, raising `DecodingError.ParseError` for invalid JSON syntax or `DecodingError.ValidationError` for schema mismatches |
+| `decode(body: String)` | Parses using Circe's `decodeAccumulating[A]`, raising a non-empty `List[DecodingError]`: `DecodingError.ParseError` for invalid JSON syntax, or one `DecodingError.ValidationError` per accumulated schema mismatch |
 
 Because the instance is parameterized over `A`, it works for **any** type with the required Circe typeclasses — no per-type boilerplate is needed.
 
@@ -150,15 +150,15 @@ codec.encode(Person("Alice", Address("123 Main St", "Springfield")))
 
 ## Error Handling
 
-When JSON decoding fails, the codec raises the appropriate `DecodingError` variant. A `ParsingFailure` (invalid JSON syntax) becomes `DecodingError.ParseError` with the original exception attached, while a `DecodingFailure` (valid JSON but wrong shape) becomes `DecodingError.ValidationError`. Use `Raise.fold` to handle decoding errors in your routes:
+When JSON decoding fails, the codec raises a non-empty `List[DecodingError]` accumulating all errors found in the body. A `ParsingFailure` (invalid JSON syntax) becomes `DecodingError.ParseError` with the original exception attached, while each `DecodingFailure` (valid JSON but wrong shape) becomes `DecodingError.ValidationError`. Use `Raise.fold` to handle decoding errors in your routes:
 
 ```scala
 POST(p"/users") { req =>
   Raise.fold {
     val user = req.as[User]
     Response.created(user)
-  } { case error: DecodingError =>
-    Response.badRequest(error.message)
+  } { case errors: List[DecodingError] =>
+    Response.badRequest(errors.map(_.message).mkString(", "))
   }
 }
 ```
@@ -207,8 +207,8 @@ object JsonServer extends App {
               val newUser = req.as[CreateUser]
               val created = User(1, newUser.name, newUser.email)
               Response.created(created)
-            } { case error: DecodingError =>
-              Response.badRequest(error.message)
+            } { case errors: List[DecodingError] =>
+              Response.badRequest(errors.map(_.message).mkString(", "))
             }
           }
         )

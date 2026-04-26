@@ -29,21 +29,37 @@ class CirceCodecSpec extends AnyFlatSpec with Matchers {
 
   it should "raise ParseError for malformed JSON" in {
     val codec = summon[BodyCodec[User]]
-    val result = Raise.either {
+    val result = Raise.either[List[DecodingError], User] {
       codec.decode("not json at all")
     }
     result.isLeft shouldBe true
-    result.left.get shouldBe a[DecodingError.ParseError]
-    result.left.get.asInstanceOf[DecodingError.ParseError].cause shouldBe defined
+    result.left.get.head shouldBe a[DecodingError.ParseError]
+    result.left.get.head.asInstanceOf[DecodingError.ParseError].cause shouldBe defined
   }
 
   it should "raise ValidationError for JSON with missing fields" in {
     val codec = summon[BodyCodec[User]]
-    val result = Raise.either {
+    val result = Raise.either[List[DecodingError], User] {
       codec.decode("""{"name":"Alice"}""")
     }
     result.isLeft shouldBe true
-    result.left.get shouldBe a[DecodingError.ValidationError]
+    result.left.get.head shouldBe a[DecodingError.ValidationError]
+  }
+
+  it should "accumulate multiple decoding errors" in {
+    case class Person(name: String, age: Int)
+    given io.circe.Decoder[Person] = io.circe.Decoder.forProduct2("name", "age")(Person.apply)
+    given io.circe.Encoder[Person] = io.circe.Encoder.forProduct2("name", "age")(p => (p.name, p.age))
+    val codec = summon[BodyCodec[Person]]
+
+    val result = Raise.either[List[DecodingError], Person] {
+      codec.decode("""{"age":"not-an-int"}""")
+    }
+
+    result.isLeft shouldBe true
+    val errors = result.left.toOption.get
+    errors.size should be >= 2
+    errors.collect { case DecodingError.ValidationError(msg) => msg }.size shouldBe errors.size
   }
 
   it should "have content type application/json" in {

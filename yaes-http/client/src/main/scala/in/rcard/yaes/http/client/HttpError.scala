@@ -8,7 +8,7 @@ package in.rcard.yaes.http.client
   *
   * Example:
   * {{{
-  * val result = Raise.either[HttpError | DecodingError, User] {
+  * val result = Raise.either[HttpError | List[DecodingError], User] {
   *   response.as[User]
   * }
   * result match

@@ -241,15 +241,15 @@ response.header("content-type")    // Option[String] (case-insensitive lookup)
 
 Use `response.as[A]` to decode the body into a typed value. This method:
 1. Checks the status code — raises `HttpError` for non-2xx
-2. Decodes the body — raises `DecodingError` if decoding fails
+2. Decodes the body — raises a non-empty `List[DecodingError]` if decoding fails
 
 ```scala
-Raise.run[HttpError | DecodingError] {
+Raise.run[HttpError | List[DecodingError]] {
   val body: String = response.as[String]
 }
 ```
 
-The union type `HttpError | DecodingError` makes both error types explicit in the effect signature.
+The union type `HttpError | List[DecodingError]` makes both error types explicit in the effect signature.
 
 ---
 
@@ -325,14 +325,14 @@ Raised by `response.as[A]` when the status code is outside the 2xx range. The er
 **Matching by error category:**
 
 ```scala
-val result = Raise.either[HttpError | DecodingError, String] {
+val result = Raise.either[HttpError | List[DecodingError], String] {
   response.as[String]
 }
 result match
-  case Left(e: ClientHttpError) => println(s"Client error ${e.status}: ${e.body}")
-  case Left(e: ServerHttpError) => println(s"Server error ${e.status}: ${e.body}")
-  case Left(e: DecodingError)   => println(s"Decoding failed: ${e.message}")
-  case Right(value)             => println(s"Success: $value")
+  case Left(e: ClientHttpError)          => println(s"Client error ${e.status}: ${e.body}")
+  case Left(e: ServerHttpError)          => println(s"Server error ${e.status}: ${e.body}")
+  case Left(errors: List[DecodingError]) => println(s"Decoding failed: ${errors.map(_.message).mkString(", ")}")
+  case Right(value)                      => println(s"Success: $value")
 ```
 
 ---
@@ -430,13 +430,13 @@ Raise.run[ConnectionError] {
       val response = client.send(request)
 
       // Decode the response with error handling
-      val result = Raise.either[HttpError | DecodingError, String] {
+      val result = Raise.either[HttpError | List[DecodingError], String] {
         response.as[String]
       }
       result match
-        case Left(e: HttpError)     => println(s"HTTP error ${e.status}")
-        case Left(e: DecodingError) => println(s"Decoding failed")
-        case Right(body)            => println(s"Response: $body")
+        case Left(e: HttpError)                => println(s"HTTP error ${e.status}")
+        case Left(errors: List[DecodingError]) => println(s"Decoding failed")
+        case Right(body)                       => println(s"Response: $body")
     }
   }
 }

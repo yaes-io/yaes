@@ -374,8 +374,8 @@ POST(p"/update") { req =>
   Raise.fold {
     val value = req.as[Int]  // Decode body to Int
     Response.ok(s"Received: $value")
-  } { case error: DecodingError =>
-    Response.badRequest(error.message)
+  } { case errors: List[DecodingError] =>
+    Response.badRequest(errors.map(_.message).mkString(", "))
   }
 }
 ```
@@ -388,7 +388,7 @@ Implement the `BodyCodec[A]` trait for custom types:
 trait BodyCodec[A] {
   def contentType: String  // Content-Type header value
   def encode(value: A): String
-  def decode(body: String): A raises DecodingError
+  def decode(body: String): A raises List[DecodingError]
 }
 ```
 
@@ -410,9 +410,9 @@ given userCodec: BodyCodec[User] with {
   def encode(user: User): String =
     user.asJson.noSpaces  // Using circe encoder
 
-  def decode(body: String): User raises DecodingError =
+  def decode(body: String): User raises List[DecodingError] =
     decode[User](body).fold(
-      error => Raise.raise(DecodingError(error.getMessage)),
+      error => Raise.raise(List(DecodingError.ParseError(error.getMessage))),
       user => user
     )
 }
@@ -422,8 +422,8 @@ POST(p"/users") { req =>
   Raise.fold {
     val user = req.as[User]
     Response.created(user)  // Content-Type: application/json set automatically
-  } { case error: DecodingError =>
-    Response.badRequest(error.message)
+  } { case errors: List[DecodingError] =>
+    Response.badRequest(errors.map(_.message).mkString(", "))
   }
 }
 ```
