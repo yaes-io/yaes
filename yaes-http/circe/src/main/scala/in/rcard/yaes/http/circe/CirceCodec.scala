@@ -57,7 +57,7 @@ given circeBodyCodec[A](using encoder: Encoder[A], decoder: Decoder[A]): BodyCod
       case Validated.Valid(a) => a
       case Validated.Invalid(errs) =>
         Raise.raise(errs.toList.map {
-          case pf: ParsingFailure  => DecodingError.ParseError(pf.getMessage, Some(pf))
+          case pf: ParsingFailure  => DecodingError.ParseError(pf.getMessage, Option(pf.underlying))
           case df: DecodingFailure => DecodingError.ValidationError(df.getMessage)
         })
     }
