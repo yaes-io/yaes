@@ -11,7 +11,7 @@ import in.rcard.yaes.http.core.Headers
   * {{{
   * val response = Response(
   *   status = 200,
-  *   headers = Map("Content-Type" -> "application/json"),
+  *   headers = Map(Headers.ContentType -> "application/json"),
   *   body = """{"message": "Success"}"""
   * )
   * }}}
