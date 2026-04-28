@@ -1,9 +1,10 @@
-package in.rcard.yaes.http.jsoniter
+package in.rcard.yaes.http.jsoniter.test
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import in.rcard.yaes.*
 import in.rcard.yaes.http.core.{BodyDecoder, BodyEncoder, DecodingError}
+import in.rcard.yaes.http.jsoniter.given
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.EitherValues
@@ -35,9 +36,17 @@ class JsoniterInstancesSpec extends AnyFlatSpec with Matchers with EitherValues 
   }
 
   it should "resolve without a BodyDecoder import" in {
-    case class EncodeOnly(value: String)
-    given JsonValueCodec[EncodeOnly] = JsonCodecMaker.make
-    assertCompiles("summon[BodyEncoder[EncodeOnly]]")
+    assertCompiles("""
+      import com.github.plokhotnyuk.jsoniter_scala.core.JsonValueCodec
+      import com.github.plokhotnyuk.jsoniter_scala.macros.JsonCodecMaker
+      import in.rcard.yaes.http.core.BodyEncoder
+      import in.rcard.yaes.http.jsoniter.given
+
+      case class EncodeOnly(value: String)
+      given JsonValueCodec[EncodeOnly] = JsonCodecMaker.make
+
+      summon[BodyEncoder[EncodeOnly]]
+    """)
   }
 
   "jsoniterBodyDecoder" should "decode valid JSON to a case class" in {
@@ -75,8 +84,16 @@ class JsoniterInstancesSpec extends AnyFlatSpec with Matchers with EitherValues 
   }
 
   it should "resolve without a BodyEncoder import" in {
-    case class DecodeOnly(value: String)
-    given JsonValueCodec[DecodeOnly] = JsonCodecMaker.make
-    assertCompiles("summon[BodyDecoder[DecodeOnly]]")
+    assertCompiles("""
+      import com.github.plokhotnyuk.jsoniter_scala.core.JsonValueCodec
+      import com.github.plokhotnyuk.jsoniter_scala.macros.JsonCodecMaker
+      import in.rcard.yaes.http.core.BodyDecoder
+      import in.rcard.yaes.http.jsoniter.given
+
+      case class DecodeOnly(value: String)
+      given JsonValueCodec[DecodeOnly] = JsonCodecMaker.make
+
+      summon[BodyDecoder[DecodeOnly]]
+    """)
   }
 }

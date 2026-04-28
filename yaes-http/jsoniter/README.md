@@ -17,7 +17,7 @@ Add the dependency to your `build.sbt`:
 libraryDependencies += "in.rcard.yaes" %% "yaes-http-jsoniter" % "0.17.0"
 ```
 
-This module depends on `yaes-http-server` and `jsoniter-scala-core` (included transitively). To derive codecs via `JsonCodecMaker.make`, also include `jsoniter-scala-macros` as a provided dependency:
+This module depends on `yaes-http-core` and `jsoniter-scala-core` (included transitively). To derive codecs via `JsonCodecMaker.make`, also include `jsoniter-scala-macros` as a provided dependency:
 
 ```scala
 libraryDependencies += "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-macros" % "2.38.9" % Provided
@@ -31,6 +31,7 @@ Derive a `JsonValueCodec` for your types and import the jsoniter encoder/decoder
 import in.rcard.yaes.*
 import in.rcard.yaes.Log.given
 import in.rcard.yaes.http.server.*
+import in.rcard.yaes.http.core.DecodingError
 import in.rcard.yaes.http.jsoniter.given
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*

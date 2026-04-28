@@ -18,7 +18,7 @@ JSON body encoder/decoder integration for the λÆS HTTP server using [jsoniter-
 **Requirements:**
 - Java 25+ (for Virtual Threads and Structured Concurrency)
 - Scala 3.8.1+
-- yaes-http-server (included transitively)
+- yaes-http-core (included transitively)
 
 ---
 
@@ -48,6 +48,7 @@ Derive a `JsonValueCodec` for your types, import the jsoniter codecs with `impor
 import in.rcard.yaes.*
 import in.rcard.yaes.Log.given
 import in.rcard.yaes.http.server.*
+import in.rcard.yaes.http.core.DecodingError
 import in.rcard.yaes.http.jsoniter.given
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
@@ -178,6 +179,7 @@ A full server with JSON endpoints using jsoniter-scala:
 import in.rcard.yaes.*
 import in.rcard.yaes.Log.given
 import in.rcard.yaes.http.server.*
+import in.rcard.yaes.http.core.DecodingError
 import in.rcard.yaes.http.jsoniter.given
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
