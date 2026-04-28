@@ -15,7 +15,7 @@ class ResponseSpec extends AnyFlatSpec with Matchers {
     response.headers should contain("Content-Type" -> "text/plain; charset=UTF-8")
   }
 
-  it should "set Content-Type from codec for Int" in {
+  it should "set Content-Type from encoder for Int" in {
     val response = Response.ok(42)
 
     response.status shouldBe 200

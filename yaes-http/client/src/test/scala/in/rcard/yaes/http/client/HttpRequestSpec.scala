@@ -39,7 +39,7 @@ class HttpRequestSpec extends AnyFlatSpec with Matchers:
     HttpRequest.options(uri("http://example.com")).method shouldBe Method.OPTIONS
   }
 
-  "HttpRequest.post" should "encode body and set Content-Type from codec" in {
+  "HttpRequest.post" should "encode body and set Content-Type from encoder" in {
     val req = HttpRequest.post(uri("http://example.com"), "hello")
     req.method shouldBe Method.POST
     req.body shouldBe "hello"
@@ -73,7 +73,7 @@ class HttpRequestSpec extends AnyFlatSpec with Matchers:
     req.headers("authorization") shouldBe "new"
   }
 
-  it should "allow overriding Content-Type set by codec" in {
+  it should "allow overriding Content-Type set by encoder" in {
     val req = HttpRequest
       .post(uri("http://example.com"), "body")
       .header(Headers.ContentType, "text/xml")

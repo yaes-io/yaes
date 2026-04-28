@@ -51,24 +51,24 @@ object HttpRequest:
     * @param body the value to encode as the request body
     * @tparam A   the body type (resolved via [[BodyEncoder]])
     */
-  def post[A](uri: Uri, body: A)(using codec: BodyEncoder[A]): HttpRequest =
-    HttpRequest(Method.POST, uri, Map(Headers.ContentType -> codec.contentType), codec.encode(body))
+  def post[A](uri: Uri, body: A)(using encoder: BodyEncoder[A]): HttpRequest =
+    HttpRequest(Method.POST, uri, Map(Headers.ContentType -> encoder.contentType), encoder.encode(body))
   /** Creates a PUT request with an encoded body.
     *
     * @param uri  the target URI
     * @param body the value to encode as the request body
     * @tparam A   the body type (resolved via [[BodyEncoder]])
     */
-  def put[A](uri: Uri, body: A)(using codec: BodyEncoder[A]): HttpRequest =
-    HttpRequest(Method.PUT, uri, Map(Headers.ContentType -> codec.contentType), codec.encode(body))
+  def put[A](uri: Uri, body: A)(using encoder: BodyEncoder[A]): HttpRequest =
+    HttpRequest(Method.PUT, uri, Map(Headers.ContentType -> encoder.contentType), encoder.encode(body))
   /** Creates a PATCH request with an encoded body.
     *
     * @param uri  the target URI
     * @param body the value to encode as the request body
     * @tparam A   the body type (resolved via [[BodyEncoder]])
     */
-  def patch[A](uri: Uri, body: A)(using codec: BodyEncoder[A]): HttpRequest =
-    HttpRequest(Method.PATCH, uri, Map(Headers.ContentType -> codec.contentType), codec.encode(body))
+  def patch[A](uri: Uri, body: A)(using encoder: BodyEncoder[A]): HttpRequest =
+    HttpRequest(Method.PATCH, uri, Map(Headers.ContentType -> encoder.contentType), encoder.encode(body))
 
   extension (req: HttpRequest)
     /** Adds or replaces a header. The key is lowercased for consistency. */
