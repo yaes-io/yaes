@@ -24,6 +24,27 @@ class CirceCodecSpec extends AnyFlatSpec with Matchers {
     enc.contentType shouldBe "application/json"
   }
 
+  it should "work with semi-automatic derivation" in {
+    case class Product(id: Long, label: String)
+    given Encoder[Product] = Encoder.AsObject.derived
+
+    val enc = summon[BodyEncoder[Product]]
+    enc.encode(Product(42L, "Widget")) shouldBe """{"id":42,"label":"Widget"}"""
+  }
+
+  it should "work with nested case classes" in {
+    val enc = summon[BodyEncoder[Person]]
+    enc.encode(Person("Alice", Address("123 Main St", "Springfield"))) shouldBe
+      """{"name":"Alice","address":{"street":"123 Main St","city":"Springfield"}}"""
+  }
+
+  it should "resolve without a Decoder in scope" in {
+    case class EncodeOnly(value: String)
+    given Encoder[EncodeOnly] = Encoder.AsObject.derived
+    assertCompiles("summon[BodyEncoder[EncodeOnly]]")
+    assertDoesNotCompile("summon[BodyDecoder[EncodeOnly]]")
+  }
+
   "circeBodyDecoder" should "decode valid JSON to a case class" in {
     val dec = summon[BodyDecoder[User]]
     val result = Raise.either {
@@ -52,12 +73,12 @@ class CirceCodecSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "accumulate multiple decoding errors" in {
-    case class Person(name: String, age: Int)
-    given io.circe.Decoder[Person] = io.circe.Decoder.forProduct2("name", "age")(Person.apply)
-    given io.circe.Encoder[Person] = io.circe.Encoder.forProduct2("name", "age")(p => (p.name, p.age))
-    val dec = summon[BodyDecoder[Person]]
+    case class PersonFlat(name: String, age: Int)
+    given io.circe.Decoder[PersonFlat] =
+      io.circe.Decoder.forProduct2("name", "age")(PersonFlat.apply)
+    val dec = summon[BodyDecoder[PersonFlat]]
 
-    val result = Raise.either[List[DecodingError], Person] {
+    val result = Raise.either[List[DecodingError], PersonFlat] {
       dec.decode("""{"age":"not-an-int"}""")
     }
 
@@ -67,34 +88,30 @@ class CirceCodecSpec extends AnyFlatSpec with Matchers {
     errors.collect { case DecodingError.ValidationError(msg) => msg }.size shouldBe errors.size
   }
 
-  "circeBodyEncoder" should "work with semi-automatic derivation" in {
+  it should "work with semi-automatic derivation" in {
     case class Product(id: Long, label: String)
-    given Encoder[Product] = Encoder.AsObject.derived
     given Decoder[Product] = Decoder.derived
 
-    val enc = summon[BodyEncoder[Product]]
     val dec = summon[BodyDecoder[Product]]
-    val product = Product(42L, "Widget")
-
-    enc.encode(product) shouldBe """{"id":42,"label":"Widget"}"""
-
     val result = Raise.either {
       dec.decode("""{"id":42,"label":"Widget"}""")
     }
-    result shouldBe Right(product)
+    result shouldBe Right(Product(42L, "Widget"))
   }
 
   it should "work with nested case classes" in {
-    val enc = summon[BodyEncoder[Person]]
-    val dec = summon[BodyDecoder[Person]]
-    val person = Person("Alice", Address("123 Main St", "Springfield"))
-
-    val json = enc.encode(person)
-    json shouldBe """{"name":"Alice","address":{"street":"123 Main St","city":"Springfield"}}"""
-
+    val dec   = summon[BodyDecoder[Person]]
+    val json  = """{"name":"Alice","address":{"street":"123 Main St","city":"Springfield"}}"""
     val result = Raise.either {
       dec.decode(json)
     }
-    result shouldBe Right(person)
+    result shouldBe Right(Person("Alice", Address("123 Main St", "Springfield")))
+  }
+
+  it should "resolve without an Encoder in scope" in {
+    case class DecodeOnly(value: String)
+    given Decoder[DecodeOnly] = Decoder.derived
+    assertCompiles("summon[BodyDecoder[DecodeOnly]]")
+    assertDoesNotCompile("summon[BodyEncoder[DecodeOnly]]")
   }
 }
