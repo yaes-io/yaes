@@ -61,7 +61,6 @@ class BodyEncoderSpec extends AnyFlatSpec with Matchers {
     encoder.contentType shouldBe "text/plain; charset=UTF-8"
   }
 
-  // Custom encoder example
   case class User(name: String, age: Int)
 
   given BodyEncoder[User] with {
