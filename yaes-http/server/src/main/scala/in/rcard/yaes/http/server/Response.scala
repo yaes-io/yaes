@@ -1,6 +1,7 @@
 package in.rcard.yaes.http.server
 
-import in.rcard.yaes.http.core.BodyCodec
+import in.rcard.yaes.http.core.BodyEncoder
+import in.rcard.yaes.http.core.Headers
 
 /** HTTP response representation.
   *
@@ -10,7 +11,7 @@ import in.rcard.yaes.http.core.BodyCodec
   * {{{
   * val response = Response(
   *   status = 200,
-  *   headers = Map("Content-Type" -> "application/json"),
+  *   headers = Map(Headers.ContentType -> "application/json"),
   *   body = """{"message": "Success"}"""
   * )
   * }}}
@@ -32,14 +33,14 @@ object Response {
 
   /** Creates a 200 OK response with encoded body and automatic Content-Type.
     *
-    * The codec is resolved automatically from the context using Scala 3's `using` clauses. The
-    * Content-Type header is set based on the codec's specification.
+    * The encoder is resolved automatically from the context using Scala 3's `using` clauses. The
+    * Content-Type header is set based on the encoder's specification.
     *
     * Example:
     * {{{
-    * Response.ok("Hello, World!")  // Uses BodyCodec[String] for text/plain
-    * Response.ok(user)              // Uses BodyCodec[User] with application/json
-    * Response.ok(42)                // Uses BodyCodec[Int] for text/plain
+    * Response.ok("Hello, World!")  // Uses BodyEncoder[String] for text/plain
+    * Response.ok(user)              // Uses BodyEncoder[User] with application/json
+    * Response.ok(42)                // Uses BodyEncoder[Int] for text/plain
     * }}}
     *
     * @param value
@@ -49,11 +50,11 @@ object Response {
     * @return
     *   A Response with status 200 and appropriate Content-Type
     */
-  def ok[A](value: A)(using codec: BodyCodec[A]): Response =
+  def ok[A](value: A)(using encoder: BodyEncoder[A]): Response =
     Response(
       status = 200,
-      headers = Map("Content-Type" -> codec.contentType),
-      body = codec.encode(value)
+      headers = Map(Headers.ContentType -> encoder.contentType),
+      body = encoder.encode(value)
     )
 
   /** Creates a 201 Created response with encoded body.
@@ -65,11 +66,11 @@ object Response {
     * @return
     *   A Response with status 201 and appropriate Content-Type
     */
-  def created[A](value: A)(using codec: BodyCodec[A]): Response =
+  def created[A](value: A)(using encoder: BodyEncoder[A]): Response =
     Response(
       status = 201,
-      headers = Map("Content-Type" -> codec.contentType),
-      body = codec.encode(value)
+      headers = Map(Headers.ContentType -> encoder.contentType),
+      body = encoder.encode(value)
     )
 
   /** Creates a 202 Accepted response with encoded body.
@@ -81,11 +82,11 @@ object Response {
     * @return
     *   A Response with status 202 and appropriate Content-Type
     */
-  def accepted[A](value: A)(using codec: BodyCodec[A]): Response =
+  def accepted[A](value: A)(using encoder: BodyEncoder[A]): Response =
     Response(
       status = 202,
-      headers = Map("Content-Type" -> codec.contentType),
-      body = codec.encode(value)
+      headers = Map(Headers.ContentType -> encoder.contentType),
+      body = encoder.encode(value)
     )
 
   /** Creates a 204 No Content response.
@@ -105,11 +106,11 @@ object Response {
     * @return
     *   A Response with status 400 and appropriate Content-Type
     */
-  def badRequest[A](value: A)(using codec: BodyCodec[A]): Response =
+  def badRequest[A](value: A)(using encoder: BodyEncoder[A]): Response =
     Response(
       status = 400,
-      headers = Map("Content-Type" -> codec.contentType),
-      body = codec.encode(value)
+      headers = Map(Headers.ContentType -> encoder.contentType),
+      body = encoder.encode(value)
     )
 
   /** Creates a 404 Not Found response.
@@ -121,11 +122,11 @@ object Response {
     * @return
     *   A Response with status 404 and appropriate Content-Type
     */
-  def notFound[A](value: A)(using codec: BodyCodec[A]): Response =
+  def notFound[A](value: A)(using encoder: BodyEncoder[A]): Response =
     Response(
       status = 404,
-      headers = Map("Content-Type" -> codec.contentType),
-      body = codec.encode(value)
+      headers = Map(Headers.ContentType -> encoder.contentType),
+      body = encoder.encode(value)
     )
 
   /** Creates a 500 Internal Server Error response.
@@ -137,17 +138,17 @@ object Response {
     * @return
     *   A Response with status 500 and appropriate Content-Type
     */
-  def internalServerError[A](value: A)(using codec: BodyCodec[A]): Response =
+  def internalServerError[A](value: A)(using encoder: BodyEncoder[A]): Response =
     Response(
       status = 500,
-      headers = Map("Content-Type" -> codec.contentType),
-      body = codec.encode(value)
+      headers = Map(Headers.ContentType -> encoder.contentType),
+      body = encoder.encode(value)
     )
 
   /** Creates a 503 Service Unavailable response.
     *
-    * Indicates the server is temporarily unable to handle the request,
-    * typically used during graceful shutdown.
+    * Indicates the server is temporarily unable to handle the request, typically used during
+    * graceful shutdown.
     *
     * @param value
     *   The value to encode as the error message
@@ -156,10 +157,10 @@ object Response {
     * @return
     *   A Response with status 503 and appropriate Content-Type
     */
-  def serviceUnavailable[A](value: A)(using codec: BodyCodec[A]): Response =
+  def serviceUnavailable[A](value: A)(using encoder: BodyEncoder[A]): Response =
     Response(
       status = 503,
-      headers = Map("Content-Type" -> codec.contentType),
-      body = codec.encode(value)
+      headers = Map(Headers.ContentType -> encoder.contentType),
+      body = encoder.encode(value)
     )
 }

@@ -4,6 +4,7 @@ package in.rcard.yaes.http.server
 import in.rcard.yaes.*
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import in.rcard.yaes.http.core.Headers
 
 class ResponseSpec extends AnyFlatSpec with Matchers {
 
@@ -12,15 +13,15 @@ class ResponseSpec extends AnyFlatSpec with Matchers {
 
     response.status shouldBe 200
     response.body shouldBe "Hello!"
-    response.headers should contain("Content-Type" -> "text/plain; charset=UTF-8")
+    response.headers should contain(Headers.ContentType -> "text/plain; charset=UTF-8")
   }
 
-  it should "set Content-Type from codec for Int" in {
+  it should "set Content-Type from encoder for Int" in {
     val response = Response.ok(42)
 
     response.status shouldBe 200
     response.body shouldBe "42"
-    response.headers should contain("Content-Type" -> "text/plain; charset=UTF-8")
+    response.headers should contain(Headers.ContentType -> "text/plain; charset=UTF-8")
   }
 
   "Response.created" should "create a 201 response" in {
@@ -28,7 +29,7 @@ class ResponseSpec extends AnyFlatSpec with Matchers {
 
     response.status shouldBe 201
     response.body shouldBe "Resource created"
-    response.headers should contain("Content-Type" -> "text/plain; charset=UTF-8")
+    response.headers should contain(Headers.ContentType -> "text/plain; charset=UTF-8")
   }
 
   it should "encode value and set headers" in {
@@ -36,7 +37,7 @@ class ResponseSpec extends AnyFlatSpec with Matchers {
 
     response.status shouldBe 201
     response.body shouldBe "test"
-    response.headers should contain("Content-Type" -> "text/plain; charset=UTF-8")
+    response.headers should contain(Headers.ContentType -> "text/plain; charset=UTF-8")
   }
 
   "Response.accepted" should "create a 202 response" in {
@@ -81,13 +82,13 @@ class ResponseSpec extends AnyFlatSpec with Matchers {
   "Response case class" should "allow custom headers" in {
     val response = Response(
       status = 200,
-      headers = Map("X-Custom" -> "value", "Content-Type" -> "application/json"),
+      headers = Map("x-custom" -> "value", Headers.ContentType -> "application/json"),
       body = """{"key": "value"}"""
     )
 
     response.status shouldBe 200
-    response.headers should contain("X-Custom" -> "value")
-    response.headers should contain("Content-Type" -> "application/json")
+    response.headers should contain("x-custom" -> "value")
+    response.headers should contain(Headers.ContentType -> "application/json")
   }
 
   it should "default headers to empty map" in {
