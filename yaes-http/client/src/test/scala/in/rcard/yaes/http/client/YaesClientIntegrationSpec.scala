@@ -1,13 +1,16 @@
 package in.rcard.yaes.http.client
 
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
 import in.rcard.yaes.*
-import in.rcard.yaes.http.core.{BodyDecoder, BodyEncoder, DecodingError, Headers}
 import in.rcard.yaes.http.client.HttpRequest.*
 import in.rcard.yaes.http.client.Uri.InvalidUri
-import scala.concurrent.duration.*
+import in.rcard.yaes.http.core.BodyDecoder
+import in.rcard.yaes.http.core.DecodingError
+import in.rcard.yaes.http.core.Headers
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.*
 
 class YaesClientIntegrationSpec extends AnyFlatSpec with Matchers:
 
@@ -124,7 +127,9 @@ class YaesClientIntegrationSpec extends AnyFlatSpec with Matchers:
           sendAndDecode[Int](client, HttpRequest.get(uri(baseUrl)))
         }
       }
-      result.get.left.getOrElse(fail()) shouldBe List(DecodingError.ParseError("Invalid integer: not-a-number"))
+      result.get.left.getOrElse(fail()) shouldBe List(
+        DecodingError.ParseError("Invalid integer: not-a-number")
+      )
     finally server.stop(0)
   }
 
