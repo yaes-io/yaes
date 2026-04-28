@@ -134,7 +134,7 @@ Common failure scenarios:
 
 - **Java 25+**: Required by λÆS for virtual threads and structured concurrency
 - **Scala 3.8.1+**: Uses Scala 3 features (context functions, derives clauses, etc.)
-- **yaes-http-server**: Depends on the HTTP server module for `BodyEncoder`, `BodyDecoder`, and `DecodingError`
+- **yaes-http-core**: Provides `BodyEncoder`, `BodyDecoder`, and `DecodingError`
 
 ## Contributing
 
