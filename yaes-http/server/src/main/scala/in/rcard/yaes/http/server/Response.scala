@@ -1,6 +1,7 @@
 package in.rcard.yaes.http.server
 
 import in.rcard.yaes.http.core.BodyEncoder
+import in.rcard.yaes.http.core.Headers
 
 /** HTTP response representation.
   *
@@ -52,7 +53,7 @@ object Response {
   def ok[A](value: A)(using encoder: BodyEncoder[A]): Response =
     Response(
       status = 200,
-      headers = Map("Content-Type" -> encoder.contentType),
+      headers = Map(Headers.ContentType -> encoder.contentType),
       body = encoder.encode(value)
     )
 
@@ -68,7 +69,7 @@ object Response {
   def created[A](value: A)(using encoder: BodyEncoder[A]): Response =
     Response(
       status = 201,
-      headers = Map("Content-Type" -> encoder.contentType),
+      headers = Map(Headers.ContentType -> encoder.contentType),
       body = encoder.encode(value)
     )
 
@@ -84,7 +85,7 @@ object Response {
   def accepted[A](value: A)(using encoder: BodyEncoder[A]): Response =
     Response(
       status = 202,
-      headers = Map("Content-Type" -> encoder.contentType),
+      headers = Map(Headers.ContentType -> encoder.contentType),
       body = encoder.encode(value)
     )
 
@@ -108,7 +109,7 @@ object Response {
   def badRequest[A](value: A)(using encoder: BodyEncoder[A]): Response =
     Response(
       status = 400,
-      headers = Map("Content-Type" -> encoder.contentType),
+      headers = Map(Headers.ContentType -> encoder.contentType),
       body = encoder.encode(value)
     )
 
@@ -124,7 +125,7 @@ object Response {
   def notFound[A](value: A)(using encoder: BodyEncoder[A]): Response =
     Response(
       status = 404,
-      headers = Map("Content-Type" -> encoder.contentType),
+      headers = Map(Headers.ContentType -> encoder.contentType),
       body = encoder.encode(value)
     )
 
@@ -140,14 +141,14 @@ object Response {
   def internalServerError[A](value: A)(using encoder: BodyEncoder[A]): Response =
     Response(
       status = 500,
-      headers = Map("Content-Type" -> encoder.contentType),
+      headers = Map(Headers.ContentType -> encoder.contentType),
       body = encoder.encode(value)
     )
 
   /** Creates a 503 Service Unavailable response.
     *
-    * Indicates the server is temporarily unable to handle the request,
-    * typically used during graceful shutdown.
+    * Indicates the server is temporarily unable to handle the request, typically used during
+    * graceful shutdown.
     *
     * @param value
     *   The value to encode as the error message
@@ -159,7 +160,7 @@ object Response {
   def serviceUnavailable[A](value: A)(using encoder: BodyEncoder[A]): Response =
     Response(
       status = 503,
-      headers = Map("Content-Type" -> encoder.contentType),
+      headers = Map(Headers.ContentType -> encoder.contentType),
       body = encoder.encode(value)
     )
 }
