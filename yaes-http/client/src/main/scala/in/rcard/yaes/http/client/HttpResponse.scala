@@ -1,7 +1,7 @@
 package in.rcard.yaes.http.client
 
 import in.rcard.yaes.*
-import in.rcard.yaes.http.core.{BodyCodec, DecodingError}
+import in.rcard.yaes.http.core.{BodyDecoder, DecodingError}
 import java.util.Locale
 
 /** HTTP response returned by [[YaesClient.send]].
@@ -43,7 +43,7 @@ extension (resp: HttpResponse)
     * @tparam A the target type
     * @return the decoded value
     */
-  def as[A](using codec: BodyCodec[A]): A raises (HttpError | List[DecodingError]) =
+  def as[A](using codec: BodyDecoder[A]): A raises (HttpError | List[DecodingError]) =
     if resp.status < 200 || resp.status >= 300 then
       Raise.raise(HttpError.fromStatus(resp.status, resp.body))
     else
