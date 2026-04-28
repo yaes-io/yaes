@@ -6,8 +6,9 @@ import in.rcard.yaes.*
 import in.rcard.yaes.http.core.{BodyDecoder, BodyEncoder, DecodingError}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.EitherValues
 
-class JsoniterInstancesSpec extends AnyFlatSpec with Matchers {
+class JsoniterInstancesSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   case class User(name: String, age: Int)
   given JsonValueCodec[User] = JsonCodecMaker.make
@@ -48,10 +49,15 @@ class JsoniterInstancesSpec extends AnyFlatSpec with Matchers {
   it should "raise ParseError for malformed JSON" in {
     val dec    = summon[BodyDecoder[User]]
     val result = Raise.either[List[DecodingError], User] { dec.decode("not json at all") }
-    result.isLeft shouldBe true
-    val errors = result.left.get
+    val errors = result.left.value
     errors.head shouldBe a[DecodingError.ParseError]
     errors.head.asInstanceOf[DecodingError.ParseError].cause shouldBe defined
+  }
+
+  it should "raise ParseError for empty input" in {
+    val dec    = summon[BodyDecoder[User]]
+    val result = Raise.either[List[DecodingError], User] { dec.decode("") }
+    result.left.value.head shouldBe a[DecodingError.ParseError]
   }
 
   it should "raise ParseError for JSON with missing required fields" in {

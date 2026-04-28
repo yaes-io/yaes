@@ -83,7 +83,7 @@ lazy val client = project
 
 lazy val circe = project
   .in(file("yaes-http/circe"))
-  .dependsOn(server, core)
+  .dependsOn(`yaes-core`, core)
   .settings(commonSettings)
   .settings(
     name         := "yaes-http-circe",
@@ -95,7 +95,7 @@ lazy val circe = project
 
 lazy val jsoniter = project
   .in(file("yaes-http/jsoniter"))
-  .dependsOn(server, core)
+  .dependsOn(`yaes-core`, core)
   .settings(commonSettings)
   .settings(
     name         := "yaes-http-jsoniter",
