@@ -3,7 +3,7 @@ package in.rcard.yaes.http.client
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import in.rcard.yaes.*
-import in.rcard.yaes.http.core.{BodyCodec, DecodingError, Headers}
+import in.rcard.yaes.http.core.{BodyDecoder, BodyEncoder, DecodingError, Headers}
 import in.rcard.yaes.http.client.HttpRequest.*
 import in.rcard.yaes.http.client.Uri.InvalidUri
 import scala.concurrent.duration.*
@@ -17,7 +17,7 @@ class YaesClientIntegrationSpec extends AnyFlatSpec with Matchers:
       case Right(u) => u
 
   private def sendAndDecode[A](client: YaesClient, request: HttpRequest)(using
-      BodyCodec[A],
+      BodyDecoder[A],
       Sync
   ): Either[ConnectionError | HttpError | List[DecodingError], A] =
     Raise

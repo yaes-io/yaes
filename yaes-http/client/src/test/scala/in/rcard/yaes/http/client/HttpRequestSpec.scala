@@ -2,7 +2,6 @@ package in.rcard.yaes.http.client
 
 import in.rcard.yaes.*
 import in.rcard.yaes.http.client.HttpRequest.*
-import in.rcard.yaes.http.core.BodyCodec
 import in.rcard.yaes.http.core.Headers
 import in.rcard.yaes.http.core.Method
 import in.rcard.yaes.http.client.Uri.InvalidUri

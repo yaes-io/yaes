@@ -3,7 +3,7 @@ package in.rcard.yaes.http.client
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import in.rcard.yaes.*
-import in.rcard.yaes.http.core.{BodyCodec, DecodingError}
+import in.rcard.yaes.http.core.{BodyDecoder, DecodingError}
 
 class HttpResponseSpec extends AnyFlatSpec with Matchers:
 
@@ -19,7 +19,7 @@ class HttpResponseSpec extends AnyFlatSpec with Matchers:
     resp.header("X-Missing") shouldBe None
   }
 
-  "HttpResponse.as" should "decode 200 body via BodyCodec" in {
+  "HttpResponse.as" should "decode 200 body via BodyDecoder" in {
     val resp = HttpResponse(200,Map.empty, "42")
     val result = Raise.either[HttpError | List[DecodingError], Int] { resp.as[Int] }
     result shouldBe Right(42)
