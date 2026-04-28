@@ -2,7 +2,7 @@ package in.rcard.yaes.http.core
 
 import in.rcard.yaes.*
 
-/** Typeclass for decoding an HTTP request body string into a value of type `A`.
+/** Typeclass for decoding an HTTP message body string into a value of type `A`.
   *
   * Instances must provide a `decode` method that either returns the decoded value
   * or raises a non-empty `List[DecodingError]` describing what went wrong.
@@ -37,7 +37,7 @@ trait BodyDecoder[A] {
   /** Decodes `body` into a value of type `A`, raising a non-empty `List[DecodingError]`
     * on failure. Implementations MUST NOT raise an empty list.
     *
-    * @param body the raw HTTP request body string
+    * @param body the raw HTTP message body string
     * @return the decoded value of type `A`
     */
   def decode(body: String): A raises List[DecodingError]

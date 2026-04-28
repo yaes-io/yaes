@@ -1,6 +1,6 @@
 package in.rcard.yaes.http.core
 
-/** Typeclass for encoding a value of type `A` into an HTTP response body.
+/** Typeclass for encoding a value of type `A` into an HTTP message body.
   *
   * Instances must provide a content type string and a function to serialize
   * the value to a `String`. Custom encoders can be defined by implementing
@@ -26,7 +26,7 @@ trait BodyEncoder[A] {
   /** The MIME content type produced by this encoder (e.g. `"text/plain; charset=UTF-8"`). */
   def contentType: String
 
-  /** Encodes `value` into its string representation for use as an HTTP response body.
+  /** Encodes `value` into its string representation for use as an HTTP message body.
     *
     * @param value the value to encode
     * @return the string representation of `value`
