@@ -33,7 +33,7 @@ class JsoniterInstancesSpec extends AnyFlatSpec with Matchers {
       """{"name":"Alice","address":{"street":"123 Main St","city":"Springfield"}}"""
   }
 
-  it should "resolve without a BodyDecoder in scope" in {
+  it should "resolve without a BodyDecoder import" in {
     case class EncodeOnly(value: String)
     given JsonValueCodec[EncodeOnly] = JsonCodecMaker.make
     assertCompiles("summon[BodyEncoder[EncodeOnly]]")
@@ -49,7 +49,7 @@ class JsoniterInstancesSpec extends AnyFlatSpec with Matchers {
     val dec    = summon[BodyDecoder[User]]
     val result = Raise.either[List[DecodingError], User] { dec.decode("not json at all") }
     result.isLeft shouldBe true
-    val errors = result.swap.getOrElse(Nil)
+    val errors = result.left.get
     errors.head shouldBe a[DecodingError.ParseError]
     errors.head.asInstanceOf[DecodingError.ParseError].cause shouldBe defined
   }
@@ -58,7 +58,7 @@ class JsoniterInstancesSpec extends AnyFlatSpec with Matchers {
     val dec    = summon[BodyDecoder[User]]
     val result = Raise.either[List[DecodingError], User] { dec.decode("""{"name":"Alice"}""") }
     result.isLeft shouldBe true
-    result.swap.getOrElse(Nil).head shouldBe a[DecodingError.ParseError]
+    result.left.get.head shouldBe a[DecodingError.ParseError]
   }
 
   it should "work with nested case classes" in {
@@ -68,7 +68,7 @@ class JsoniterInstancesSpec extends AnyFlatSpec with Matchers {
     result shouldBe Right(Person("Alice", Address("123 Main St", "Springfield")))
   }
 
-  it should "resolve without a BodyEncoder in scope" in {
+  it should "resolve without a BodyEncoder import" in {
     case class DecodeOnly(value: String)
     given JsonValueCodec[DecodeOnly] = JsonCodecMaker.make
     assertCompiles("summon[BodyDecoder[DecodeOnly]]")
