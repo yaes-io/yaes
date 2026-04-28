@@ -338,7 +338,11 @@ This ensures graceful shutdown even when the process is killed.
 
 ## Body Codecs (JSON, etc.)
 
-The server uses the `BodyCodec[A]` typeclass for automatic body encoding/decoding. Built-in codecs exist for `String`, `Int`, `Long`, `Double`, and `Boolean`. Decoding failures are raised via `Raise[List[DecodingError]]`, so all failures found in a single body can be surfaced together.
+The server uses two typeclasses for automatic body handling:
+- **`BodyEncoder[A]`** — used by `Response.ok`, `Response.created`, etc., to encode values into a body string and set the `Content-Type` header
+- **`BodyDecoder[A]`** — used by `Request.as[A]` to decode the request body; decoding failures are raised via `Raise[List[DecodingError]]` so all failures are surfaced together
+
+Built-in instances for both exist for `String`, `Int`, `Long`, `Double`, and `Boolean`.
 
 ```scala
 // Built-in codecs work automatically
@@ -354,7 +358,7 @@ POST(p"/echo") { req =>
 
 ### Custom JSON Codec Example
 
-To use JSON, implement `BodyCodec[A]` for your types:
+To use JSON, implement `BodyEncoder[A]` and/or `BodyDecoder[A]` for your types:
 
 ```scala
 // Example with circe (not included)
@@ -366,9 +370,12 @@ import io.circe.parser.decode
 
 case class User(id: Int, name: String)
 
-given BodyCodec[User] with {
+given BodyEncoder[User] with {
   def contentType: String = "application/json"
   def encode(user: User): String = user.asJson.noSpaces
+}
+
+given BodyDecoder[User] with {
   def decode(body: String): User raises List[DecodingError] =
     decode[User](body).fold(
       error => Raise.raise(List(DecodingError.ParseError(error.getMessage))),
@@ -379,12 +386,12 @@ given BodyCodec[User] with {
 // Use in routes
 GET(p"/users" / userId) { (req, id: Int) =>
   val user = User(id, "Alice")
-  Response.ok(user)  // Automatically encoded to JSON with application/json Content-Type
+  Response.ok(user)  // Requires BodyEncoder[User]; sets Content-Type: application/json
 }
 
 POST(p"/users") { req =>
   Raise.fold {
-    val user = req.as[User]  // Automatically decoded from JSON
+    val user = req.as[User]  // Requires BodyDecoder[User]; decoded from JSON
     Response.created(user)
   } { case errors: List[DecodingError] =>
     Response.badRequest(errors.map(_.message).mkString(", "))
@@ -392,7 +399,7 @@ POST(p"/users") { req =>
 }
 ```
 
-Note: JSON libraries (circe, upickle, zio-json, etc.) are not included. Choose your preferred library and implement the `BodyCodec` trait.
+Note: JSON libraries (circe, upickle, zio-json, etc.) are not included. Choose your preferred library and implement `BodyEncoder` and/or `BodyDecoder` as needed. For Circe, the `yaes-http-circe` module provides both automatically.
 
 ## Examples
 

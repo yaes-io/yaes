@@ -13,7 +13,7 @@ An effect-based HTTP client built on YAES effects and Java's `java.net.http.Http
 - **Effect integration** - Uses `Sync`, `Raise`, and `Resource` effects for structured error handling and lifecycle management
 - **Typed error hierarchy** - Separate `ConnectionError` (transport) and `HttpError` (HTTP status) error types
 - **Fluent builder API** - Immutable request construction with `header`, `queryParam`, and `timeout` extension methods
-- **Body codecs** - Automatic request/response body encoding and decoding via the `BodyCodec` typeclass
+- **Body codecs** - Request body encoding via `BodyEncoder` and response body decoding via `BodyDecoder`
 - **URI validation** - Opaque `Uri` type with construction-time validation via the `Raise` effect
 
 **Requirements:**
@@ -142,14 +142,14 @@ Raise.run[Uri.InvalidUri] {
   val delete  = HttpRequest.delete(uri)
   val options = HttpRequest.options(uri)
 
-  // Requests with a body (requires a BodyCodec in scope)
+  // Requests with a body (requires a BodyEncoder in scope)
   val post  = HttpRequest.post(uri, """{"name": "Alice"}""")
   val put   = HttpRequest.put(uri, """{"name": "Bob"}""")
   val patch = HttpRequest.patch(uri, """{"name": "Charlie"}""")
 }
 ```
 
-Methods with a body (`post`, `put`, `patch`) require a `BodyCodec[A]` in scope. The codec determines the `Content-Type` header and encodes the value to a string.
+Methods with a body (`post`, `put`, `patch`) require a `BodyEncoder[A]` in scope. The encoder determines the `Content-Type` header and encodes the value to a string.
 
 ### Fluent Builder API
 
@@ -178,7 +178,7 @@ Raise.run[Uri.InvalidUri] {
 
 All builder methods return a new `HttpRequest` — the original is not modified.
 
-> **Header behavior:** The `header` method can override headers set by `BodyCodec` (e.g., `Content-Type`). Header keys are always stored in lowercase.
+> **Header behavior:** The `header` method can override headers set by `BodyEncoder` (e.g., `Content-Type`). Header keys are always stored in lowercase.
 
 > **Query parameter encoding:** Query parameters are URL-encoded when appended to the URI at send time.
 
@@ -374,11 +374,11 @@ result match
 
 ## Body Codecs
 
-The client uses the `BodyCodec[A]` typeclass for encoding request bodies (in `post`, `put`, `patch`) and decoding response bodies (in `as[A]`). Built-in codecs exist for `String`, `Int`, `Long`, `Double`, and `Boolean`.
+The client uses `BodyEncoder[A]` for encoding request bodies (in `post`, `put`, `patch`) and `BodyDecoder[A]` for decoding response bodies (in `response.as[A]`). Built-in instances for both exist for `String`, `Int`, `Long`, `Double`, and `Boolean`.
 
 ### JSON with Circe
 
-For JSON support, add the `yaes-http-circe` module which provides automatic `BodyCodec` instances for types with Circe `Encoder` and `Decoder`:
+For JSON support, add the `yaes-http-circe` module which provides automatic `BodyEncoder` and `BodyDecoder` instances for types with Circe `Encoder` and `Decoder` respectively:
 
 ```scala
 libraryDependencies += "in.rcard.yaes" %% "yaes-http-circe" % "0.17.0"

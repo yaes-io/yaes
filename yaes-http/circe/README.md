@@ -7,7 +7,7 @@
 
 # λÆS HTTP Circe
 
-JSON body codec integration for the λÆS HTTP server using [Circe](https://circe.github.io/circe/). This module provides an automatic `BodyCodec[A]` instance for any type that has Circe `Encoder` and `Decoder` in scope, enabling seamless JSON request/response handling.
+JSON body encoder/decoder integration for the λÆS HTTP server using [Circe](https://circe.github.io/circe/). This module provides automatic `BodyEncoder[A]` and `BodyDecoder[A]` instances for any type that has the corresponding Circe `Encoder` or `Decoder` in scope, enabling seamless JSON request/response handling.
 
 ## Installation
 
@@ -25,7 +25,7 @@ libraryDependencies += "io.circe" %% "circe-generic" % "0.14.15"
 
 ## Quick Start
 
-Import the circe codecs and use typed request/response bodies in your routes:
+Import the circe encoder/decoder instances and use typed request/response bodies in your routes:
 
 ```scala
 import in.rcard.yaes.*
@@ -62,17 +62,17 @@ Shutdown.run {
 
 ## How It Works
 
-The module provides a single `given` instance:
+The module provides two separate `given` instances:
 
 ```scala
-given circeBodyCodec[A](using Encoder[A], Decoder[A]): BodyCodec[A]
+given circeBodyEncoder[A](using Encoder[A]): BodyEncoder[A]
+given circeBodyDecoder[A](using Decoder[A]): BodyDecoder[A]
 ```
 
-For any type `A` with both a Circe `Encoder` and `Decoder` in scope, a `BodyCodec[A]` is automatically derived. Decoding errors are raised as a non-empty `List[DecodingError]`, so all failures found in a single body are surfaced together. This codec:
+Each instance is gated on a single Circe constraint, so you can bring only what you need into scope. Importing `in.rcard.yaes.http.circe.given` brings both into scope at once.
 
-- **Encodes** values as compact JSON using `asJson.noSpaces`
-- **Sets** the `Content-Type` header to `application/json`
-- **Decodes** JSON bodies using Circe's parser, mapping parse failures (`ParsingFailure`) to `DecodingError.ParseError` and decoding/schema failures (`DecodingFailure`) to `DecodingError.ValidationError`
+- **`circeBodyEncoder`**: encodes values as compact JSON using `asJson.noSpaces` and sets the `Content-Type` header to `application/json`
+- **`circeBodyDecoder`**: decodes JSON bodies using Circe's parser, mapping parse failures (`ParsingFailure`) to `DecodingError.ParseError` and decoding/schema failures (`DecodingFailure`) to `DecodingError.ValidationError`; all failures are raised as a non-empty `List[DecodingError]`
 
 ## Derivation Strategies
 
@@ -103,9 +103,12 @@ Both strategies work with nested structures:
 case class Address(street: String, city: String) derives Encoder.AsObject, Decoder
 case class Person(name: String, address: Address) derives Encoder.AsObject, Decoder
 
-val codec = summon[BodyCodec[Person]]
-codec.encode(Person("Alice", Address("123 Main St", "Springfield")))
+val encoder = summon[BodyEncoder[Person]]
+encoder.encode(Person("Alice", Address("123 Main St", "Springfield")))
 // {"name":"Alice","address":{"street":"123 Main St","city":"Springfield"}}
+
+val decoder = summon[BodyDecoder[Person]]
+// decoder.decode(body) raises List[DecodingError] on failure
 ```
 
 ## Error Handling
@@ -131,7 +134,7 @@ Common failure scenarios:
 
 - **Java 25+**: Required by λÆS for virtual threads and structured concurrency
 - **Scala 3.8.1+**: Uses Scala 3 features (context functions, derives clauses, etc.)
-- **yaes-http-server**: Depends on the HTTP server module for `BodyCodec` and `DecodingError`
+- **yaes-http-server**: Depends on the HTTP server module for `BodyEncoder`, `BodyDecoder`, and `DecodingError`
 
 ## Contributing
 

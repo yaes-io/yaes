@@ -344,11 +344,11 @@ GET(p"/download") { req =>
 
 ## Body Codecs
 
-Body codecs enable automatic encoding and decoding of request and response bodies.
+Body codecs enable automatic encoding and decoding of request and response bodies. The server uses `BodyEncoder[A]` (for response encoding) and `BodyDecoder[A]` (for request decoding) as separate typeclasses.
 
 ### Built-in Codecs
 
-The following types have built-in codecs:
+The following types have built-in `BodyEncoder` and `BodyDecoder` instances:
 
 | Type | Encoding | Decoding |
 |------|----------|----------|
@@ -382,17 +382,20 @@ POST(p"/update") { req =>
 
 ### Custom Codecs
 
-Implement the `BodyCodec[A]` trait for custom types:
+Implement `BodyEncoder[A]` for encoding (used by `Response.ok` etc.) and `BodyDecoder[A]` for decoding (used by `req.as[A]`):
 
 ```scala
-trait BodyCodec[A] {
+trait BodyEncoder[A] {
   def contentType: String  // Content-Type header value
   def encode(value: A): String
+}
+
+trait BodyDecoder[A] {
   def decode(body: String): A raises List[DecodingError]
 }
 ```
 
-**Example - JSON codec using an external library:**
+**Example - JSON encoder/decoder using an external library:**
 
 ```scala
 import in.rcard.yaes.{Raise, raises}
@@ -403,13 +406,14 @@ import io.circe.syntax.*
 // Define your domain type
 case class User(id: Int, name: String)
 
-// Implement BodyCodec
-given userCodec: BodyCodec[User] with {
+// Implement BodyEncoder (used by Response.ok, Response.created, etc.)
+given BodyEncoder[User] with {
   def contentType: String = "application/json"
+  def encode(user: User): String = user.asJson.noSpaces
+}
 
-  def encode(user: User): String =
-    user.asJson.noSpaces  // Using circe encoder
-
+// Implement BodyDecoder (used by req.as[User])
+given BodyDecoder[User] with {
   def decode(body: String): User raises List[DecodingError] =
     decode[User](body).fold(
       error => Raise.raise(List(DecodingError.ParseError(error.getMessage))),
@@ -417,7 +421,7 @@ given userCodec: BodyCodec[User] with {
     )
 }
 
-// Use in routes - Content-Type is automatically set from codec
+// Use in routes - Content-Type is automatically set from the encoder
 POST(p"/users") { req =>
   Raise.fold {
     val user = req.as[User]
@@ -428,7 +432,7 @@ POST(p"/users") { req =>
 }
 ```
 
-> **Note:** JSON codec libraries (circe, upickle, zio-json, etc.) are not included. Choose your preferred library and implement the `BodyCodec` trait. See [JSON with Circe](/yaes/http/circe/) for a ready-made integration.
+> **Note:** JSON codec libraries (circe, upickle, zio-json, etc.) are not included. Choose your preferred library and implement `BodyEncoder` and/or `BodyDecoder` as needed. See [JSON with Circe](/yaes/http/circe/) for a ready-made integration.
 
 ---
 

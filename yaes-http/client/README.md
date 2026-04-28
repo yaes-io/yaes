@@ -27,7 +27,7 @@ libraryDependencies += "in.rcard.yaes" %% "yaes-http-client" % "0.17.0"
 - **Effect Integration**: Uses `Sync`, `Raise`, and `Resource` effects for structured error handling and lifecycle management
 - **Typed Error Hierarchy**: Separate `ConnectionError` (transport) and `HttpError` (HTTP status) types
 - **Fluent Builder API**: Immutable request building with `header`, `queryParam`, and `timeout` extension methods
-- **Body Codecs**: Automatic request/response body encoding and decoding via the `BodyCodec` typeclass
+- **Body Codecs**: Request body encoding via `BodyEncoder` and response body decoding via `BodyDecoder`
 - **URI Validation**: Opaque `Uri` type with compile-time-safe construction via the `Raise` effect
 - **Configurable**: Connect timeout, redirect policy, and HTTP version selection
 
@@ -121,7 +121,7 @@ Raise.run[Uri.InvalidUri] {
   val delete  = HttpRequest.delete(uri)
   val options = HttpRequest.options(uri)
 
-  // Requests with a body (requires a BodyCodec in scope)
+  // Requests with a body (requires a BodyEncoder in scope)
   val post  = HttpRequest.post(uri, """{"name": "Alice"}""")
   val put   = HttpRequest.put(uri, """{"name": "Bob"}""")
   val patch = HttpRequest.patch(uri, """{"name": "Charlie"}""")
@@ -307,9 +307,9 @@ result match
 
 ## Body Codecs
 
-The client uses the `BodyCodec[A]` typeclass for encoding request bodies and decoding response bodies. Built-in codecs exist for `String`, `Int`, `Long`, `Double`, and `Boolean`.
+The client uses `BodyEncoder[A]` for encoding request bodies (in `post`, `put`, `patch`) and `BodyDecoder[A]` for decoding response bodies (in `response.as[A]`). Built-in instances for both exist for `String`, `Int`, `Long`, `Double`, and `Boolean`.
 
-For JSON support, use the `yaes-http-circe` module which provides automatic `BodyCodec` instances for types with Circe `Encoder` and `Decoder`:
+For JSON support, use the `yaes-http-circe` module which provides automatic `BodyEncoder` and `BodyDecoder` instances for types with Circe `Encoder` and `Decoder` respectively:
 
 ```scala
 libraryDependencies += "in.rcard.yaes" %% "yaes-http-circe" % "0.17.0"
