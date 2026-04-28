@@ -1,6 +1,6 @@
 package in.rcard.yaes.http.server
 
-import in.rcard.yaes.http.core.BodyCodec
+import in.rcard.yaes.http.core.BodyEncoder
 
 /** HTTP response representation.
   *
@@ -37,9 +37,9 @@ object Response {
     *
     * Example:
     * {{{
-    * Response.ok("Hello, World!")  // Uses BodyCodec[String] for text/plain
-    * Response.ok(user)              // Uses BodyCodec[User] with application/json
-    * Response.ok(42)                // Uses BodyCodec[Int] for text/plain
+    * Response.ok("Hello, World!")  // Uses BodyEncoder[String] for text/plain
+    * Response.ok(user)              // Uses BodyEncoder[User] with application/json
+    * Response.ok(42)                // Uses BodyEncoder[Int] for text/plain
     * }}}
     *
     * @param value
@@ -49,7 +49,7 @@ object Response {
     * @return
     *   A Response with status 200 and appropriate Content-Type
     */
-  def ok[A](value: A)(using codec: BodyCodec[A]): Response =
+  def ok[A](value: A)(using codec: BodyEncoder[A]): Response =
     Response(
       status = 200,
       headers = Map("Content-Type" -> codec.contentType),
@@ -65,7 +65,7 @@ object Response {
     * @return
     *   A Response with status 201 and appropriate Content-Type
     */
-  def created[A](value: A)(using codec: BodyCodec[A]): Response =
+  def created[A](value: A)(using codec: BodyEncoder[A]): Response =
     Response(
       status = 201,
       headers = Map("Content-Type" -> codec.contentType),
@@ -81,7 +81,7 @@ object Response {
     * @return
     *   A Response with status 202 and appropriate Content-Type
     */
-  def accepted[A](value: A)(using codec: BodyCodec[A]): Response =
+  def accepted[A](value: A)(using codec: BodyEncoder[A]): Response =
     Response(
       status = 202,
       headers = Map("Content-Type" -> codec.contentType),
@@ -105,7 +105,7 @@ object Response {
     * @return
     *   A Response with status 400 and appropriate Content-Type
     */
-  def badRequest[A](value: A)(using codec: BodyCodec[A]): Response =
+  def badRequest[A](value: A)(using codec: BodyEncoder[A]): Response =
     Response(
       status = 400,
       headers = Map("Content-Type" -> codec.contentType),
@@ -121,7 +121,7 @@ object Response {
     * @return
     *   A Response with status 404 and appropriate Content-Type
     */
-  def notFound[A](value: A)(using codec: BodyCodec[A]): Response =
+  def notFound[A](value: A)(using codec: BodyEncoder[A]): Response =
     Response(
       status = 404,
       headers = Map("Content-Type" -> codec.contentType),
@@ -137,7 +137,7 @@ object Response {
     * @return
     *   A Response with status 500 and appropriate Content-Type
     */
-  def internalServerError[A](value: A)(using codec: BodyCodec[A]): Response =
+  def internalServerError[A](value: A)(using codec: BodyEncoder[A]): Response =
     Response(
       status = 500,
       headers = Map("Content-Type" -> codec.contentType),
@@ -156,7 +156,7 @@ object Response {
     * @return
     *   A Response with status 503 and appropriate Content-Type
     */
-  def serviceUnavailable[A](value: A)(using codec: BodyCodec[A]): Response =
+  def serviceUnavailable[A](value: A)(using codec: BodyEncoder[A]): Response =
     Response(
       status = 503,
       headers = Map("Content-Type" -> codec.contentType),

@@ -2,7 +2,7 @@ package in.rcard.yaes.http.server
 
 
 import in.rcard.yaes.*
-import in.rcard.yaes.http.core.{BodyCodec, DecodingError, Method}
+import in.rcard.yaes.http.core.{BodyDecoder, DecodingError, Method}
 /** HTTP request representation.
   *
   * Immutable case class representing an incoming HTTP request. This is a simplified model focusing
@@ -65,7 +65,7 @@ object Request {
       * @return
       *   The decoded value
       */
-    def as[A](using codec: BodyCodec[A]): A raises List[DecodingError] =
+    def as[A](using codec: BodyDecoder[A]): A raises List[DecodingError] =
       codec.decode(req.body)
 
     /** Get a header value by name (case-insensitive).
