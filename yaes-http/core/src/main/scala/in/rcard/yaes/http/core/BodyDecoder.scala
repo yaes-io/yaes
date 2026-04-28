@@ -88,7 +88,7 @@ object BodyDecoder {
 
   /** Built-in `BodyDecoder` for `Boolean` values.
     *
-    * Accepts `"true"` and `"false"` (case-sensitive).
+    * Accepts `"true"` and `"false"` (case-insensitive).
     * Raises `List(DecodingError.ParseError(...))` for any other input.
     */
   given BodyDecoder[Boolean] with {
