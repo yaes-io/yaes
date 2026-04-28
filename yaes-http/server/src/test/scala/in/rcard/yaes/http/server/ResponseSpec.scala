@@ -82,12 +82,12 @@ class ResponseSpec extends AnyFlatSpec with Matchers {
   "Response case class" should "allow custom headers" in {
     val response = Response(
       status = 200,
-      headers = Map("X-Custom" -> "value", Headers.ContentType -> "application/json"),
+      headers = Map("x-custom" -> "value", Headers.ContentType -> "application/json"),
       body = """{"key": "value"}"""
     )
 
     response.status shouldBe 200
-    response.headers should contain("X-Custom" -> "value")
+    response.headers should contain("x-custom" -> "value")
     response.headers should contain(Headers.ContentType -> "application/json")
   }
 
