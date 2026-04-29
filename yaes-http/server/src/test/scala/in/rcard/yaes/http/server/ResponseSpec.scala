@@ -135,7 +135,15 @@ class ResponseSpec extends AnyFlatSpec with Matchers {
     response.headers should contain("x-trace-id" -> "t123")
   }
 
-  "Response.serviceUnavailable" should "add extra headers" in {
+  "Response.serviceUnavailable" should "create a 503 response" in {
+    val response = Response.serviceUnavailable("Try again later")
+
+    response.status shouldBe 503
+    response.body shouldBe "Try again later"
+    response.headers should contain(Headers.ContentType -> "text/plain; charset=UTF-8")
+  }
+
+  it should "add extra headers" in {
     val response = Response.serviceUnavailable("unavailable", extraHeaders = Map("retry-after" -> "30"))
 
     response.status shouldBe 503
