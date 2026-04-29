@@ -58,21 +58,6 @@ class MySpec extends AnyFlatSpec with Matchers with RaiseSpec {
 - `failOnRaise` failure: `Expected the test not to raise any errors but it did with error '<error>'`
 - `interceptRaised` failure: `Expected an error to be raised but body evaluated successfully`
 
-## How It Works
-
-Both methods use `Raise.either` internally. No `ClassTag` is required, and union error types (e.g., `String | Int`) are fully supported.
-
-```scala
-def failOnRaise[E, A](body: Raise[E] ?=> A): A =
-  Raise.either[E, A](body) match {
-    case Right(a) => a
-    case Left(e)  => throw new TestFailedException(
-        s"Expected the test not to raise any errors but it did with error '$e'",
-        1
-      )
-  }
-```
-
 ## Requirements
 
 - **Java 25+**: Required by λÆS for virtual threads and structured concurrency
