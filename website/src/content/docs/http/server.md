@@ -301,7 +301,7 @@ case class Response(
 
 **Helper constructors for common status codes:**
 
-All factory methods accept an optional `extraHeaders: Map[String, String] = Map.empty` parameter. The encoder sets `Content-Type` by default; values in `extraHeaders` win on collision.
+All factory methods accept an optional `extraHeaders: Map[String, String] = Map.empty` parameter. Methods that encode a body set `Content-Type` via the encoder; `extraHeaders` wins on collision. `noContent` carries only the headers you provide.
 
 | Method | Status Code | Use Case |
 |--------|-------------|----------|

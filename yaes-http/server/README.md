@@ -225,7 +225,7 @@ Response(
 
 **Adding extra headers to factory methods:**
 
-All factory methods accept an optional `extraHeaders: Map[String, String] = Map.empty` parameter. The encoder sets `Content-Type` by default; `extraHeaders` wins on collision.
+All factory methods accept an optional `extraHeaders: Map[String, String] = Map.empty` parameter. Methods that encode a body set `Content-Type` via the encoder; `extraHeaders` wins on collision. `noContent` carries only the headers you provide.
 
 ```scala
 // 201 with Location header
