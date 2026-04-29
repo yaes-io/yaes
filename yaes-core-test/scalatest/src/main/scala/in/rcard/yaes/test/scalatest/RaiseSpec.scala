@@ -58,7 +58,7 @@ trait RaiseSpec {
       case Right(a) => a
       case Left(e)  => throw new TestFailedException(
           s"Expected the test not to raise any errors but it did with error '$e'",
-          0
+          1
         )
     }
 
@@ -89,7 +89,7 @@ trait RaiseSpec {
       case Left(e)  => e
       case Right(_) => throw new TestFailedException(
           "Expected an error to be raised but body evaluated successfully",
-          0
+          1
         )
     }
 }
