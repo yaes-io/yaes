@@ -57,6 +57,20 @@ lazy val `yaes-slf4j` = project
     libraryDependencies ++= commonDependencies ++ slf4jDependencies
   )
 
+lazy val `yaes-core-test` = project
+  .aggregate(`yaes-core-test-scalatest`)
+  .settings(scalaVersion := scala3Version)
+
+lazy val `yaes-core-test-scalatest` = project
+  .in(file("yaes-core-test/scalatest"))
+  .dependsOn(`yaes-core`)
+  .settings(commonSettings)
+  .settings(
+    name         := "yaes-core-test-scalatest",
+    scalaVersion := scala3Version,
+    libraryDependencies ++= Seq(dependencies.scalatest)
+  )
+
 lazy val `yaes-http` = project
   .aggregate(core, server, client, circe, jsoniter)
   .settings(scalaVersion := scala3Version)
@@ -113,7 +127,7 @@ lazy val server = project
   )
 
 lazy val yaes = (project in file("."))
-  .aggregate(`yaes-core`, `yaes-data`, `yaes-cats`, `yaes-slf4j`, `yaes-http`)
+  .aggregate(`yaes-core`, `yaes-data`, `yaes-cats`, `yaes-slf4j`, `yaes-http`, `yaes-core-test`)
   .settings(
     scalaVersion := scala3Version,
     Global / concurrentRestrictions += Tags.limit(Tags.Test, 1)
