@@ -204,13 +204,16 @@ case class Response(
   body: String = ""
 )
 
-// Helper constructors
-Response.ok(body)                      // 200
-Response.created(body)                 // 201
-Response.noContent()                   // 204
-Response.badRequest(message)           // 400
-Response.notFound(message)             // 404
-Response.internalServerError(message)  // 500
+// Helper constructors (all accept optional extraHeaders: Map[String, String] = Map.empty)
+Response.ok(body)                                                      // 200
+Response.created(body)                                                 // 201
+Response.accepted(body)                                                // 202
+Response.noContent()                                                   // 204
+Response.badRequest(message)                                           // 400
+Response.notFound(message)                                             // 404
+Response.internalServerError(message)                                  // 500
+Response.serviceUnavailable(message)                                   // 503
+Response.withStatus(status, value)                                     // any status code
 
 // Custom response
 Response(
@@ -218,6 +221,24 @@ Response(
   headers = Map("Location" -> "/users/123"),
   body = """{"id": 123, "name": "Alice"}"""
 )
+```
+
+**Adding extra headers to factory methods:**
+
+All factory methods accept an optional `extraHeaders: Map[String, String] = Map.empty` parameter. The encoder sets `Content-Type` by default; `extraHeaders` wins on collision.
+
+```scala
+// 201 with Location header
+Response.created(user, extraHeaders = Map("location" -> s"/users/${user.id}"))
+
+// 301 redirect using withStatus (status codes not covered by convenience methods)
+Response.withStatus(301, "", extraHeaders = Map("location" -> "/new-path"))
+
+// 204 with ETag
+Response.noContent(extraHeaders = Map("etag" -> "\"abc123\""))
+
+// Override Content-Type explicitly (caller wins)
+Response.ok(rawJson, extraHeaders = Map(Headers.ContentType -> "application/json"))
 ```
 
 ### HTTP Methods

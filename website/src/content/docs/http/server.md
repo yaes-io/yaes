@@ -301,6 +301,8 @@ case class Response(
 
 **Helper constructors for common status codes:**
 
+All factory methods accept an optional `extraHeaders: Map[String, String] = Map.empty` parameter. The encoder sets `Content-Type` by default; values in `extraHeaders` win on collision.
+
 | Method | Status Code | Use Case |
 |--------|-------------|----------|
 | `Response.ok(body)` | 200 OK | Successful request |
@@ -311,6 +313,23 @@ case class Response(
 | `Response.notFound(message)` | 404 Not Found | Resource not found |
 | `Response.internalServerError(message)` | 500 Internal Server Error | Server error |
 | `Response.serviceUnavailable(message)` | 503 Service Unavailable | Server shutting down |
+| `Response.withStatus(status, value)` | any | Status codes not covered above |
+
+**Adding extra headers:**
+
+```scala
+// 201 with Location header
+Response.created(user, extraHeaders = Map("location" -> s"/users/${user.id}"))
+
+// 301 redirect — use withStatus for codes not covered by convenience methods
+Response.withStatus(301, "", extraHeaders = Map("location" -> "/new-path"))
+
+// 204 with ETag
+Response.noContent(extraHeaders = Map("etag" -> "\"abc123\""))
+
+// Override Content-Type explicitly (caller wins over encoder default)
+Response.ok(rawJson, extraHeaders = Map(Headers.ContentType -> "application/json"))
+```
 
 **Building custom responses:**
 
