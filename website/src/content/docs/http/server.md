@@ -329,7 +329,7 @@ Response.ok(rawJson, extraHeaders = Map(Headers.ContentType -> "application/json
 POST(p"/users") { req =>
   // Custom status code with extra headers via withStatus
   Response.withStatus(201, """{"id": 123, "name": "Alice"}""",
-    extraHeaders = Map("location" -> "/users/123")
+    extraHeaders = Map("location" -> "/users/123", "content-type" -> "application/json")
   )
 }
 
@@ -867,29 +867,21 @@ object MyApiServer {
             // List all users
             GET(p"/users") { req =>
               val users = """[{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}]"""
-              Response(
-                status = 200,
-                headers = Map("Content-Type" -> "application/json"),
-                body = users
-              )
+              Response.ok(users, extraHeaders = Map("content-type" -> "application/json"))
             },
 
             // Get user by ID
             GET(p"/users" / userId) { (req, id: Int) =>
-              Response(
-                status = 200,
-                headers = Map("Content-Type" -> "application/json"),
-                body = s"""{"id": $id, "name": "User $id"}"""
+              Response.ok(s"""{"id": $id, "name": "User $id"}""",
+                extraHeaders = Map("content-type" -> "application/json")
               )
             },
 
             // Search users with query parameter
             GET(p"/users/search" ? queryParam[String]("q")) { req =>
               val query = req.queryParam("q").getOrElse("")
-              Response(
-                status = 200,
-                headers = Map("Content-Type" -> "application/json"),
-                body = s"""{"query": "$query", "results": []}"""
+              Response.ok(s"""{"query": "$query", "results": []}""",
+                extraHeaders = Map("content-type" -> "application/json")
               )
             },
 
@@ -897,22 +889,18 @@ object MyApiServer {
             POST(p"/users") { req =>
               // In real app, parse req.body and save to database
               val newUserId = 123
-              Response(
-                status = 201,
-                headers = Map(
-                  "Content-Type" -> "application/json",
-                  "Location" -> s"/users/$newUserId"
-                ),
-                body = s"""{"id": $newUserId, "name": "New User"}"""
+              Response.withStatus(201, s"""{"id": $newUserId, "name": "New User"}""",
+                extraHeaders = Map(
+                  "content-type" -> "application/json",
+                  "location"     -> s"/users/$newUserId"
+                )
               )
             },
 
             // Update user
             PUT(p"/users" / userId) { (req, id: Int) =>
-              Response(
-                status = 200,
-                headers = Map("Content-Type" -> "application/json"),
-                body = s"""{"id": $id, "name": "Updated User"}"""
+              Response.ok(s"""{"id": $id, "name": "Updated User"}""",
+                extraHeaders = Map("content-type" -> "application/json")
               )
             },
 
@@ -924,10 +912,8 @@ object MyApiServer {
             // Get user posts with pagination
             GET(p"/users" / userId / "posts" ? queryParam[Option[Int]]("page")) { (req, uid: Int) =>
               val page = req.queryParam("page").flatMap(_.toIntOption).getOrElse(1)
-              Response(
-                status = 200,
-                headers = Map("Content-Type" -> "application/json"),
-                body = s"""{"userId": $uid, "page": $page, "posts": []}"""
+              Response.ok(s"""{"userId": $uid, "page": $page, "posts": []}""",
+                extraHeaders = Map("content-type" -> "application/json")
               )
             }
           )

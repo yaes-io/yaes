@@ -210,7 +210,8 @@ Response.serviceUnavailable(message)                                   // 503
 Response.withStatus(status, value)                                     // any status code
 
 // Custom status code with extra headers
-Response.withStatus(201, """{"id": 123, "name": "Alice"}""", extraHeaders = Map("location" -> "/users/123"))
+Response.withStatus(201, """{"id": 123, "name": "Alice"}""",
+  extraHeaders = Map("location" -> "/users/123", "content-type" -> "application/json"))
 ```
 
 **Adding extra headers to factory methods:**
@@ -436,19 +437,15 @@ object MyServer extends App {
 
           // List users
           GET(p"/users") { req =>
-            Response(
-              status = 200,
-              headers = Map("Content-Type" -> "application/json"),
-              body = """[{"id": 1, "name": "Alice"}]"""
+            Response.ok("""[{"id": 1, "name": "Alice"}]""",
+              extraHeaders = Map("content-type" -> "application/json")
             )
           },
 
           // Get user by ID
           GET(p"/users" / userId) { (req, id: Int) =>
-            Response(
-              status = 200,
-              headers = Map("Content-Type" -> "application/json"),
-              body = s"""{"id": $id, "name": "User $id"}"""
+            Response.ok(s"""{"id": $id, "name": "User $id"}""",
+              extraHeaders = Map("content-type" -> "application/json")
             )
           },
 
@@ -461,13 +458,11 @@ object MyServer extends App {
           // Create user
           POST(p"/users") { req =>
             // Parse req.body and create user...
-            Response(
-              status = 201,
-              headers = Map(
-                "Content-Type" -> "application/json",
-                "Location" -> "/users/123"
-              ),
-              body = """{"id": 123, "name": "New User"}"""
+            Response.withStatus(201, """{"id": 123, "name": "New User"}""",
+              extraHeaders = Map(
+                "content-type" -> "application/json",
+                "location"     -> "/users/123"
+              )
             )
           }
         )
