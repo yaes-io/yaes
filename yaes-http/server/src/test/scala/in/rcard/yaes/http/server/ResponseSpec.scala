@@ -25,11 +25,12 @@ class ResponseSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "add extra headers to the response" in {
-    val response = Response.ok("Hello!", extraHeaders = Map("x-request-id" -> "abc123"))
+    val response = Response.ok("Hello!", extraHeaders = Map("X-Request-Id" -> "abc123"))
 
     response.status shouldBe 200
     response.headers should contain(Headers.ContentType -> "text/plain; charset=UTF-8")
     response.headers should contain("x-request-id" -> "abc123")
+    response.headers.count { case (name, _) => name.equalsIgnoreCase("x-request-id") } shouldBe 1
   }
 
   it should "override Content-Type via extraHeaders" in {
