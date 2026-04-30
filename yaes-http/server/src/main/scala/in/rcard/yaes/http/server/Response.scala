@@ -23,7 +23,7 @@ import in.rcard.yaes.http.core.Headers
   * @param body
   *   Response body as a String
   */
-case class Response(
+case class Response private[server] (
     status: Int,
     headers: Map[String, String] = Map.empty,
     body: String = ""
@@ -54,7 +54,7 @@ object Response {
     * @return
     *   A Response with status 200 and appropriate Content-Type
     */
-  def ok[A](value: A, extraHeaders: Map[String, String] = Map.empty)(using encoder: BodyEncoder[A]): Response =
+  inline def ok[A](value: A, extraHeaders: Map[String, String] = Map.empty)(using encoder: BodyEncoder[A]): Response =
     withStatus(200, value, extraHeaders)
 
   /** Creates a 201 Created response with encoded body.
@@ -75,7 +75,7 @@ object Response {
     * @return
     *   A Response with status 201 and appropriate Content-Type
     */
-  def created[A](value: A, extraHeaders: Map[String, String] = Map.empty)(using encoder: BodyEncoder[A]): Response =
+  inline def created[A](value: A, extraHeaders: Map[String, String] = Map.empty)(using encoder: BodyEncoder[A]): Response =
     withStatus(201, value, extraHeaders)
 
   /** Creates a 202 Accepted response with encoded body.
@@ -96,7 +96,7 @@ object Response {
     * @return
     *   A Response with status 202 and appropriate Content-Type
     */
-  def accepted[A](value: A, extraHeaders: Map[String, String] = Map.empty)(using encoder: BodyEncoder[A]): Response =
+  inline def accepted[A](value: A, extraHeaders: Map[String, String] = Map.empty)(using encoder: BodyEncoder[A]): Response =
     withStatus(202, value, extraHeaders)
 
   /** Creates a 204 No Content response.
@@ -113,7 +113,7 @@ object Response {
     * @return
     *   A Response with status 204 and empty body
     */
-  def noContent(extraHeaders: Map[String, String] = Map.empty): Response =
+  inline def noContent(extraHeaders: Map[String, String] = Map.empty): Response =
     Response(status = 204, headers = extraHeaders.map((k, v) => k.toLowerCase -> v))
 
   /** Creates a 400 Bad Request response.
@@ -129,7 +129,7 @@ object Response {
     * @return
     *   A Response with status 400 and appropriate Content-Type
     */
-  def badRequest[A](value: A, extraHeaders: Map[String, String] = Map.empty)(using encoder: BodyEncoder[A]): Response =
+  inline def badRequest[A](value: A, extraHeaders: Map[String, String] = Map.empty)(using encoder: BodyEncoder[A]): Response =
     withStatus(400, value, extraHeaders)
 
   /** Creates a 404 Not Found response.
@@ -145,7 +145,7 @@ object Response {
     * @return
     *   A Response with status 404 and appropriate Content-Type
     */
-  def notFound[A](value: A, extraHeaders: Map[String, String] = Map.empty)(using encoder: BodyEncoder[A]): Response =
+  inline def notFound[A](value: A, extraHeaders: Map[String, String] = Map.empty)(using encoder: BodyEncoder[A]): Response =
     withStatus(404, value, extraHeaders)
 
   /** Creates a 500 Internal Server Error response.
@@ -161,7 +161,7 @@ object Response {
     * @return
     *   A Response with status 500 and appropriate Content-Type
     */
-  def internalServerError[A](value: A, extraHeaders: Map[String, String] = Map.empty)(using encoder: BodyEncoder[A]): Response =
+  inline def internalServerError[A](value: A, extraHeaders: Map[String, String] = Map.empty)(using encoder: BodyEncoder[A]): Response =
     withStatus(500, value, extraHeaders)
 
   /** Creates a 503 Service Unavailable response.
@@ -184,7 +184,7 @@ object Response {
     * @return
     *   A Response with status 503 and appropriate Content-Type
     */
-  def serviceUnavailable[A](value: A, extraHeaders: Map[String, String] = Map.empty)(using encoder: BodyEncoder[A]): Response =
+  inline def serviceUnavailable[A](value: A, extraHeaders: Map[String, String] = Map.empty)(using encoder: BodyEncoder[A]): Response =
     withStatus(503, value, extraHeaders)
 
   /** Creates a response with any HTTP status code.
