@@ -55,11 +55,7 @@ object Response {
     *   A Response with status 200 and appropriate Content-Type
     */
   def ok[A](value: A, extraHeaders: Map[String, String] = Map.empty)(using encoder: BodyEncoder[A]): Response =
-    Response(
-      status = 200,
-      headers = Map(Headers.ContentType -> encoder.contentType) ++ extraHeaders.map((k, v) => k.toLowerCase -> v),
-      body = encoder.encode(value)
-    )
+    withStatus(200, value, extraHeaders)
 
   /** Creates a 201 Created response with encoded body.
     *
@@ -80,11 +76,7 @@ object Response {
     *   A Response with status 201 and appropriate Content-Type
     */
   def created[A](value: A, extraHeaders: Map[String, String] = Map.empty)(using encoder: BodyEncoder[A]): Response =
-    Response(
-      status = 201,
-      headers = Map(Headers.ContentType -> encoder.contentType) ++ extraHeaders.map((k, v) => k.toLowerCase -> v),
-      body = encoder.encode(value)
-    )
+    withStatus(201, value, extraHeaders)
 
   /** Creates a 202 Accepted response with encoded body.
     *
@@ -105,11 +97,7 @@ object Response {
     *   A Response with status 202 and appropriate Content-Type
     */
   def accepted[A](value: A, extraHeaders: Map[String, String] = Map.empty)(using encoder: BodyEncoder[A]): Response =
-    Response(
-      status = 202,
-      headers = Map(Headers.ContentType -> encoder.contentType) ++ extraHeaders.map((k, v) => k.toLowerCase -> v),
-      body = encoder.encode(value)
-    )
+    withStatus(202, value, extraHeaders)
 
   /** Creates a 204 No Content response.
     *
@@ -142,11 +130,7 @@ object Response {
     *   A Response with status 400 and appropriate Content-Type
     */
   def badRequest[A](value: A, extraHeaders: Map[String, String] = Map.empty)(using encoder: BodyEncoder[A]): Response =
-    Response(
-      status = 400,
-      headers = Map(Headers.ContentType -> encoder.contentType) ++ extraHeaders.map((k, v) => k.toLowerCase -> v),
-      body = encoder.encode(value)
-    )
+    withStatus(400, value, extraHeaders)
 
   /** Creates a 404 Not Found response.
     *
@@ -162,11 +146,7 @@ object Response {
     *   A Response with status 404 and appropriate Content-Type
     */
   def notFound[A](value: A, extraHeaders: Map[String, String] = Map.empty)(using encoder: BodyEncoder[A]): Response =
-    Response(
-      status = 404,
-      headers = Map(Headers.ContentType -> encoder.contentType) ++ extraHeaders.map((k, v) => k.toLowerCase -> v),
-      body = encoder.encode(value)
-    )
+    withStatus(404, value, extraHeaders)
 
   /** Creates a 500 Internal Server Error response.
     *
@@ -182,11 +162,7 @@ object Response {
     *   A Response with status 500 and appropriate Content-Type
     */
   def internalServerError[A](value: A, extraHeaders: Map[String, String] = Map.empty)(using encoder: BodyEncoder[A]): Response =
-    Response(
-      status = 500,
-      headers = Map(Headers.ContentType -> encoder.contentType) ++ extraHeaders.map((k, v) => k.toLowerCase -> v),
-      body = encoder.encode(value)
-    )
+    withStatus(500, value, extraHeaders)
 
   /** Creates a 503 Service Unavailable response.
     *
@@ -209,16 +185,13 @@ object Response {
     *   A Response with status 503 and appropriate Content-Type
     */
   def serviceUnavailable[A](value: A, extraHeaders: Map[String, String] = Map.empty)(using encoder: BodyEncoder[A]): Response =
-    Response(
-      status = 503,
-      headers = Map(Headers.ContentType -> encoder.contentType) ++ extraHeaders.map((k, v) => k.toLowerCase -> v),
-      body = encoder.encode(value)
-    )
+    withStatus(503, value, extraHeaders)
 
   /** Creates a response with any HTTP status code.
     *
     * Covers status codes not provided by the convenience methods (301, 206, 418, etc.).
     * If `extraHeaders` contains `Content-Type`, the caller's value overrides the encoder default.
+    * Header names in `extraHeaders` are normalized to lowercase automatically.
     *
     * Example:
     * {{{
