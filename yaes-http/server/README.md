@@ -198,13 +198,7 @@ req.body            // Request body as String
 ### Response
 
 ```scala
-case class Response(
-  status: Int,
-  headers: Map[String, String] = Map.empty,
-  body: String = ""
-)
-
-// Helper constructors (all accept optional extraHeaders: Map[String, String] = Map.empty)
+// All factory methods accept optional extraHeaders: Map[String, String] = Map.empty
 Response.ok(body)                                                      // 200
 Response.created(body)                                                 // 201
 Response.accepted(body)                                                // 202

@@ -289,17 +289,9 @@ GET(p"/debug") { req =>
 
 ### Response
 
-Build HTTP responses using the `Response` case class:
+Build HTTP responses using factory methods on the `Response` companion object:
 
-```scala
-case class Response(
-  status: Int,
-  headers: Map[String, String] = Map.empty,
-  body: String = ""
-)
-```
-
-**Helper constructors for common status codes:**
+**Factory methods for common status codes:**
 
 All factory methods accept an optional `extraHeaders: Map[String, String] = Map.empty` parameter. Header names in `extraHeaders` are normalized to lowercase automatically. Methods that encode a body set `content-type` via the encoder; `extraHeaders` wins on collision. `noContent` carries only the headers you provide.
 
@@ -335,26 +327,19 @@ Response.ok(rawJson, extraHeaders = Map(Headers.ContentType -> "application/json
 
 ```scala
 POST(p"/users") { req =>
-  // Custom response with headers
-  Response(
-    status = 201,
-    headers = Map(
-      "Location" -> "/users/123",
-      "Content-Type" -> "application/json"
-    ),
-    body = """{"id": 123, "name": "Alice"}"""
+  // Custom status code with extra headers via withStatus
+  Response.withStatus(201, """{"id": 123, "name": "Alice"}""",
+    extraHeaders = Map("location" -> "/users/123")
   )
 }
 
-// Adding custom headers
+// Custom content-type via extraHeaders
 GET(p"/download") { req =>
-  Response(
-    status = 200,
-    headers = Map(
-      "Content-Type" -> "application/octet-stream",
-      "Content-Disposition" -> "attachment; filename=data.txt"
-    ),
-    body = "file content"
+  Response.ok("file content",
+    extraHeaders = Map(
+      "content-type"        -> "application/octet-stream",
+      "content-disposition" -> "attachment; filename=data.txt"
+    )
   )
 }
 ```

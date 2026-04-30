@@ -6,15 +6,13 @@ import java.util.Locale
 
 /** HTTP response representation.
   *
-  * Immutable case class representing an HTTP response to be sent back to the client.
+  * Immutable case class representing an HTTP response to be sent back to the client. Use factory
+  * methods in the companion object to construct instances.
   *
   * Example:
   * {{{
-  * val response = Response(
-  *   status = 200,
-  *   headers = Map(Headers.ContentType -> "application/json"),
-  *   body = """{"message": "Success"}"""
-  * )
+  * val response = Response.ok("Hello, World!")
+  * val custom   = Response.withStatus(201, user, extraHeaders = Map("location" -> "/users/123"))
   * }}}
   *
   * @param status
