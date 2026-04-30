@@ -329,7 +329,10 @@ Response.ok(rawJson, extraHeaders = Map(Headers.ContentType -> "application/json
 POST(p"/users") { req =>
   // Custom status code with extra headers via withStatus
   Response.withStatus(201, """{"id": 123, "name": "Alice"}""",
-    extraHeaders = Map("location" -> "/users/123")
+    extraHeaders = Map(
+      "location" -> "/users/123",
+      Headers.ContentType -> "application/json"
+    )
   )
 }
 
