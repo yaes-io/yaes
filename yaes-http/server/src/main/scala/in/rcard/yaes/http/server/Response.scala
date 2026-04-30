@@ -2,6 +2,7 @@ package in.rcard.yaes.http.server
 
 import in.rcard.yaes.http.core.BodyEncoder
 import in.rcard.yaes.http.core.Headers
+import java.util.Locale
 
 /** HTTP response representation.
   *
@@ -114,7 +115,7 @@ object Response {
     *   A Response with status 204 and empty body
     */
   inline def noContent(extraHeaders: Map[String, String] = Map.empty): Response =
-    Response(status = 204, headers = extraHeaders.map((k, v) => k.toLowerCase -> v))
+    Response(status = 204, headers = extraHeaders.map((k, v) => k.toLowerCase(Locale.ROOT) -> v))
 
   /** Creates a 400 Bad Request response.
     *
@@ -213,7 +214,7 @@ object Response {
   def withStatus[A](status: Int, value: A, extraHeaders: Map[String, String] = Map.empty)(using encoder: BodyEncoder[A]): Response =
     Response(
       status = status,
-      headers = Map(Headers.ContentType -> encoder.contentType) ++ extraHeaders.map((k, v) => k.toLowerCase -> v),
+      headers = Map(Headers.ContentType -> encoder.contentType) ++ extraHeaders.map((k, v) => k.toLowerCase(Locale.ROOT) -> v),
       body = encoder.encode(value)
     )
 }

@@ -215,12 +215,8 @@ Response.internalServerError(message)                                  // 500
 Response.serviceUnavailable(message)                                   // 503
 Response.withStatus(status, value)                                     // any status code
 
-// Custom response
-Response(
-  status = 201,
-  headers = Map("Location" -> "/users/123"),
-  body = """{"id": 123, "name": "Alice"}"""
-)
+// Custom status code with extra headers
+Response.withStatus(201, """{"id": 123, "name": "Alice"}""", extraHeaders = Map("location" -> "/users/123"))
 ```
 
 **Adding extra headers to factory methods:**
