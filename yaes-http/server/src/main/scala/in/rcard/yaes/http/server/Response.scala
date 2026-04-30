@@ -57,7 +57,7 @@ object Response {
   def ok[A](value: A, extraHeaders: Map[String, String] = Map.empty)(using encoder: BodyEncoder[A]): Response =
     Response(
       status = 200,
-      headers = Map(Headers.ContentType -> encoder.contentType) ++ extraHeaders,
+      headers = Map(Headers.ContentType -> encoder.contentType) ++ extraHeaders.map((k, v) => k.toLowerCase -> v),
       body = encoder.encode(value)
     )
 
@@ -82,7 +82,7 @@ object Response {
   def created[A](value: A, extraHeaders: Map[String, String] = Map.empty)(using encoder: BodyEncoder[A]): Response =
     Response(
       status = 201,
-      headers = Map(Headers.ContentType -> encoder.contentType) ++ extraHeaders,
+      headers = Map(Headers.ContentType -> encoder.contentType) ++ extraHeaders.map((k, v) => k.toLowerCase -> v),
       body = encoder.encode(value)
     )
 
@@ -107,7 +107,7 @@ object Response {
   def accepted[A](value: A, extraHeaders: Map[String, String] = Map.empty)(using encoder: BodyEncoder[A]): Response =
     Response(
       status = 202,
-      headers = Map(Headers.ContentType -> encoder.contentType) ++ extraHeaders,
+      headers = Map(Headers.ContentType -> encoder.contentType) ++ extraHeaders.map((k, v) => k.toLowerCase -> v),
       body = encoder.encode(value)
     )
 
@@ -126,7 +126,7 @@ object Response {
     *   A Response with status 204 and empty body
     */
   def noContent(extraHeaders: Map[String, String] = Map.empty): Response =
-    Response(status = 204, headers = extraHeaders)
+    Response(status = 204, headers = extraHeaders.map((k, v) => k.toLowerCase -> v))
 
   /** Creates a 400 Bad Request response.
     *
@@ -144,7 +144,7 @@ object Response {
   def badRequest[A](value: A, extraHeaders: Map[String, String] = Map.empty)(using encoder: BodyEncoder[A]): Response =
     Response(
       status = 400,
-      headers = Map(Headers.ContentType -> encoder.contentType) ++ extraHeaders,
+      headers = Map(Headers.ContentType -> encoder.contentType) ++ extraHeaders.map((k, v) => k.toLowerCase -> v),
       body = encoder.encode(value)
     )
 
@@ -164,7 +164,7 @@ object Response {
   def notFound[A](value: A, extraHeaders: Map[String, String] = Map.empty)(using encoder: BodyEncoder[A]): Response =
     Response(
       status = 404,
-      headers = Map(Headers.ContentType -> encoder.contentType) ++ extraHeaders,
+      headers = Map(Headers.ContentType -> encoder.contentType) ++ extraHeaders.map((k, v) => k.toLowerCase -> v),
       body = encoder.encode(value)
     )
 
@@ -184,7 +184,7 @@ object Response {
   def internalServerError[A](value: A, extraHeaders: Map[String, String] = Map.empty)(using encoder: BodyEncoder[A]): Response =
     Response(
       status = 500,
-      headers = Map(Headers.ContentType -> encoder.contentType) ++ extraHeaders,
+      headers = Map(Headers.ContentType -> encoder.contentType) ++ extraHeaders.map((k, v) => k.toLowerCase -> v),
       body = encoder.encode(value)
     )
 
@@ -211,7 +211,7 @@ object Response {
   def serviceUnavailable[A](value: A, extraHeaders: Map[String, String] = Map.empty)(using encoder: BodyEncoder[A]): Response =
     Response(
       status = 503,
-      headers = Map(Headers.ContentType -> encoder.contentType) ++ extraHeaders,
+      headers = Map(Headers.ContentType -> encoder.contentType) ++ extraHeaders.map((k, v) => k.toLowerCase -> v),
       body = encoder.encode(value)
     )
 
@@ -240,7 +240,7 @@ object Response {
   def withStatus[A](status: Int, value: A, extraHeaders: Map[String, String] = Map.empty)(using encoder: BodyEncoder[A]): Response =
     Response(
       status = status,
-      headers = Map(Headers.ContentType -> encoder.contentType) ++ extraHeaders,
+      headers = Map(Headers.ContentType -> encoder.contentType) ++ extraHeaders.map((k, v) => k.toLowerCase -> v),
       body = encoder.encode(value)
     )
 }

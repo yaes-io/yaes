@@ -39,6 +39,14 @@ class ResponseSpec extends AnyFlatSpec with Matchers {
     response.headers(Headers.ContentType) shouldBe "application/json"
   }
 
+  it should "override Content-Type via extraHeaders when using mixed-case header name" in {
+    val response = Response.ok("raw", extraHeaders = Map("Content-Type" -> "application/json"))
+
+    response.status shouldBe 200
+    response.headers(Headers.ContentType) shouldBe "application/json"
+    response.headers.count { case (name, _) => name.equalsIgnoreCase(Headers.ContentType) } shouldBe 1
+  }
+
   "Response.created" should "create a 201 response" in {
     val response = Response.created("Resource created")
 
