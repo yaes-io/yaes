@@ -382,9 +382,9 @@ import in.rcard.yaes.Reader
 
 val result = Reader.run(1) {
   val a = Reader.read[Int]                        // 1
-  val b = Reader.local[Int, Int](_ + 10) {
+  val b = Reader.local[Int, Int, (Int, Int)](_ + 10) {
     val inner = Reader.read[Int]                  // 11
-    val deeper = Reader.local[Int, Int](_ + 100) {
+    val deeper = Reader.local[Int, Int, Int](_ + 100) {
       Reader.read[Int]                            // 111
     }
     Reader.read[Int]                              // 11 (restored)
@@ -437,7 +437,7 @@ val (log, _) = Reader.run(Config("[APP]")) {
 | Operation | Signature | Description |
 |-----------|-----------|-------------|
 | `Reader.read` | `Reader[R] ?=> R` | Read the current environment value |
-| `Reader.local` | `(R => R) => (Reader[R] ?=> A) => Reader[R] ?=> A` | Run block with modified value, restore after |
+| `Reader.local` | `(R1 => R2) => (Reader[R2] ?=> A) => Reader[R1] ?=> A` | Run block with transformed environment, restore after |
 | `Reader.run` | `(R) => (Reader[R] ?=> A) => A` | Run computation with environment value, return `A` |
 
 ---

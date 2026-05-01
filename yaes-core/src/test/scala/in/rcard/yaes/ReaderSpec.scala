@@ -46,7 +46,7 @@ class ReaderSpec extends AnyFlatSpec with Matchers {
 
   "Reader.local" should "override value for inner block" in {
     val result = Reader.run(42) {
-      Reader.local[Int, Int](_ + 10) {
+      Reader.local[Int, Int, Int](_ + 10) {
         Reader.read[Int]
       }
     }
@@ -57,7 +57,7 @@ class ReaderSpec extends AnyFlatSpec with Matchers {
   it should "restore value after inner block" in {
     val result = Reader.run(42) {
       val before = Reader.read[Int]
-      val during = Reader.local[Int, Int](_ * 2) {
+      val during = Reader.local[Int, Int, Int](_ * 2) {
         Reader.read[Int]
       }
       val after = Reader.read[Int]
@@ -70,7 +70,7 @@ class ReaderSpec extends AnyFlatSpec with Matchers {
   it should "work with case class copy" in {
     val result = Reader.run(Config(3, 5000)) {
       val before = Reader.read[Config].maxRetries
-      val during = Reader.local[Config, Int](_.copy(maxRetries = 10)) {
+      val during = Reader.local[Config, Config, Int](_.copy(maxRetries = 10)) {
         Reader.read[Config].maxRetries
       }
       val after = Reader.read[Config].maxRetries
@@ -83,9 +83,9 @@ class ReaderSpec extends AnyFlatSpec with Matchers {
   it should "support nested local scopes" in {
     val result = Reader.run(1) {
       val a = Reader.read[Int]
-      val b = Reader.local[Int, (Int, Int, Int)](_ + 10) {
+      val b = Reader.local[Int, Int, (Int, Int, Int)](_ + 10) {
         val inner1 = Reader.read[Int]
-        val inner2 = Reader.local[Int, Int](_ + 100) {
+        val inner2 = Reader.local[Int, Int, Int](_ + 100) {
           Reader.read[Int]
         }
         val inner1After = Reader.read[Int]
@@ -100,7 +100,7 @@ class ReaderSpec extends AnyFlatSpec with Matchers {
 
   it should "be a no-op with identity function" in {
     val result = Reader.run(42) {
-      Reader.local[Int, Int](identity) {
+      Reader.local[Int, Int, Int](identity) {
         Reader.read[Int]
       }
     }
