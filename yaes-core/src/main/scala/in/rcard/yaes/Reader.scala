@@ -91,7 +91,7 @@ object Reader {
     *   the function to transform the current environment value
     * @param block
     *   the computation to execute with the modified environment
-    * @param interpreter
+    * @param reader
     *   the Reader effect context
     * @return
     *   the result of the block
@@ -107,9 +107,9 @@ object Reader {
     * }}}
     */
   inline def local[R1, R2, A](inline f: R1 => R2)(inline block: Reader[R2] ?=> A)(using
-      interpreter: Reader[R1]
+      reader: Reader[R1]
   ): A =
-    run(f(interpreter))(block)
+    run(f(reader))(block)
 
   /** Runs a block with a modified environment value of the same type. Delegates to the general
     * [[local]] overload. Provided for ergonomics when the environment type does not change.
