@@ -78,8 +78,8 @@ object Reader {
     * environment (possibly changing its type) to produce a new one for the inner block. The
     * original value is restored after the block completes.
     *
-    * Thread-safe by construction: creates a fresh `Reader` instance for the inner block rather than
-    * mutating shared state.
+    * Thread-safe by construction: the inner block receives its own given value; no shared mutable
+    * state exists.
     *
     * @tparam R1
     *   the type of the outer environment value

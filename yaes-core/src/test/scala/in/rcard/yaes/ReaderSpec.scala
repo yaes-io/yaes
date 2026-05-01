@@ -98,6 +98,16 @@ class ReaderSpec extends AnyFlatSpec with Matchers {
     result shouldBe (1, (11, 111, 11), 1)
   }
 
+  it should "transform environment to a different type" in {
+    val result = Reader.run(42) {
+      Reader.local[Int, String, String](_.toString) {
+        Reader.read[String]
+      }
+    }
+
+    result shouldBe "42"
+  }
+
   it should "be a no-op with identity function" in {
     val result = Reader.run(42) {
       Reader.local[Int, Int, Int](identity) {
