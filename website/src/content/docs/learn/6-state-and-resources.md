@@ -382,9 +382,9 @@ import in.rcard.yaes.Reader
 
 val result = Reader.run(1) {
   val a = Reader.read[Int]                        // 1
-  val b = Reader.local[Int, Int, (Int, Int)](_ + 10) {
+  val b = Reader.local[Int, Int](_ + 10) {
     val inner = Reader.read[Int]                  // 11
-    val deeper = Reader.local[Int, Int, Int](_ + 100) {
+    val deeper = Reader.local[Int, Int](_ + 100) {
       Reader.read[Int]                            // 111
     }
     Reader.read[Int]                              // 11 (restored)

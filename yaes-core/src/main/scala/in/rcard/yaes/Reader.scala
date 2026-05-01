@@ -111,6 +111,36 @@ object Reader {
   ): A =
     run(f(interpreter))(block)
 
+  /** Runs a block with a modified environment value of the same type. Delegates to the general
+    * [[local]] overload. Provided for ergonomics when the environment type does not change.
+    *
+    * @tparam R
+    *   the type of the environment value
+    * @tparam A
+    *   the result type of the block
+    * @param f
+    *   the function to transform the current environment value
+    * @param block
+    *   the computation to execute with the modified environment
+    * @param interpreter
+    *   the Reader effect context
+    * @return
+    *   the result of the block
+    *
+    * @example
+    * {{{
+    * Reader.run(42) {
+    *   Reader.local(_ + 10) {
+    *     Reader.read[Int] // 52
+    *   }
+    * }
+    * }}}
+    */
+  inline def local[R, A](inline f: R => R)(inline block: Reader[R] ?=> A)(using
+      interpreter: Reader[R]
+  ): A =
+    local[R, R, A](f)(block)
+
   /** Runs a computation with the Reader effect, providing a value to be read.
     *
     * Returns `A` directly (not a tuple), since the environment value is immutable.

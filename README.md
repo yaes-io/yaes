@@ -1294,7 +1294,8 @@ val result = Reader.run(Config(5)) {
 
 The `Reader` effect provides the following operations:
 - `Reader.read[R]`: Returns the current environment value
-- `Reader.local[R1, R2, A](f: R1 => R2)(block: Reader[R2] ?=> A)`: Runs a block with a transformed environment value, restoring the original after
+- `Reader.local[R, A](f: R => R)(block: Reader[R] ?=> A)`: Runs a block with a modified environment of the same type, restoring the original after
+- `Reader.local[R1, R2, A](f: R1 => R2)(block: Reader[R2] ?=> A)`: Runs a block with a transformed environment value (possibly changing its type), restoring the original after
 - `Reader.run[R, A](value: R)(block: Reader[R] ?=> A)`: Runs a computation with the Reader effect, returning `A` directly
 
 ### The `Log` Effect
