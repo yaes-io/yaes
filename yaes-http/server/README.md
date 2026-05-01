@@ -198,26 +198,44 @@ req.body            // Request body as String
 ### Response
 
 ```scala
-case class Response(
-  status: Int,
-  headers: Map[String, String] = Map.empty,
-  body: String = ""
-)
+// All factory methods accept optional extraHeaders: Map[String, String] = Map.empty
+Response.ok(body)                                                      // 200
+Response.created(body)                                                 // 201
+Response.accepted(body)                                                // 202
+Response.noContent()                                                   // 204
+Response.badRequest(message)                                           // 400
+Response.notFound(message)                                             // 404
+Response.internalServerError(message)                                  // 500
+Response.serviceUnavailable(message)                                   // 503
+Response.withStatus(status, value)                                     // any status code
 
-// Helper constructors
-Response.ok(body)                      // 200
-Response.created(body)                 // 201
-Response.noContent()                   // 204
-Response.badRequest(message)           // 400
-Response.notFound(message)             // 404
-Response.internalServerError(message)  // 500
-
-// Custom response
-Response(
-  status = 201,
-  headers = Map("Location" -> "/users/123"),
-  body = """{"id": 123, "name": "Alice"}"""
+// Custom status code with extra headers
+Response.withStatus(
+  201,
+  """{"id": 123, "name": "Alice"}""",
+  extraHeaders = Map(
+    "location" -> "/users/123",
+    Headers.ContentType -> "application/json"
+  )
 )
+```
+
+**Adding extra headers to factory methods:**
+
+All factory methods accept an optional `extraHeaders: Map[String, String] = Map.empty` parameter. Header names in `extraHeaders` are normalized to lowercase automatically. Methods that encode a body set `content-type` via the encoder; `extraHeaders` wins on collision. `noContent` carries only the headers you provide.
+
+```scala
+// 201 with Location header
+Response.created(user, extraHeaders = Map("location" -> s"/users/${user.id}"))
+
+// 301 redirect using withStatus (status codes not covered by convenience methods)
+Response.withStatus(301, "", extraHeaders = Map("location" -> "/new-path"))
+
+// 204 with ETag
+Response.noContent(extraHeaders = Map("etag" -> "\"abc123\""))
+
+// Override Content-Type explicitly (caller wins)
+Response.ok(rawJson, extraHeaders = Map(Headers.ContentType -> "application/json"))
 ```
 
 ### HTTP Methods
@@ -425,19 +443,15 @@ object MyServer extends App {
 
           // List users
           GET(p"/users") { req =>
-            Response(
-              status = 200,
-              headers = Map("Content-Type" -> "application/json"),
-              body = """[{"id": 1, "name": "Alice"}]"""
+            Response.ok("""[{"id": 1, "name": "Alice"}]""",
+              extraHeaders = Map("content-type" -> "application/json")
             )
           },
 
           // Get user by ID
           GET(p"/users" / userId) { (req, id: Int) =>
-            Response(
-              status = 200,
-              headers = Map("Content-Type" -> "application/json"),
-              body = s"""{"id": $id, "name": "User $id"}"""
+            Response.ok(s"""{"id": $id, "name": "User $id"}""",
+              extraHeaders = Map("content-type" -> "application/json")
             )
           },
 
@@ -450,13 +464,11 @@ object MyServer extends App {
           // Create user
           POST(p"/users") { req =>
             // Parse req.body and create user...
-            Response(
-              status = 201,
-              headers = Map(
-                "Content-Type" -> "application/json",
-                "Location" -> "/users/123"
-              ),
-              body = """{"id": 123, "name": "New User"}"""
+            Response.withStatus(201, """{"id": 123, "name": "New User"}""",
+              extraHeaders = Map(
+                "content-type" -> "application/json",
+                "location"     -> "/users/123"
+              )
             )
           }
         )

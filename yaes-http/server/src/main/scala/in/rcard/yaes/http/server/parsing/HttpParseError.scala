@@ -24,7 +24,7 @@ object HttpParseError {
     */
   case object MalformedRequestLine extends HttpParseError {
     def message: String = "Bad Request"
-    def toResponse: Response = Response(400, body = message)
+    def toResponse: Response = Response.badRequest(value = message)
   }
 
   /** Error indicating the HTTP method is not supported.
@@ -38,7 +38,7 @@ object HttpParseError {
     */
   case class UnsupportedMethod(method: String) extends HttpParseError {
     def message: String = "Not Implemented"
-    def toResponse: Response = Response(501, body = message)
+    def toResponse: Response = Response.withStatus(501, value = message)
   }
 
   /** Error indicating the HTTP version is not supported.
@@ -52,7 +52,7 @@ object HttpParseError {
     */
   case class UnsupportedHttpVersion(version: String) extends HttpParseError {
     def message: String = "HTTP Version Not Supported"
-    def toResponse: Response = Response(505, body = message)
+    def toResponse: Response = Response.withStatus(505, value = message)
   }
 
   /** Error indicating HTTP headers are malformed.
@@ -64,7 +64,7 @@ object HttpParseError {
     */
   case object MalformedHeaders extends HttpParseError {
     def message: String = "Bad Request"
-    def toResponse: Response = Response(400, body = message)
+    def toResponse: Response = Response.badRequest(value = message)
   }
 
   /** Error indicating the Content-Length header has an invalid value.
@@ -75,7 +75,7 @@ object HttpParseError {
     */
   case object InvalidContentLength extends HttpParseError {
     def message: String = "Bad Request"
-    def toResponse: Response = Response(400, body = message)
+    def toResponse: Response = Response.badRequest(value = message)
   }
 
   /** Error indicating the request body exceeds the maximum allowed size.
@@ -89,7 +89,7 @@ object HttpParseError {
     */
   case class PayloadTooLarge(contentLength: Int, maxBodySize: Int) extends HttpParseError {
     def message: String = "Payload Too Large"
-    def toResponse: Response = Response(413, body = message)
+    def toResponse: Response = Response.withStatus(413, value = message)
   }
 
   /** Error indicating an unexpected end of stream while reading the request body.
@@ -101,7 +101,7 @@ object HttpParseError {
     */
   case object UnexpectedEndOfStream extends HttpParseError {
     def message: String = "Bad Request"
-    def toResponse: Response = Response(400, body = message)
+    def toResponse: Response = Response.badRequest(value = message)
   }
 
   /** Error indicating the query string contains malformed URL encoding.
@@ -113,7 +113,7 @@ object HttpParseError {
     */
   case object MalformedQueryString extends HttpParseError {
     def message: String = "Bad Request"
-    def toResponse: Response = Response(400, body = message)
+    def toResponse: Response = Response.badRequest(value = message)
   }
 
   /** Error indicating the request path contains malformed URL encoding or path traversal attempts.
@@ -126,6 +126,6 @@ object HttpParseError {
     */
   case object MalformedPath extends HttpParseError {
     def message: String = "Bad Request"
-    def toResponse: Response = Response(400, body = message)
+    def toResponse: Response = Response.badRequest(value = message)
   }
 }
