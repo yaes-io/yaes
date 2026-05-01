@@ -1296,7 +1296,8 @@ The `Reader` effect provides the following operations:
 - `Reader.read[R]`: Returns the current environment value
 - `Reader.local[R, A](f: R => R)(block: Reader[R] ?=> A)`: Runs a block with a modified environment of the same type, restoring the original after
 - `Reader.local[R1, R2, A](f: R1 => R2)(block: Reader[R2] ?=> A)`: Runs a block with a transformed environment value (possibly changing its type), restoring the original after
-- `Reader.run[R, A](value: R)(block: Reader[R] ?=> A)`: Runs a computation with the Reader effect, returning `A` directly
+- `Reader.reader[R](value: R)`: Creates a `Reader[R]` capability from a concrete environment value; use this when you need to pass or provide the `Reader[R]` instance explicitly
+- `Reader.run[R, A](value: R)(block: Reader[R] ?=> A)`: Runs a computation with the Reader effect, returning `A` directly; use this as the convenient entry point when you just want to execute a block that requires `Reader[R]`
 
 ### The `Log` Effect
 
