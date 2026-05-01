@@ -437,6 +437,7 @@ val (log, _) = Reader.run(Config("[APP]")) {
 | Operation | Signature | Description |
 |-----------|-----------|-------------|
 | `Reader.read` | `Reader[R] ?=> R` | Read the current environment value |
+| `Reader.reader` | `(R => A) => Reader[R] ?=> A` | Construct a Reader computation from a function of the environment |
 | `Reader.local` | `(R1 => R2) => (Reader[R2] ?=> A) => Reader[R1] ?=> A` | Run block with transformed environment, restore after |
 | `Reader.run` | `(R) => (Reader[R] ?=> A) => A` | Run computation with environment value, return `A` |
 
