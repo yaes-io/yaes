@@ -1,4 +1,4 @@
-package in.rcard.yaes.http.jsoniter.test
+package in.rcard.yaes.http.jsoniter
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
