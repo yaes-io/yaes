@@ -45,12 +45,23 @@ infix type reads[A, R] = Reader[R] ?=> A
   */
 object Reader {
 
+  /** Wraps a raw value into a [[Reader]] context.
+    *
+    * @tparam R
+    *   the type of the environment value
+    * @param value
+    *   the raw value to wrap
+    * @return
+    *   a [[Reader]] holding the given value
+    */
+  inline def reader[R](value: R): Reader[R] = value
+
   /** Reads the current environment value.
     *
     * @tparam R
     *   the type of the environment value
-    * @param interpreter
-    *   the Reader effect interpreter
+    * @param reader
+    *   the Reader effect context
     * @return
     *   the current environment value
     *
@@ -61,26 +72,27 @@ object Reader {
     * }
     * }}}
     */
-  def read[R](using interpreter: Reader[R]): R =
-    interpreter.value
+  inline def read[R](using reader: Reader[R]): R = reader
 
-  /** Runs a block with a modified environment value. The modification function `f` is applied to the
-    * current value to produce a new one for the inner block. The original value is restored after the
-    * block completes.
+  /** Runs a block with a modified environment value. The function `f` transforms the current
+    * environment (possibly changing its type) to produce a new one for the inner block. The
+    * original value is restored after the block completes.
     *
-    * Thread-safe by construction: creates a fresh `Reader` instance for the inner block rather than
-    * mutating shared state.
+    * Thread-safe by construction: the inner block receives its own given value; no shared mutable
+    * state exists.
     *
-    * @tparam R
-    *   the type of the environment value
+    * @tparam R1
+    *   the type of the outer environment value
+    * @tparam R2
+    *   the type of the inner environment value
     * @tparam A
     *   the result type of the block
     * @param f
     *   the function to transform the current environment value
     * @param block
     *   the computation to execute with the modified environment
-    * @param interpreter
-    *   the Reader effect interpreter
+    * @param reader
+    *   the Reader effect context
     * @return
     *   the result of the block
     *
@@ -94,8 +106,40 @@ object Reader {
     * }
     * }}}
     */
-  def local[R, A](f: R => R)(block: Reader[R] ?=> A)(using interpreter: Reader[R]): A =
-    run(f(interpreter.value))(block)
+  inline def local[R1, R2, A](inline f: R1 => R2)(inline block: Reader[R2] ?=> A)(using
+      reader: Reader[R1]
+  ): A =
+    run(f(reader))(block)
+
+  /** Runs a block with a modified environment value of the same type. Delegates to the general
+    * [[local]] overload. Provided for ergonomics when the environment type does not change.
+    *
+    * @tparam R
+    *   the type of the environment value
+    * @tparam A
+    *   the result type of the block
+    * @param f
+    *   the function to transform the current environment value
+    * @param block
+    *   the computation to execute with the modified environment
+    * @param reader
+    *   the Reader effect context
+    * @return
+    *   the result of the block
+    *
+    * @example
+    * {{{
+    * Reader.run(42) {
+    *   Reader.local(_ + 10) {
+    *     Reader.read[Int] // 52
+    *   }
+    * }
+    * }}}
+    */
+  inline def local[R, A](inline f: R => R)(inline block: Reader[R] ?=> A)(using
+      reader: Reader[R]
+  ): A =
+    local[R, R, A](f)(block)
 
   /** Runs a computation with the Reader effect, providing a value to be read.
     *
@@ -120,31 +164,13 @@ object Reader {
     * // result = 84
     * }}}
     */
-  def run[R, A](value: R)(block: Reader[R] ?=> A): A = {
-    val currentValue = value
-    val interpreter = new Unsafe[R] {
-      override def value: R = currentValue
-    }
-    block(using interpreter)
-  }
+  inline def run[R, A](value: R)(inline block: Reader[R] ?=> A): A =
+    block(using reader(value))
 
-  /** Unsafe interface for Reader operations.
-    *
-    * This trait defines the low-level interface for reading the environment value. It is marked as
-    * "Unsafe" because it provides direct access to the value without the safety guarantees provided
-    * by the higher-level Reader effect API. Users should typically use the safe Reader effect
-    * operations instead of implementing this trait directly.
+  /** Opaque type alias backing the Reader effect. Erases to `R` at runtime with zero overhead.
     *
     * @tparam R
     *   the type of the environment value
     */
-  trait Unsafe[R] {
-
-    /** Returns the current environment value.
-      *
-      * @return
-      *   the environment value
-      */
-    def value: R
-  }
+  opaque type Unsafe[R] = R
 }
