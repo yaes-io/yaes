@@ -122,7 +122,7 @@ object Reader {
     *   the function to transform the current environment value
     * @param block
     *   the computation to execute with the modified environment
-    * @param interpreter
+    * @param reader
     *   the Reader effect context
     * @return
     *   the result of the block
@@ -137,7 +137,7 @@ object Reader {
     * }}}
     */
   inline def local[R, A](inline f: R => R)(inline block: Reader[R] ?=> A)(using
-      interpreter: Reader[R]
+      reader: Reader[R]
   ): A =
     local[R, R, A](f)(block)
 
