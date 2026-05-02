@@ -27,7 +27,7 @@ JSON body encoder/decoder integration for the λÆS HTTP server using [jsoniter-
 Add `yaes-http-jsoniter` to your project dependencies:
 
 ```scala
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-jsoniter" % "0.17.0"
+libraryDependencies += "in.rcard.yaes" %% "yaes-http-jsoniter" % "0.18.0"
 ```
 
 To derive codecs via `JsonCodecMaker.make`, also add `jsoniter-scala-macros` as a provided dependency:
@@ -231,7 +231,7 @@ Add the following to your `build.sbt`:
 
 ```scala
 libraryDependencies ++= Seq(
-  "in.rcard.yaes"                              %% "yaes-http-jsoniter"     % "0.17.0",
+  "in.rcard.yaes"                              %% "yaes-http-jsoniter"     % "0.18.0",
   "com.github.plokhotnyuk.jsoniter-scala"      %% "jsoniter-scala-macros"  % "2.38.9" % Provided
 )
 ```

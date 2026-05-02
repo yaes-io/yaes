@@ -14,7 +14,7 @@ Test utilities for λÆS effect code using ScalaTest. Provides `RaiseSpec`, a mi
 Add the dependency to your `build.sbt`:
 
 ```scala
-libraryDependencies += "in.rcard.yaes" %% "yaes-core-test-scalatest" % "0.17.0" % Test
+libraryDependencies += "in.rcard.yaes" %% "yaes-core-test-scalatest" % "0.18.0" % Test
 ```
 
 Both `yaes-core` and ScalaTest are transitive dependencies — no need to declare them separately.
