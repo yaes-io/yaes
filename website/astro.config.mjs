@@ -37,6 +37,7 @@ export default defineConfig({
 						{ label: 'HTTP Server', slug: 'http/server' },
 						{ label: 'HTTP Client', slug: 'http/client' },
 						{ label: 'JSON with Circe', slug: 'http/circe' },
+						{ label: 'JSON with jsoniter-scala', slug: 'http/jsoniter' },
 					],
 				},
 				{
