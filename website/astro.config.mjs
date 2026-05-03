@@ -48,6 +48,13 @@ export default defineConfig({
 					],
 				},
 				{
+					label: 'Testing',
+					collapsed: true,
+					items: [
+						{ label: 'Testing with RaiseSpec', slug: 'testing/raise-spec' },
+					],
+				},
+				{
 					label: 'Community',
 					items: [
 						{ label: 'Contributing', slug: 'community/contributing' },

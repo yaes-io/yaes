@@ -6,13 +6,14 @@ sidebar:
   order: 3
 ---
 
-JSON body codec integration for the λÆS HTTP server using [Circe](https://circe.github.io/circe/). The `yaes-http-circe` module provides an automatic `BodyCodec[A]` instance for any type that has Circe `Encoder` and `Decoder` in scope, enabling seamless JSON request/response handling without manual codec implementation.
+JSON body encoder/decoder integration for the λÆS HTTP server using [Circe](https://circe.github.io/circe/). The `yaes-http-circe` module provides automatic `BodyEncoder[A]` and `BodyDecoder[A]` instances for any type that has the corresponding Circe `Encoder` or `Decoder` in scope, enabling seamless JSON request/response handling without manual implementation.
 
 **Key Features:**
-- **Automatic BodyCodec derivation** - Any type with Circe `Encoder` and `Decoder` gets a `BodyCodec` for free
+- **Automatic BodyEncoder derivation** - Any type with a Circe `Encoder` gets a `BodyEncoder` for free
+- **Automatic BodyDecoder derivation** - Any type with a Circe `Decoder` gets a `BodyDecoder` for free
 - **Compact JSON encoding** - Values are serialized using `asJson.noSpaces`
 - **Content-Type handling** - Automatically sets `Content-Type: application/json`
-- **Error mapping** - Circe `ParsingFailure` maps to `DecodingError.ParseError`, `DecodingFailure` maps to `DecodingError.ValidationError`
+- **Accumulating error mapping** - Decoding raises a non-empty `List[DecodingError]` accumulating all failures; Circe `ParsingFailure` maps to `DecodingError.ParseError`, each `DecodingFailure` maps to `DecodingError.ValidationError`
 
 **Requirements:**
 - Java 25+ (for Virtual Threads and Structured Concurrency)
@@ -26,7 +27,7 @@ JSON body codec integration for the λÆS HTTP server using [Circe](https://circ
 Add `yaes-http-circe` to your project dependencies:
 
 ```scala
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-circe" % "0.17.0"
+libraryDependencies += "in.rcard.yaes" %% "yaes-http-circe" % "0.18.0"
 ```
 
 If you need Circe's automatic derivation features, also include `circe-generic`:
@@ -70,8 +71,8 @@ Sync.runBlocking(Duration.Inf) {
           Raise.fold {
             val user = req.as[User]
             Response.created(user)
-          } { case error: DecodingError =>
-            Response.badRequest(error.message)
+          } { case errors: List[DecodingError] =>
+            Response.badRequest(errors.map(_.message).mkString(", "))
           }
         }
       )
@@ -82,27 +83,28 @@ Sync.runBlocking(Duration.Inf) {
 }.get
 ```
 
-The key import is `in.rcard.yaes.http.circe.given` — this brings the `circeBodyCodec` instance into scope, which automatically provides a `BodyCodec[A]` for any type `A` that has both a Circe `Encoder[A]` and `Decoder[A]` available.
+The key import is `in.rcard.yaes.http.circe.given` — this brings both `circeBodyEncoder` and `circeBodyDecoder` into scope, which automatically provide a `BodyEncoder[A]` for any type `A` with a Circe `Encoder[A]` and a `BodyDecoder[A]` for any type `A` with a Circe `Decoder[A]`.
 
 ---
 
 ## How It Works
 
-The module provides a single `given` instance:
+The module provides two separate `given` instances:
 
 ```scala
-given circeBodyCodec[A](using Encoder[A], Decoder[A]): BodyCodec[A]
+given circeBodyEncoder[A](using Encoder[A]): BodyEncoder[A]
+given circeBodyDecoder[A](using Decoder[A]): BodyDecoder[A]
 ```
 
-This instance implements the three methods of the `BodyCodec` trait:
+Each is gated on a single Circe constraint, so you only need the relevant typeclass in scope.
 
-| Method | Behavior |
-|---|---|
-| `contentType` | Returns `"application/json"` |
-| `encode(value: A)` | Serializes using `value.asJson.noSpaces` (compact JSON) |
-| `decode(body: String)` | Parses using Circe's `decode[A]`, raising `DecodingError.ParseError` for invalid JSON syntax or `DecodingError.ValidationError` for schema mismatches |
+| Instance | Method | Behavior |
+|---|---|---|
+| `circeBodyEncoder` | `contentType` | Returns `"application/json"` |
+| `circeBodyEncoder` | `encode(value: A)` | Serializes using `value.asJson.noSpaces` (compact JSON) |
+| `circeBodyDecoder` | `decode(body: String)` | Parses using Circe's `decodeAccumulating[A]`, raising a non-empty `List[DecodingError]`: `DecodingError.ParseError` for invalid JSON syntax, or one `DecodingError.ValidationError` per accumulated schema mismatch |
 
-Because the instance is parameterized over `A`, it works for **any** type with the required Circe typeclasses — no per-type boilerplate is needed.
+Because the instances are parameterized over `A`, they work for **any** type with the required Circe typeclasses — no per-type boilerplate is needed.
 
 ---
 
@@ -141,24 +143,27 @@ Both strategies work with nested structures:
 case class Address(street: String, city: String) derives Encoder.AsObject, Decoder
 case class Person(name: String, address: Address) derives Encoder.AsObject, Decoder
 
-val codec = summon[BodyCodec[Person]]
-codec.encode(Person("Alice", Address("123 Main St", "Springfield")))
+val encoder = summon[BodyEncoder[Person]]
+encoder.encode(Person("Alice", Address("123 Main St", "Springfield")))
 // {"name":"Alice","address":{"street":"123 Main St","city":"Springfield"}}
+
+val decoder = summon[BodyDecoder[Person]]
+// decoder.decode(body) raises List[DecodingError] on failure
 ```
 
 ---
 
 ## Error Handling
 
-When JSON decoding fails, the codec raises the appropriate `DecodingError` variant. A `ParsingFailure` (invalid JSON syntax) becomes `DecodingError.ParseError` with the original exception attached, while a `DecodingFailure` (valid JSON but wrong shape) becomes `DecodingError.ValidationError`. Use `Raise.fold` to handle decoding errors in your routes:
+When JSON decoding fails, the codec raises a non-empty `List[DecodingError]` accumulating all errors found in the body. A `ParsingFailure` (invalid JSON syntax) becomes `DecodingError.ParseError` with the original exception attached, while each `DecodingFailure` (valid JSON but wrong shape) becomes `DecodingError.ValidationError`. Use `Raise.fold` to handle decoding errors in your routes:
 
 ```scala
 POST(p"/users") { req =>
   Raise.fold {
     val user = req.as[User]
     Response.created(user)
-  } { case error: DecodingError =>
-    Response.badRequest(error.message)
+  } { case errors: List[DecodingError] =>
+    Response.badRequest(errors.map(_.message).mkString(", "))
   }
 }
 ```
@@ -207,8 +212,8 @@ object JsonServer extends App {
               val newUser = req.as[CreateUser]
               val created = User(1, newUser.name, newUser.email)
               Response.created(created)
-            } { case error: DecodingError =>
-              Response.badRequest(error.message)
+            } { case errors: List[DecodingError] =>
+              Response.badRequest(errors.map(_.message).mkString(", "))
             }
           }
         )
@@ -228,7 +233,7 @@ Add the following to your `build.sbt`:
 
 ```scala
 libraryDependencies ++= Seq(
-  "in.rcard.yaes" %% "yaes-http-circe" % "0.17.0",
+  "in.rcard.yaes" %% "yaes-http-circe" % "0.18.0",
   "io.circe"      %% "circe-generic"   % "0.14.15"  // For derivation
 )
 ```

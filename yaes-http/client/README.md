@@ -14,7 +14,7 @@ Effect-based HTTP client built on YAES effects and Java's `java.net.http.HttpCli
 Add the dependency to your `build.sbt`:
 
 ```scala
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-client" % "0.17.0"
+libraryDependencies += "in.rcard.yaes" %% "yaes-http-client" % "0.18.0"
 ```
 
 ## Overview
@@ -27,7 +27,7 @@ libraryDependencies += "in.rcard.yaes" %% "yaes-http-client" % "0.17.0"
 - **Effect Integration**: Uses `Sync`, `Raise`, and `Resource` effects for structured error handling and lifecycle management
 - **Typed Error Hierarchy**: Separate `ConnectionError` (transport) and `HttpError` (HTTP status) types
 - **Fluent Builder API**: Immutable request building with `header`, `queryParam`, and `timeout` extension methods
-- **Body Codecs**: Automatic request/response body encoding and decoding via the `BodyCodec` typeclass
+- **Body Codecs**: Request body encoding via `BodyEncoder` and response body decoding via `BodyDecoder`
 - **URI Validation**: Opaque `Uri` type with compile-time-safe construction via the `Raise` effect
 - **Configurable**: Connect timeout, redirect policy, and HTTP version selection
 
@@ -121,7 +121,7 @@ Raise.run[Uri.InvalidUri] {
   val delete  = HttpRequest.delete(uri)
   val options = HttpRequest.options(uri)
 
-  // Requests with a body (requires a BodyCodec in scope)
+  // Requests with a body (requires a BodyEncoder in scope)
   val post  = HttpRequest.post(uri, """{"name": "Alice"}""")
   val put   = HttpRequest.put(uri, """{"name": "Bob"}""")
   val patch = HttpRequest.patch(uri, """{"name": "Charlie"}""")
@@ -200,10 +200,10 @@ response.header("content-type")    // Option[String] (case-insensitive)
 
 ### Typed Decoding
 
-Use `response.as[A]` to decode the body into a typed value. This raises `HttpError` for non-2xx status codes and `DecodingError` if decoding fails:
+Use `response.as[A]` to decode the body into a typed value. This raises `HttpError` for non-2xx status codes and a non-empty `List[DecodingError]` if decoding fails:
 
 ```scala
-Raise.run[HttpError | DecodingError] {
+Raise.run[HttpError | List[DecodingError]] {
   val user: String = response.as[String]
 }
 ```
@@ -272,14 +272,14 @@ Raised by `response.as[A]` when the status code is outside 2xx:
 Use the `ClientHttpError` and `ServerHttpError` marker traits to match error categories:
 
 ```scala
-val result = Raise.either[HttpError | DecodingError, String] {
+val result = Raise.either[HttpError | List[DecodingError], String] {
   response.as[String]
 }
 result match
-  case Left(e: ClientHttpError) => println(s"Client error ${e.status}: ${e.body}")
-  case Left(e: ServerHttpError) => println(s"Server error ${e.status}: ${e.body}")
-  case Left(e: DecodingError)   => println(s"Decoding failed: ${e.message}")
-  case Right(value)             => println(s"Success: $value")
+  case Left(e: ClientHttpError)          => println(s"Client error ${e.status}: ${e.body}")
+  case Left(e: ServerHttpError)          => println(s"Server error ${e.status}: ${e.body}")
+  case Left(errors: List[DecodingError]) => println(s"Decoding failed: ${errors.map(_.message).mkString(", ")}")
+  case Right(value)                      => println(s"Success: $value")
 ```
 
 ## URI Validation
@@ -307,12 +307,12 @@ result match
 
 ## Body Codecs
 
-The client uses the `BodyCodec[A]` typeclass for encoding request bodies and decoding response bodies. Built-in codecs exist for `String`, `Int`, `Long`, `Double`, and `Boolean`.
+The client uses `BodyEncoder[A]` for encoding request bodies (in `post`, `put`, `patch`) and `BodyDecoder[A]` for decoding response bodies (in `response.as[A]`). Built-in instances for both exist for `String`, `Int`, `Long`, `Double`, and `Boolean`.
 
-For JSON support, use the `yaes-http-circe` module which provides automatic `BodyCodec` instances for types with Circe `Encoder` and `Decoder`:
+For JSON support, use the `yaes-http-circe` module which provides automatic `BodyEncoder` and `BodyDecoder` instances for types with Circe `Encoder` and `Decoder` respectively:
 
 ```scala
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-circe" % "0.17.0"
+libraryDependencies += "in.rcard.yaes" %% "yaes-http-circe" % "0.18.0"
 ```
 
 ```scala
@@ -351,13 +351,13 @@ Raise.run[ConnectionError] {
 
       val response = client.send(request)
 
-      val result = Raise.either[HttpError | DecodingError, String] {
+      val result = Raise.either[HttpError | List[DecodingError], String] {
         response.as[String]
       }
       result match
-        case Left(e: HttpError)    => println(s"HTTP error ${e.status}")
-        case Left(e: DecodingError) => println(s"Decoding failed")
-        case Right(body)           => println(s"Response: $body")
+        case Left(e: HttpError)                => println(s"HTTP error ${e.status}")
+        case Left(errors: List[DecodingError]) => println(s"Decoding failed")
+        case Right(body)                       => println(s"Response: $body")
     }
   }
 }

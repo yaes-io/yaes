@@ -74,31 +74,31 @@ The library is available on Maven Central. To use it, add the following dependen
 **For effects only** (Raise, Async, Sync, etc.):
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-core" % "0.17.0"
+libraryDependencies += "in.rcard.yaes" %% "yaes-core" % "0.18.0"
 ```
 
 **For effects + data structures** (Flow, Channel, and reactive streams):
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-data" % "0.17.0"
+libraryDependencies += "in.rcard.yaes" %% "yaes-data" % "0.18.0"
 ```
 
 **For Cats integration** (includes all effects and data structures):
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-cats" % "0.17.0"
+libraryDependencies += "in.rcard.yaes" %% "yaes-cats" % "0.18.0"
 ```
 
 **For SLF4J logging integration** (delegates `Log` effect to any SLF4J backend):
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-slf4j" % "0.17.0"
+libraryDependencies += "in.rcard.yaes" %% "yaes-slf4j" % "0.18.0"
 ```
 
 **For HTTP Server based on λÆS effects**:
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-server" % "0.17.0"
+libraryDependencies += "in.rcard.yaes" %% "yaes-http-server" % "0.18.0"
 ```
 
 The library is only available for Scala 3 and is currently in an experimental stage. The API is subject to change.
@@ -992,6 +992,7 @@ The other random content we can generate is:
 - `nextInt`: Generates a random integer.
 - `nextDouble`: Generates a random double.
 - `nextLong`: Generates a random long.
+- `nextUuid`: Generates an RFC 4122 version 4 UUID as a lowercase `String`. Derived from two `nextLong` calls so the handler fully controls the result.
 
 As usual, we can run the effectful computation using the provided handlers:
 
@@ -1293,8 +1294,10 @@ val result = Reader.run(Config(5)) {
 
 The `Reader` effect provides the following operations:
 - `Reader.read[R]`: Returns the current environment value
-- `Reader.local[R, A](f: R => R)(block: Reader[R] ?=> A)`: Runs a block with a modified environment value, restoring the original after
-- `Reader.run[R, A](value: R)(block: Reader[R] ?=> A)`: Runs a computation with the Reader effect, returning `A` directly
+- `Reader.local[R, A](f: R => R)(block: Reader[R] ?=> A)`: Runs a block with a modified environment of the same type, restoring the original after
+- `Reader.local[R1, R2, A](f: R1 => R2)(block: Reader[R2] ?=> A)`: Runs a block with a transformed environment value (possibly changing its type), restoring the original after
+- `Reader.reader[R](value: R)`: Creates a `Reader[R]` capability from a concrete environment value; use this when you need to pass or provide the `Reader[R]` instance explicitly
+- `Reader.run[R, A](value: R)(block: Reader[R] ?=> A)`: Runs a computation with the Reader effect, returning `A` directly; use this as the convenient entry point when you just want to execute a block that requires `Reader[R]`
 
 ### The `Log` Effect
 

@@ -57,8 +57,23 @@ lazy val `yaes-slf4j` = project
     libraryDependencies ++= commonDependencies ++ slf4jDependencies
   )
 
+lazy val `yaes-test` = project
+  .in(file("yaes-test"))
+  .aggregate(`yaes-core-test-scalatest`)
+  .settings(scalaVersion := scala3Version)
+
+lazy val `yaes-core-test-scalatest` = project
+  .in(file("yaes-test/core/scalatest"))
+  .dependsOn(`yaes-core`)
+  .settings(commonSettings)
+  .settings(
+    name         := "yaes-core-test-scalatest",
+    scalaVersion := scala3Version,
+    libraryDependencies ++= Seq(dependencies.scalatest)
+  )
+
 lazy val `yaes-http` = project
-  .aggregate(core, server, client, circe)
+  .aggregate(core, server, client, circe, jsoniter)
   .settings(scalaVersion := scala3Version)
 
 lazy val core = project
@@ -83,7 +98,7 @@ lazy val client = project
 
 lazy val circe = project
   .in(file("yaes-http/circe"))
-  .dependsOn(server, core)
+  .dependsOn(`yaes-core`, core)
   .settings(commonSettings)
   .settings(
     name         := "yaes-http-circe",
@@ -91,6 +106,16 @@ lazy val circe = project
     libraryDependencies ++= commonDependencies ++ circeDependencies ++ Seq(
       dependencies.circeGeneric % Test
     )
+  )
+
+lazy val jsoniter = project
+  .in(file("yaes-http/jsoniter"))
+  .dependsOn(`yaes-core`, core)
+  .settings(commonSettings)
+  .settings(
+    name         := "yaes-http-jsoniter",
+    scalaVersion := scala3Version,
+    libraryDependencies ++= commonDependencies ++ jsoniterDependencies
   )
 
 lazy val server = project
@@ -103,7 +128,7 @@ lazy val server = project
   )
 
 lazy val yaes = (project in file("."))
-  .aggregate(`yaes-core`, `yaes-data`, `yaes-cats`, `yaes-slf4j`, `yaes-http`)
+  .aggregate(`yaes-core`, `yaes-data`, `yaes-cats`, `yaes-slf4j`, `yaes-http`, `yaes-test`)
   .settings(
     scalaVersion := scala3Version,
     Global / concurrentRestrictions += Tags.limit(Tags.Test, 1)
@@ -126,6 +151,9 @@ lazy val dependencies =
     val circeCore         = "io.circe"           %% "circe-core"     % circeVersion
     val circeParser       = "io.circe"           %% "circe-parser"   % circeVersion
     val circeGeneric      = "io.circe"           %% "circe-generic"  % circeVersion
+    val jsoniterVersion   = "2.38.9"
+    val jsoniterCore      = "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-core"   % jsoniterVersion
+    val jsoniterMacros    = "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-macros" % jsoniterVersion
   }
 
 lazy val commonDependencies = Seq(
@@ -153,4 +181,9 @@ lazy val slf4jDependencies = Seq(
 lazy val circeDependencies = Seq(
   dependencies.circeCore,
   dependencies.circeParser
+)
+
+lazy val jsoniterDependencies = Seq(
+  dependencies.jsoniterCore,
+  dependencies.jsoniterMacros % "provided,test"
 )

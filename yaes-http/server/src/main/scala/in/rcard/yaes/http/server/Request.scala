@@ -2,7 +2,7 @@ package in.rcard.yaes.http.server
 
 
 import in.rcard.yaes.*
-import in.rcard.yaes.http.core.{BodyCodec, DecodingError, Method}
+import in.rcard.yaes.http.core.{BodyDecoder, DecodingError, Method}
 /** HTTP request representation.
   *
   * Immutable case class representing an incoming HTTP request. This is a simplified model focusing
@@ -42,18 +42,18 @@ case class Request(
 object Request {
   /** Extension methods for body decoding */
   extension (req: Request) {
-    /** Decode request body using the implicit codec.
+    /** Decode request body using the implicit decoder.
       *
-      * The codec is resolved automatically from the context using Scala 3's `using` clauses. Decoding
-      * failures are raised as typed errors via the `Raise[DecodingError]` effect.
+      * The decoder is resolved automatically from the context using Scala 3's `using` clauses.
+      * Decoding failures are raised as typed errors via the `Raise[List[DecodingError]]` effect.
       *
       * Example:
       * {{{
-      * // With a custom User codec in scope
-      * val user: User raises DecodingError = request.as[User]
+      * // With a custom BodyDecoder[User] in scope
+      * val user: User raises List[DecodingError] = request.as[User]
       *
-      * // In a handler that declares Raise[DecodingError]
-      * def handleCreateUser(req: Request): Response raises DecodingError = {
+      * // In a handler that declares Raise[List[DecodingError]]
+      * def handleCreateUser(req: Request): Response raises List[DecodingError] = {
       *   val user = req.as[User]
       *   // ... process user ...
       *   Response.created(user)
@@ -65,8 +65,8 @@ object Request {
       * @return
       *   The decoded value
       */
-    def as[A](using codec: BodyCodec[A]): A raises DecodingError =
-      codec.decode(req.body)
+    def as[A](using decoder: BodyDecoder[A]): A raises List[DecodingError] =
+      decoder.decode(req.body)
 
     /** Get a header value by name (case-insensitive).
       *

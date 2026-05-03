@@ -1,13 +1,16 @@
 package in.rcard.yaes.http.client
 
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
 import in.rcard.yaes.*
-import in.rcard.yaes.http.core.{BodyCodec, DecodingError, Headers}
 import in.rcard.yaes.http.client.HttpRequest.*
 import in.rcard.yaes.http.client.Uri.InvalidUri
-import scala.concurrent.duration.*
+import in.rcard.yaes.http.core.BodyDecoder
+import in.rcard.yaes.http.core.DecodingError
+import in.rcard.yaes.http.core.Headers
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.*
 
 class YaesClientIntegrationSpec extends AnyFlatSpec with Matchers:
 
@@ -17,18 +20,18 @@ class YaesClientIntegrationSpec extends AnyFlatSpec with Matchers:
       case Right(u) => u
 
   private def sendAndDecode[A](client: YaesClient, request: HttpRequest)(using
-      BodyCodec[A],
+      BodyDecoder[A],
       Sync
-  ): Either[ConnectionError | HttpError | DecodingError, A] =
+  ): Either[ConnectionError | HttpError | List[DecodingError], A] =
     Raise
       .either[ConnectionError, HttpResponse] { client.send(request) }
       .left
-      .map(e => e: ConnectionError | HttpError | DecodingError)
+      .map(e => e: ConnectionError | HttpError | List[DecodingError])
       .flatMap { resp =>
         Raise
-          .either[HttpError | DecodingError, A] { resp.as[A] }
+          .either[HttpError | List[DecodingError], A] { resp.as[A] }
           .left
-          .map(e => e: ConnectionError | HttpError | DecodingError)
+          .map(e => e: ConnectionError | HttpError | List[DecodingError])
       }
 
   "YaesClient full pipeline" should "GET and decode response body" in {
@@ -124,7 +127,9 @@ class YaesClientIntegrationSpec extends AnyFlatSpec with Matchers:
           sendAndDecode[Int](client, HttpRequest.get(uri(baseUrl)))
         }
       }
-      result.get.left.getOrElse(fail()) shouldBe a[DecodingError]
+      result.get.left.getOrElse(fail()) shouldBe List(
+        DecodingError.ParseError("Invalid integer: not-a-number")
+      )
     finally server.stop(0)
   }
 

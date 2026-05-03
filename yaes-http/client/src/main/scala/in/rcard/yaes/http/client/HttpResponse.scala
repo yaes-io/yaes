@@ -1,7 +1,7 @@
 package in.rcard.yaes.http.client
 
 import in.rcard.yaes.*
-import in.rcard.yaes.http.core.{BodyCodec, DecodingError}
+import in.rcard.yaes.http.core.{BodyDecoder, DecodingError}
 import java.util.Locale
 
 /** HTTP response returned by [[YaesClient.send]].
@@ -13,7 +13,7 @@ import java.util.Locale
   * {{{
   * val resp: HttpResponse = client.send(request)
   * resp.header("content-type")  // Option[String]
-  * resp.as[User]                // User raises (HttpError | DecodingError)
+  * resp.as[User]                // User raises (HttpError | List[DecodingError])
   * }}}
   *
   * @param status  the HTTP status code
@@ -38,13 +38,13 @@ extension (resp: HttpResponse)
   /** Decodes the response body into a typed value.
     *
     * Raises [[HttpError]] for non-2xx status codes (checked before decoding).
-    * Raises [[DecodingError]] if the body cannot be decoded by the codec.
+    * Raises a non-empty `List[DecodingError]` if the body cannot be decoded by the decoder.
     *
     * @tparam A the target type
     * @return the decoded value
     */
-  def as[A](using codec: BodyCodec[A]): A raises (HttpError | DecodingError) =
+  def as[A](using decoder: BodyDecoder[A]): A raises (HttpError | List[DecodingError]) =
     if resp.status < 200 || resp.status >= 300 then
       Raise.raise(HttpError.fromStatus(resp.status, resp.body))
     else
-      codec.decode(resp.body)
+      decoder.decode(resp.body)

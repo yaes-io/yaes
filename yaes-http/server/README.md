@@ -14,7 +14,7 @@ Type-safe HTTP/1.1 server built on YAES effects and virtual threads.
 Add the dependency to your `build.sbt`:
 
 ```scala
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-server" % "0.17.0"
+libraryDependencies += "in.rcard.yaes" %% "yaes-http-server" % "0.18.0"
 ```
 
 ## Overview
@@ -198,26 +198,44 @@ req.body            // Request body as String
 ### Response
 
 ```scala
-case class Response(
-  status: Int,
-  headers: Map[String, String] = Map.empty,
-  body: String = ""
-)
+// All factory methods accept optional extraHeaders: Map[String, String] = Map.empty
+Response.ok(body)                                                      // 200
+Response.created(body)                                                 // 201
+Response.accepted(body)                                                // 202
+Response.noContent()                                                   // 204
+Response.badRequest(message)                                           // 400
+Response.notFound(message)                                             // 404
+Response.internalServerError(message)                                  // 500
+Response.serviceUnavailable(message)                                   // 503
+Response.withStatus(status, value)                                     // any status code
 
-// Helper constructors
-Response.ok(body)                      // 200
-Response.created(body)                 // 201
-Response.noContent()                   // 204
-Response.badRequest(message)           // 400
-Response.notFound(message)             // 404
-Response.internalServerError(message)  // 500
-
-// Custom response
-Response(
-  status = 201,
-  headers = Map("Location" -> "/users/123"),
-  body = """{"id": 123, "name": "Alice"}"""
+// Custom status code with extra headers
+Response.withStatus(
+  201,
+  """{"id": 123, "name": "Alice"}""",
+  extraHeaders = Map(
+    "location" -> "/users/123",
+    Headers.ContentType -> "application/json"
+  )
 )
+```
+
+**Adding extra headers to factory methods:**
+
+All factory methods accept an optional `extraHeaders: Map[String, String] = Map.empty` parameter. Header names in `extraHeaders` are normalized to lowercase automatically. Methods that encode a body set `content-type` via the encoder; `extraHeaders` wins on collision. `noContent` carries only the headers you provide.
+
+```scala
+// 201 with Location header
+Response.created(user, extraHeaders = Map("location" -> s"/users/${user.id}"))
+
+// 301 redirect using withStatus (status codes not covered by convenience methods)
+Response.withStatus(301, "", extraHeaders = Map("location" -> "/new-path"))
+
+// 204 with ETag
+Response.noContent(extraHeaders = Map("etag" -> "\"abc123\""))
+
+// Override Content-Type explicitly (caller wins)
+Response.ok(rawJson, extraHeaders = Map(Headers.ContentType -> "application/json"))
 ```
 
 ### HTTP Methods
@@ -338,7 +356,11 @@ This ensures graceful shutdown even when the process is killed.
 
 ## Body Codecs (JSON, etc.)
 
-The server uses the `BodyCodec[A]` typeclass for automatic body encoding/decoding. Built-in codecs exist for `String`, `Int`, `Long`, `Double`, and `Boolean`.
+The server uses two typeclasses for automatic body handling:
+- **`BodyEncoder[A]`** — used by `Response.ok`, `Response.created`, etc., to encode values into a body string and set the `Content-Type` header
+- **`BodyDecoder[A]`** — used by `Request.as[A]` to decode the request body; decoding failures are raised via `Raise[List[DecodingError]]` so all failures are surfaced together
+
+Built-in instances for both exist for `String`, `Int`, `Long`, `Double`, and `Boolean`.
 
 ```scala
 // Built-in codecs work automatically
@@ -354,7 +376,7 @@ POST(p"/echo") { req =>
 
 ### Custom JSON Codec Example
 
-To use JSON, implement `BodyCodec[A]` for your types:
+To use JSON, implement `BodyEncoder[A]` and/or `BodyDecoder[A]` for your types:
 
 ```scala
 // Example with circe (not included)
@@ -366,12 +388,15 @@ import io.circe.parser.decode
 
 case class User(id: Int, name: String)
 
-given BodyCodec[User] with {
+given BodyEncoder[User] with {
   def contentType: String = "application/json"
   def encode(user: User): String = user.asJson.noSpaces
-  def decode(body: String): User raises DecodingError =
+}
+
+given BodyDecoder[User] with {
+  def decode(body: String): User raises List[DecodingError] =
     decode[User](body).fold(
-      error => Raise.raise(DecodingError(error.getMessage)),
+      error => Raise.raise(List(DecodingError.ParseError(error.getMessage))),
       user => user
     )
 }
@@ -379,20 +404,20 @@ given BodyCodec[User] with {
 // Use in routes
 GET(p"/users" / userId) { (req, id: Int) =>
   val user = User(id, "Alice")
-  Response.ok(user)  // Automatically encoded to JSON with application/json Content-Type
+  Response.ok(user)  // Requires BodyEncoder[User]; sets Content-Type: application/json
 }
 
 POST(p"/users") { req =>
   Raise.fold {
-    val user = req.as[User]  // Automatically decoded from JSON
+    val user = req.as[User]  // Requires BodyDecoder[User]; decoded from JSON
     Response.created(user)
-  } { case error: DecodingError =>
-    Response.badRequest(error.message)
+  } { case errors: List[DecodingError] =>
+    Response.badRequest(errors.map(_.message).mkString(", "))
   }
 }
 ```
 
-Note: JSON libraries (circe, upickle, zio-json, etc.) are not included. Choose your preferred library and implement the `BodyCodec` trait.
+Note: JSON libraries (circe, upickle, zio-json, etc.) are not included. Choose your preferred library and implement `BodyEncoder` and/or `BodyDecoder` as needed. For Circe, the `yaes-http-circe` module provides both automatically.
 
 ## Examples
 
@@ -418,19 +443,15 @@ object MyServer extends App {
 
           // List users
           GET(p"/users") { req =>
-            Response(
-              status = 200,
-              headers = Map("Content-Type" -> "application/json"),
-              body = """[{"id": 1, "name": "Alice"}]"""
+            Response.ok("""[{"id": 1, "name": "Alice"}]""",
+              extraHeaders = Map("content-type" -> "application/json")
             )
           },
 
           // Get user by ID
           GET(p"/users" / userId) { (req, id: Int) =>
-            Response(
-              status = 200,
-              headers = Map("Content-Type" -> "application/json"),
-              body = s"""{"id": $id, "name": "User $id"}"""
+            Response.ok(s"""{"id": $id, "name": "User $id"}""",
+              extraHeaders = Map("content-type" -> "application/json")
             )
           },
 
@@ -443,13 +464,11 @@ object MyServer extends App {
           // Create user
           POST(p"/users") { req =>
             // Parse req.body and create user...
-            Response(
-              status = 201,
-              headers = Map(
-                "Content-Type" -> "application/json",
-                "Location" -> "/users/123"
-              ),
-              body = """{"id": 123, "name": "New User"}"""
+            Response.withStatus(201, """{"id": 123, "name": "New User"}""",
+              extraHeaders = Map(
+                "content-type" -> "application/json",
+                "location"     -> "/users/123"
+              )
             )
           }
         )
