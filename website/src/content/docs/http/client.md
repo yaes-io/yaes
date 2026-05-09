@@ -11,7 +11,7 @@ An effect-based HTTP client built on YAES effects and Java's `java.net.http.Http
 **Key Features:**
 - **Java HttpClient backend** - Built on `java.net.http.HttpClient` with virtual thread support
 - **Effect integration** - Uses `Sync`, `Raise`, and `Resource` effects for structured error handling and lifecycle management
-- **Typed error hierarchy** - Separate `ConnectionError` (transport) and `HttpError` (HTTP status) error types
+- **Typed error hierarchy** - Separate `ConnectionError` (transport) and `HttpError` (HTTP status) error types; error bodies decodable via `err.as[E]`
 - **Fluent builder API** - Immutable request construction with `header`, `queryParam`, and `timeout` extension methods
 - **Body codecs** - Request body encoding via `BodyEncoder` and response body decoding via `BodyDecoder`
 - **URI validation** - Opaque `Uri` type with construction-time validation via the `Raise` effect
@@ -334,6 +334,21 @@ result match
   case Left(errors: List[DecodingError]) => println(s"Decoding failed: ${errors.map(_.message).mkString(", ")}")
   case Right(value)                      => println(s"Success: $value")
 ```
+
+### Typed Error Body Decoding
+
+Many REST APIs return structured error payloads alongside non-2xx responses — for example, a `422 Unprocessable Entity` with a JSON `ValidationError` object. Use `err.as[E]` on any `HttpError` to decode the raw error body into a typed value using the same `BodyDecoder` infrastructure as the success path:
+
+```scala
+case class ValidationError(field: String, message: String) derives Decoder
+
+val result = Raise.fold(response.as[User])(
+  onError  = (err: HttpError) => Raise.either[List[DecodingError], ValidationError] { err.as[ValidationError] },
+  onSuccess = user => Right(user)
+)
+```
+
+`err.as[E]` raises `List[DecodingError]` if decoding fails — identical semantics to `response.as[A]`. It is available on all `HttpError` subtypes: `ClientHttpError`, `ServerHttpError`, and `UnexpectedStatus`.
 
 ---
 

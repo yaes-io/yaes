@@ -282,6 +282,21 @@ result match
   case Right(value)                      => println(s"Success: $value")
 ```
 
+### Typed Error Body Decoding
+
+Many REST APIs return structured error payloads alongside non-2xx responses (e.g. a `422` with a JSON `ValidationError`). Use `err.as[E]` on any `HttpError` to decode the raw error body into a typed value using the same `BodyDecoder` infrastructure as the success path:
+
+```scala
+case class ValidationError(field: String, message: String) derives Decoder
+
+val result = Raise.fold(response.as[User])(
+  onError  = (err: HttpError) => Raise.either[List[DecodingError], ValidationError] { err.as[ValidationError] },
+  onSuccess = user => Right(user)
+)
+```
+
+`err.as[E]` raises `List[DecodingError]` if decoding fails — the same semantics as `response.as[A]`.
+
 ## URI Validation
 
 The `Uri` opaque type validates URI syntax at construction time via the `Raise` effect:
