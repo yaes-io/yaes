@@ -29,6 +29,7 @@ libraryDependencies += "in.rcard.yaes" %% "yaes-http-client" % "0.18.0"
 - **Fluent Builder API**: Immutable request building with `header`, `queryParam`, and `timeout` extension methods
 - **Body Codecs**: Request body encoding via `BodyEncoder` and response body decoding via `BodyDecoder`
 - **URI Validation**: Opaque `Uri` type with compile-time-safe construction via the `Raise` effect
+- **Path Parameter Interpolation**: `uri"..."` string interpolator for ergonomic, type-safe path param encoding via `PathParamStringifier`
 - **Configurable**: Connect timeout, redirect policy, and HTTP version selection
 
 ## Quick Start
@@ -310,6 +311,45 @@ val result: Either[List[DecodingError], ValidationError | User] =
 ```
 
 `err.as[E]` raises `List[DecodingError]` if decoding fails — the same semantics as `response.as[A]`.
+
+## Path Parameters
+
+Use the `uri"..."` string interpolator to construct URIs with path parameters. Each interpolated argument is automatically URL-encoded (spaces become `%20`, slashes become `%2F`, etc.) via the `PathParamStringifier[A]` typeclass. The literal parts of the URI template are validated at **compile time**. Since interpolations are URL-encoded and intended for path segments, the assembled URI is always well-formed when placeholders appear only in path positions — no `Raise` effect is needed at runtime.
+
+```scala
+import in.rcard.yaes.*
+import in.rcard.yaes.http.client.*
+
+val userId: Int     = 42
+val orderId: String = "ord-99"
+
+val request = HttpRequest.get(uri"https://api.example.com/users/$userId/orders/$orderId")
+```
+
+Built-in `PathParamStringifier` instances exist for `String`, `Int`, `Long`, `Boolean`, `Double`, and `UUID`.
+
+### Custom Encoders
+
+Provide a `given PathParamStringifier[A]` for your own types:
+
+```scala
+import in.rcard.yaes.*
+import in.rcard.yaes.http.client.*
+
+case class ItemId(value: Int)
+
+given PathParamStringifier[ItemId] with {
+  def encode(v: ItemId): String = s"item-${v.value}"
+}
+
+val id = ItemId(5)
+val request = HttpRequest.get(uri"https://api.example.com/items/$id")
+// => GET https://api.example.com/items/item-5
+```
+
+A missing `PathParamStringifier` instance is a **compile error** — the interpolator will not fall back to `.toString`.
+
+---
 
 ## URI Validation
 
