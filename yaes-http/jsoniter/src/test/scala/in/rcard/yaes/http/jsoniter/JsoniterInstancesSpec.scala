@@ -71,7 +71,6 @@ class JsoniterInstancesSpec extends AnyFlatSpec with Matchers with EitherValues 
   it should "raise ParseError for JSON with missing required fields" in {
     val dec    = summon[BodyDecoder[User]]
     val result = Raise.either[DecodingError, User] { dec.decode("""{"name":"Alice"}""") }
-    result.isLeft shouldBe true
     result.left.value shouldBe a[DecodingError.ParseError]
   }
 
