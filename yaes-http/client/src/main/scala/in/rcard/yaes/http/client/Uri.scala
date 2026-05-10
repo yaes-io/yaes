@@ -76,3 +76,7 @@ object Uri:
           if fragIdx == -1 then (raw, "") else (raw.substring(0, fragIdx), raw.substring(fragIdx))
         val separator = if base.contains('?') then "&" else "?"
         new URI(s"$base$separator$encoded$fragment")
+
+extension (sc: StringContext)
+  def uri(args: UriParam*): Uri =
+    new URI(sc.s(args.map(_.encoded)*))

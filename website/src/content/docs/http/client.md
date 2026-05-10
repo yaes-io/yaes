@@ -15,6 +15,7 @@ An effect-based HTTP client built on YAES effects and Java's `java.net.http.Http
 - **Fluent builder API** - Immutable request construction with `header`, `queryParam`, and `timeout` extension methods
 - **Body codecs** - Request body encoding via `BodyEncoder` and response body decoding via `BodyDecoder`
 - **URI validation** - Opaque `Uri` type with construction-time validation via the `Raise` effect
+- **Path parameter interpolation** - `uri"..."` string interpolator for ergonomic, type-safe path param encoding via `PathParamEncoder`
 
 **Requirements:**
 - Java 25+ (for Virtual Threads and Structured Concurrency)
@@ -361,6 +362,55 @@ val result: Either[List[DecodingError], User | ValidationError] =
 ```
 
 `err.as[E]` raises `List[DecodingError]` if decoding fails — identical semantics to `response.as[A]`. It is available on all `HttpError` subtypes: `ClientHttpError`, `ServerHttpError`, and `UnexpectedStatus`.
+
+---
+
+## Path Parameters
+
+Use the `uri"..."` string interpolator to construct URIs with path parameters ergonomically. Each interpolated argument is URL-encoded automatically (spaces → `%20`, slashes → `%2F`, etc.) via the `PathParamEncoder[A]` typeclass. The result is a `Uri` — no `Raise` effect required.
+
+```scala
+import in.rcard.yaes.http.client.*
+
+val userId: Int     = 42
+val orderId: String = "ord-99"
+
+val request = HttpRequest.get(uri"https://api.example.com/users/$userId/orders/$orderId")
+// => GET https://api.example.com/users/42/orders/ord-99
+```
+
+Built-in `PathParamEncoder` instances are provided for `String`, `Int`, `Long`, `Boolean`, `Double`, and `UUID`.
+
+### Special Character Encoding
+
+The interpolator correctly percent-encodes values that would otherwise break URI structure:
+
+| Character | Encoded as |
+|-----------|------------|
+| Space | `%20` |
+| `/` | `%2F` |
+| `?` | `%3F` |
+| `#` | `%23` |
+| `%` | `%25` |
+| `+` | `%2B` |
+
+### Custom Encoders
+
+Provide a `given PathParamEncoder[A]` for your own types:
+
+```scala
+case class ItemId(value: Int)
+
+given PathParamEncoder[ItemId] with {
+  def encode(v: ItemId): String = s"item-${v.value}"
+}
+
+val id = ItemId(5)
+val request = HttpRequest.get(uri"https://api.example.com/items/$id")
+// => GET https://api.example.com/items/item-5
+```
+
+> **Compile-time safety:** A missing `PathParamEncoder` instance is a compile error. The interpolator never falls back to `.toString`.
 
 ---
 
