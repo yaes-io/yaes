@@ -367,7 +367,7 @@ val result: Either[List[DecodingError], User | ValidationError] =
 
 ## Path Parameters
 
-Use the `uri"..."` string interpolator to construct URIs with path parameters ergonomically. Each interpolated argument is URL-encoded automatically (spaces → `%20`, slashes → `%2F`, etc.) via the `PathParamStringifier[A]` typeclass. The URI template is validated at **compile time**, so no `Raise` effect is needed at runtime — the interpolator returns a plain `Uri`.
+Use the `uri"..."` string interpolator to construct URIs with path parameters ergonomically. Each interpolated argument is URL-encoded automatically (spaces → `%20`, slashes → `%2F`, etc.) via the `PathParamStringifier[A]` typeclass. The literal parts of the URI template are validated at **compile time**. Since interpolations are URL-encoded and intended for path segments, the assembled URI is always well-formed when placeholders appear only in path positions — no `Raise` effect is needed at runtime.
 
 ```scala
 import in.rcard.yaes.*

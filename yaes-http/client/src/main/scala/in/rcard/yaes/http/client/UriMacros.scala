@@ -33,8 +33,10 @@ object UriMacros:
       case t => report.errorAndAbort(s"uri interpolator requires a string literal template")
 
     // Validate the static template at compile time using "x" as a safe placeholder.
-    // URL-encoded path segment args only produce characters valid in path positions,
-    // so if the skeleton is valid the assembled URI will be valid at runtime.
+    // This guarantees the literal skeleton is a well-formed URI. Interpolated values
+    // are URL-encoded and safe when placed in path positions; using interpolations
+    // in scheme or authority positions is unsupported and may produce invalid URIs at
+    // runtime.
     val template = parts.mkString("x")
     try new java.net.URI(template)
     catch
