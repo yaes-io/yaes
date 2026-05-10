@@ -1,7 +1,6 @@
 package in.rcard.yaes.http.circe
 
 import in.rcard.yaes.*
-import in.rcard.yaes.NonEmptyList
 import in.rcard.yaes.http.core.{BodyDecoder, BodyEncoder, DecodingError}
 import io.circe.{Decoder, DecodingFailure, Encoder, ParsingFailure}
 import io.circe.parser.decodeAccumulating as circeDecodeAccumulating
@@ -66,11 +65,12 @@ given circeBodyDecoder[A](using decoder: Decoder[A]): BodyDecoder[A] with {
       case Validated.Valid(a) => a
       case Validated.Invalid(errs) =>
         errs.head match {
+          // circe emits ParsingFailure alone; decodeAccumulating short-circuits on parse errors
           case pf: ParsingFailure =>
             Raise.raise(DecodingError.ParseError(pf.getMessage, Option(pf.underlying)))
-          case _ =>
+          case df: DecodingFailure =>
             Raise.raise(DecodingError.ValidationErrors(
-              NonEmptyList.of(errs.head.getMessage, errs.tail.map(_.getMessage)*)
+              NonEmptyList.of(df.getMessage, errs.tail.map(_.getMessage)*)
             ))
         }
     }
