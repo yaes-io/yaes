@@ -367,19 +367,17 @@ val result: Either[List[DecodingError], User | ValidationError] =
 
 ## Path Parameters
 
-Use the `uri"..."` string interpolator to construct URIs with path parameters ergonomically. Each interpolated argument is URL-encoded automatically (spaces → `%20`, slashes → `%2F`, etc.) via the `PathParamStringifier[A]` typeclass. The result is a `Uri raises Uri.InvalidUri` — a `Raise[Uri.InvalidUri]` effect is required to handle the case where the assembled URI is syntactically invalid.
+Use the `uri"..."` string interpolator to construct URIs with path parameters ergonomically. Each interpolated argument is URL-encoded automatically (spaces → `%20`, slashes → `%2F`, etc.) via the `PathParamStringifier[A]` typeclass. The URI template is validated at **compile time**, so no `Raise` effect is needed at runtime — the interpolator returns a plain `Uri`.
 
 ```scala
 import in.rcard.yaes.*
 import in.rcard.yaes.http.client.*
 
-Raise.run[Uri.InvalidUri] {
-  val userId: Int     = 42
-  val orderId: String = "ord-99"
+val userId: Int     = 42
+val orderId: String = "ord-99"
 
-  val request = HttpRequest.get(uri"https://api.example.com/users/$userId/orders/$orderId")
-  // => GET https://api.example.com/users/42/orders/ord-99
-}
+val request = HttpRequest.get(uri"https://api.example.com/users/$userId/orders/$orderId")
+// => GET https://api.example.com/users/42/orders/ord-99
 ```
 
 Built-in `PathParamStringifier` instances are provided for `String`, `Int`, `Long`, `Boolean`, `Double`, and `UUID`.
@@ -411,11 +409,9 @@ given PathParamStringifier[ItemId] with {
   def encode(v: ItemId): String = s"item-${v.value}"
 }
 
-Raise.run[Uri.InvalidUri] {
-  val id = ItemId(5)
-  val request = HttpRequest.get(uri"https://api.example.com/items/$id")
-  // => GET https://api.example.com/items/item-5
-}
+val id = ItemId(5)
+val request = HttpRequest.get(uri"https://api.example.com/items/$id")
+// => GET https://api.example.com/items/item-5
 ```
 
 > **Compile-time safety:** A missing `PathParamStringifier` instance is a compile error. The interpolator never falls back to `.toString`.

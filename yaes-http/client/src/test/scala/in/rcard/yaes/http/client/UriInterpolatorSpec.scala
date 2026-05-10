@@ -111,3 +111,11 @@ class UriInterpolatorSpec extends AnyFlatSpec with Matchers:
   it should "fail to compile for an invalid URI template" in {
     typeChecks("""uri"not a \nvalid uri"""") shouldBe false
   }
+
+  it should "fail to compile for a type without a PathParamStringifier" in {
+    typeChecks("""
+      case class Foo(x: Int)
+      val f = Foo(1)
+      uri"https://api.example.com/$f"
+    """) shouldBe false
+  }

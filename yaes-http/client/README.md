@@ -314,21 +314,19 @@ val result: Either[List[DecodingError], ValidationError | User] =
 
 ## Path Parameters
 
-Use the `uri"..."` string interpolator to construct URIs with path parameters. Each interpolated argument is automatically URL-encoded (spaces become `%20`, slashes become `%2F`, etc.) via the `PathParamStringifier[A]` typeclass:
+Use the `uri"..."` string interpolator to construct URIs with path parameters. Each interpolated argument is automatically URL-encoded (spaces become `%20`, slashes become `%2F`, etc.) via the `PathParamStringifier[A]` typeclass. The URI template is validated at **compile time**, so no `Raise` effect is needed at runtime — the interpolator returns a plain `Uri`.
 
 ```scala
 import in.rcard.yaes.*
 import in.rcard.yaes.http.client.*
 
-Raise.run[Uri.InvalidUri] {
-  val userId: Int     = 42
-  val orderId: String = "ord-99"
+val userId: Int     = 42
+val orderId: String = "ord-99"
 
-  val request = HttpRequest.get(uri"https://api.example.com/users/$userId/orders/$orderId")
-}
+val request = HttpRequest.get(uri"https://api.example.com/users/$userId/orders/$orderId")
 ```
 
-Built-in `PathParamStringifier` instances exist for `String`, `Int`, `Long`, `Boolean`, `Double`, and `UUID`. The interpolator returns `Uri raises Uri.InvalidUri` — a `Raise[Uri.InvalidUri]` effect is required to handle a syntactically invalid assembled URI.
+Built-in `PathParamStringifier` instances exist for `String`, `Int`, `Long`, `Boolean`, `Double`, and `UUID`.
 
 ### Custom Encoders
 
@@ -344,11 +342,9 @@ given PathParamStringifier[ItemId] with {
   def encode(v: ItemId): String = s"item-${v.value}"
 }
 
-Raise.run[Uri.InvalidUri] {
-  val id = ItemId(5)
-  val request = HttpRequest.get(uri"https://api.example.com/items/$id")
-  // => GET https://api.example.com/items/item-5
-}
+val id = ItemId(5)
+val request = HttpRequest.get(uri"https://api.example.com/items/$id")
+// => GET https://api.example.com/items/item-5
 ```
 
 A missing `PathParamStringifier` instance is a **compile error** — the interpolator will not fall back to `.toString`.

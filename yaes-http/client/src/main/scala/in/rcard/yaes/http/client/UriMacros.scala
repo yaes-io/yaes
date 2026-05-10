@@ -17,7 +17,7 @@ object UriMacros:
         id.symbol.tree match
           case ValDef(_, _, Some(rhs))    => unwrap(rhs)
           case _                          => t
-      case other                          => t
+      case _                              => t
 
     val parts: List[String] = unwrap(sc.asTerm) match
       case Apply(_, args) =>
@@ -33,8 +33,8 @@ object UriMacros:
       case t => report.errorAndAbort(s"uri interpolator requires a string literal template")
 
     // Validate the static template at compile time using "x" as a safe placeholder.
-    // URL-encoded args only produce unreserved URI characters, so if the skeleton is
-    // valid the assembled URI will always be valid at runtime.
+    // URL-encoded path segment args only produce characters valid in path positions,
+    // so if the skeleton is valid the assembled URI will be valid at runtime.
     val template = parts.mkString("x")
     try new java.net.URI(template)
     catch

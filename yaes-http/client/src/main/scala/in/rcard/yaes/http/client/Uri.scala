@@ -95,7 +95,7 @@ extension (sc: StringContext)
     * {{{
     * val id: Long = 42L
     * val endpoint: Uri = uri"https://api.example.com/users/$id"
-    * // equivalent to Uri("https://api.example.com/users/42")
+    * // produces a Uri with value "https://api.example.com/users/42"
     * }}}
     *
     * @param args the path parameter values to interpolate, URL-encoded via [[PathParamStringifier]]
