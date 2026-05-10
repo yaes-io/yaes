@@ -340,12 +340,24 @@ result match
 Many REST APIs return structured error payloads alongside non-2xx responses — for example, a `422 Unprocessable Entity` with a JSON `ValidationError` object. Use `err.as[E]` on any `HttpError` to decode the raw error body into a typed value using the same `BodyDecoder` infrastructure as the success path:
 
 ```scala
+import io.circe.Decoder
+import yaes.http.client.circe.given
+
 case class ValidationError(field: String, message: String) derives Decoder
 
-val result = Raise.fold(response.as[User])(
-  onError  = (err: HttpError) => Raise.either[List[DecodingError], ValidationError] { err.as[ValidationError] },
-  onSuccess = user => Right(user)
-)
+val result: Either[List[DecodingError], User | ValidationError] =
+  Raise.fold {
+    response.as[User]
+  } {
+    case err: HttpError =>
+      Raise.either[List[DecodingError], User | ValidationError] {
+        err.as[ValidationError]
+      }
+    case errors: List[DecodingError] =>
+      Left(errors)
+  } {
+    user => Right(user)
+  }
 ```
 
 `err.as[E]` raises `List[DecodingError]` if decoding fails — identical semantics to `response.as[A]`. It is available on all `HttpError` subtypes: `ClientHttpError`, `ServerHttpError`, and `UnexpectedStatus`.
