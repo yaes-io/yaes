@@ -32,7 +32,7 @@ given jsoniterBodyEncoder[A](using codec: JsonValueCodec[A]): BodyEncoder[A] wit
 /** [[BodyDecoder]] for any type `A` with a jsoniter-scala [[JsonValueCodec]] in scope.
   *
   * Parses JSON using [[readFromString]]. Any [[JsonReaderException]] (both syntax
-  * and structural errors) is mapped to `List(DecodingError.ParseError(..., cause))`.
+  * and structural errors) is mapped to `DecodingError.ParseError(..., cause)`.
   *
   * Example:
   * {{{
@@ -44,14 +44,14 @@ given jsoniterBodyEncoder[A](using codec: JsonValueCodec[A]): BodyEncoder[A] wit
   * given JsonValueCodec[User] = JsonCodecMaker.make
   *
   * val dec = summon[BodyDecoder[User]]
-  * // dec.decode(body) raises List[DecodingError] on failure
+  * // dec.decode(body) raises DecodingError on failure
   * }}}
   *
   * @tparam A the type to decode; requires a [[JsonValueCodec]] in scope
   */
 given jsoniterBodyDecoder[A](using codec: JsonValueCodec[A]): BodyDecoder[A] with {
-  def decode(body: String): A raises List[DecodingError] =
+  def decode(body: String): A raises DecodingError =
     try readFromString[A](body)
     catch case e: JsonReaderException =>
-      Raise.raise(List(DecodingError.ParseError(e.getMessage, Option(e))))
+      Raise.raise(DecodingError.ParseError(e.getMessage, Option(e)))
 }
