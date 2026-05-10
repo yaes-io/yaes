@@ -15,33 +15,40 @@ package in.rcard.yaes
   */
 opaque type NonEmptyList[A] = (A, List[A])
 
-object NonEmptyList:
+object NonEmptyList {
 
   /** Creates a NonEmptyList from a head element and zero or more tail elements.
     *
-    * @param head the first (mandatory) element
-    * @param tail additional elements (varargs)
-    * @return a NonEmptyList containing head followed by tail elements
+    * @param head
+    *   the first (mandatory) element
+    * @param tail
+    *   additional elements (varargs)
+    * @return
+    *   a NonEmptyList containing head followed by tail elements
     */
   def of[A](head: A, tail: A*): NonEmptyList[A] = (head, tail.toList)
 
   /** Creates a NonEmptyList with a single element.
     *
-    * @param value the sole element
-    * @return a NonEmptyList containing only value
+    * @param value
+    *   the sole element
+    * @return
+    *   a NonEmptyList containing only value
     */
   def one[A](value: A): NonEmptyList[A] = (value, Nil)
 
   /** Safely lifts a List into a NonEmptyList.
     *
-    * @param list the list to lift
-    * @return Some(NonEmptyList) if list is non-empty, None otherwise
+    * @param list
+    *   the list to lift
+    * @return
+    *   Some(NonEmptyList) if list is non-empty, None otherwise
     */
   def fromList[A](list: List[A]): Option[NonEmptyList[A]] = list match
     case Nil          => None
     case head :: tail => Some((head, tail))
 
-  extension [A](nel: NonEmptyList[A])
+  extension [A](nel: NonEmptyList[A]) {
 
     /** Returns the first element of the list. */
     def head: A = nel._1
@@ -54,8 +61,10 @@ object NonEmptyList:
 
     /** Transforms each element using the given function.
       *
-      * @param f the transformation function
-      * @return a new NonEmptyList with f applied to every element
+      * @param f
+      *   the transformation function
+      * @return
+      *   a new NonEmptyList with f applied to every element
       */
     def map[B](f: A => B): NonEmptyList[B] = (f(nel._1), nel._2.map(f))
 
@@ -63,12 +72,15 @@ object NonEmptyList:
       *
       * The result is always non-empty because f applied to the head is guaranteed non-empty.
       *
-      * @param f function from element to NonEmptyList
-      * @return the concatenated NonEmptyList
+      * @param f
+      *   function from element to NonEmptyList
+      * @return
+      *   the concatenated NonEmptyList
       */
-    def flatMap[B](f: A => NonEmptyList[B]): NonEmptyList[B] =
+    def flatMap[B](f: A => NonEmptyList[B]): NonEmptyList[B] = {
       val headResult: NonEmptyList[B] = f(nel._1)
-      val tailResults: List[B]        = nel._2.flatMap(a => toListImpl(f(a)))
+      val tailResults: List[B]        = nel._2.flatMap { a => val r = f(a); r._1 :: r._2 }
       (headResult._1, headResult._2 ++ tailResults)
-
-  private def toListImpl[A](nel: NonEmptyList[A]): List[A] = nel._1 :: nel._2
+    }
+  }
+}
