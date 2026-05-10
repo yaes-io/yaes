@@ -4,6 +4,7 @@ import in.rcard.yaes.*
 import in.rcard.yaes.http.core.{BodyDecoder, DecodingError}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import in.rcard.yaes.NonEmptyList
 
 class BodyDecoderSpec extends AnyFlatSpec with Matchers {
 
@@ -137,5 +138,38 @@ class BodyDecoderSpec extends AnyFlatSpec with Matchers {
     }
     result.isLeft shouldBe true
     result.left.get shouldBe DecodingError.ParseError("Invalid User JSON: not json at all")
+  }
+
+  case class ValidatedItem(value: String)
+
+  given BodyDecoder[ValidatedItem] with {
+    def decode(body: String): ValidatedItem raises DecodingError = {
+      val errors = List.newBuilder[String]
+      if (body.isEmpty) errors += "value must not be empty"
+      if (body.length > 100) errors += "value must not exceed 100 characters"
+      NonEmptyList.fromList(errors.result()) match {
+        case Some(nel) => Raise.raise(DecodingError.ValidationErrors(nel))
+        case None      => ValidatedItem(body)
+      }
+    }
+  }
+
+  "ValidationErrors" should "join reasons with a semicolon separator" in {
+    val error = DecodingError.ValidationErrors(NonEmptyList.of("field is required", "value is negative"))
+    error.message shouldBe "field is required; value is negative"
+  }
+
+  it should "allow a custom BodyDecoder to raise ValidationErrors with multiple reasons" in {
+    val decoder = summon[BodyDecoder[ValidatedItem]]
+    val result = Raise.either[DecodingError, ValidatedItem] {
+      decoder.decode("")
+    }
+    result.isLeft shouldBe true
+    result.left.get shouldBe DecodingError.ValidationErrors(NonEmptyList.one("value must not be empty"))
+  }
+
+  it should "work with a single reason via NonEmptyList.one" in {
+    val error = DecodingError.ValidationErrors(NonEmptyList.one("field is required"))
+    error.message shouldBe "field is required"
   }
 }
