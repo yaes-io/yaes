@@ -21,7 +21,7 @@ import scala.jdk.CollectionConverters.*
   * Resource.run {
   *   val client = YaesClient.make()
   *   val resp = client.send(HttpRequest.get(uri))  // HttpResponse
-  *   resp.as[User]                                  // User raises (HttpError | List[DecodingError])
+  *   resp.as[User]                                  // User raises (HttpError | DecodingError)
   * }
   * }}}
   */

@@ -22,16 +22,16 @@ class YaesClientIntegrationSpec extends AnyFlatSpec with Matchers:
   private def sendAndDecode[A](client: YaesClient, request: HttpRequest)(using
       BodyDecoder[A],
       Sync
-  ): Either[ConnectionError | HttpError | List[DecodingError], A] =
+  ): Either[ConnectionError | HttpError | DecodingError, A] =
     Raise
       .either[ConnectionError, HttpResponse] { client.send(request) }
       .left
-      .map(e => e: ConnectionError | HttpError | List[DecodingError])
+      .map(e => e: ConnectionError | HttpError | DecodingError)
       .flatMap { resp =>
         Raise
-          .either[HttpError | List[DecodingError], A] { resp.as[A] }
+          .either[HttpError | DecodingError, A] { resp.as[A] }
           .left
-          .map(e => e: ConnectionError | HttpError | List[DecodingError])
+          .map(e => e: ConnectionError | HttpError | DecodingError)
       }
 
   "YaesClient full pipeline" should "GET and decode response body" in {
@@ -127,8 +127,8 @@ class YaesClientIntegrationSpec extends AnyFlatSpec with Matchers:
           sendAndDecode[Int](client, HttpRequest.get(uri(baseUrl)))
         }
       }
-      result.get.left.getOrElse(fail()) shouldBe List(
-        DecodingError.ParseError("Invalid integer: not-a-number")
+      result.get.left.getOrElse(fail()) shouldBe DecodingError.ParseError(
+        "Invalid integer: not-a-number"
       )
     finally server.stop(0)
   }
