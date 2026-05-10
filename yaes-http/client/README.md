@@ -287,12 +287,25 @@ result match
 Many REST APIs return structured error payloads alongside non-2xx responses (e.g. a `422` with a JSON `ValidationError`). Use `err.as[E]` on any `HttpError` to decode the raw error body into a typed value using the same `BodyDecoder` infrastructure as the success path:
 
 ```scala
-case class ValidationError(field: String, message: String) derives Decoder
+import io.circe.Decoder
 
-val result = Raise.fold(response.as[User])(
-  onError  = (err: HttpError) => Raise.either[List[DecodingError], ValidationError] { err.as[ValidationError] },
-  onSuccess = user => Right(user)
-)
+case class ValidationError(field: String, message: String)
+given Decoder[ValidationError] =
+  Decoder.forProduct2("field", "message")(ValidationError.apply)
+
+val result: Either[List[DecodingError], ValidationError | User] =
+  Raise.fold {
+    response.as[User]
+  } {
+    case err: HttpError =>
+      Raise.either[List[DecodingError], ValidationError | User] {
+        err.as[ValidationError]
+      }
+    case errors: List[DecodingError] =>
+      Left(errors)
+  } {
+    user => Right(user)
+  }
 ```
 
 `err.as[E]` raises `List[DecodingError]` if decoding fails — the same semantics as `response.as[A]`.
