@@ -29,7 +29,7 @@ libraryDependencies += "in.rcard.yaes" %% "yaes-http-client" % "0.18.0"
 - **Fluent Builder API**: Immutable request building with `header`, `queryParam`, and `timeout` extension methods
 - **Body Codecs**: Request body encoding via `BodyEncoder` and response body decoding via `BodyDecoder`
 - **URI Validation**: Opaque `Uri` type with compile-time-safe construction via the `Raise` effect
-- **Path Parameter Interpolation**: `uri"..."` string interpolator for ergonomic, type-safe path param encoding via `PathParamEncoder`
+- **Path Parameter Interpolation**: `uri"..."` string interpolator for ergonomic, type-safe path param encoding via `PathParamStringifier`
 - **Configurable**: Connect timeout, redirect policy, and HTTP version selection
 
 ## Quick Start
@@ -314,36 +314,44 @@ val result: Either[List[DecodingError], ValidationError | User] =
 
 ## Path Parameters
 
-Use the `uri"..."` string interpolator to construct URIs with path parameters. Each interpolated argument is automatically URL-encoded (spaces become `%20`, slashes become `%2F`, etc.) via the `PathParamEncoder[A]` typeclass:
+Use the `uri"..."` string interpolator to construct URIs with path parameters. Each interpolated argument is automatically URL-encoded (spaces become `%20`, slashes become `%2F`, etc.) via the `PathParamStringifier[A]` typeclass:
 
 ```scala
+import in.rcard.yaes.*
 import in.rcard.yaes.http.client.*
 
-val userId: Int     = 42
-val orderId: String = "ord-99"
+Raise.run[Uri.InvalidUri] {
+  val userId: Int     = 42
+  val orderId: String = "ord-99"
 
-val request = HttpRequest.get(uri"https://api.example.com/users/$userId/orders/$orderId")
+  val request = HttpRequest.get(uri"https://api.example.com/users/$userId/orders/$orderId")
+}
 ```
 
-Built-in `PathParamEncoder` instances exist for `String`, `Int`, `Long`, `Boolean`, `Double`, and `UUID`. The interpolator returns a `Uri` directly — no `Raise` effect needed.
+Built-in `PathParamStringifier` instances exist for `String`, `Int`, `Long`, `Boolean`, `Double`, and `UUID`. The interpolator returns `Uri raises Uri.InvalidUri` — a `Raise[Uri.InvalidUri]` effect is required to handle a syntactically invalid assembled URI.
 
 ### Custom Encoders
 
-Provide a `given PathParamEncoder[A]` for your own types:
+Provide a `given PathParamStringifier[A]` for your own types:
 
 ```scala
+import in.rcard.yaes.*
+import in.rcard.yaes.http.client.*
+
 case class ItemId(value: Int)
 
-given PathParamEncoder[ItemId] with {
+given PathParamStringifier[ItemId] with {
   def encode(v: ItemId): String = s"item-${v.value}"
 }
 
-val id = ItemId(5)
-val request = HttpRequest.get(uri"https://api.example.com/items/$id")
-// => GET https://api.example.com/items/item-5
+Raise.run[Uri.InvalidUri] {
+  val id = ItemId(5)
+  val request = HttpRequest.get(uri"https://api.example.com/items/$id")
+  // => GET https://api.example.com/items/item-5
+}
 ```
 
-A missing `PathParamEncoder` instance is a **compile error** — the interpolator will not fall back to `.toString`.
+A missing `PathParamStringifier` instance is a **compile error** — the interpolator will not fall back to `.toString`.
 
 ---
 
