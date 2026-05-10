@@ -1,8 +1,8 @@
 package in.rcard.yaes.http.server
 
-
 import in.rcard.yaes.*
 import in.rcard.yaes.http.core.{BodyDecoder, DecodingError, Method}
+
 /** HTTP request representation.
   *
   * Immutable case class representing an incoming HTTP request. This is a simplified model focusing
