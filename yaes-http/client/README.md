@@ -288,6 +288,7 @@ Many REST APIs return structured error payloads alongside non-2xx responses (e.g
 
 ```scala
 import io.circe.Decoder
+import in.rcard.yaes.http.circe.given
 
 case class ValidationError(field: String, message: String)
 given Decoder[ValidationError] =
