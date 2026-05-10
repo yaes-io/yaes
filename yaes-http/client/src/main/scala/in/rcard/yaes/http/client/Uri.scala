@@ -1,6 +1,7 @@
 package in.rcard.yaes.http.client
 
 import in.rcard.yaes.*
+import scala.quoted.*
 import java.net.{URI, URISyntaxException, URLEncoder}
 import java.nio.charset.StandardCharsets.UTF_8
 
@@ -39,6 +40,9 @@ object Uri:
     catch
       case e: URISyntaxException =>
         Raise.raise(InvalidUri(raw, e.getMessage))
+
+  /** Constructs a [[Uri]] from a pre-validated string without raising. For macro use only. */
+  private[client] def fromTrustedString(raw: String): Uri = new java.net.URI(raw)
 
   extension (uri: Uri)
     /** Returns the underlying [[java.net.URI]]. */
@@ -84,21 +88,17 @@ extension (sc: StringContext)
     * converts the value to its raw string form, which is then URL-encoded by [[UriParam]] before
     * being spliced into the URI template.
     *
-    * Raises [[Uri.InvalidUri]] if the assembled string is not a valid URI.
+    * The URI template is validated at compile time. An invalid literal template is a compile error.
+    * Interpolated arguments are URL-encoded and therefore always produce valid URI characters.
     *
     * Example:
     * {{{
     * val id: Long = 42L
-    * val endpoint: Uri raises Uri.InvalidUri = uri"https://api.example.com/users/$id"
+    * val endpoint: Uri = uri"https://api.example.com/users/$id"
     * // equivalent to Uri("https://api.example.com/users/42")
     * }}}
     *
     * @param args the path parameter values to interpolate, URL-encoded via [[PathParamStringifier]]
     * @return the constructed and validated [[Uri]]
     */
-  def uri(args: UriParam*): Uri raises Uri.InvalidUri =
-    val raw = sc.s(args.map(_.encoded)*)
-    try new URI(raw)
-    catch
-      case e: URISyntaxException =>
-        Raise.raise(Uri.InvalidUri(raw, e.getMessage))
+  inline def uri(args: UriParam*): Uri = ${ UriMacros.uriImpl('sc, 'args) }
