@@ -109,7 +109,8 @@ class UriInterpolatorSpec extends AnyFlatSpec with Matchers:
   }
 
   it should "fail to compile for an invalid URI template" in {
-    typeChecks("""uri"not a \nvalid uri"""") shouldBe false
+    typeChecks("""uri"not a
+valid uri"""") shouldBe false
   }
 
   it should "fail to compile for a type without a PathParamStringifier" in {
