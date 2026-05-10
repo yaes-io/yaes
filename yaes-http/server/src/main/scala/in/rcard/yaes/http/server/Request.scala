@@ -45,15 +45,15 @@ object Request {
     /** Decode request body using the implicit decoder.
       *
       * The decoder is resolved automatically from the context using Scala 3's `using` clauses.
-      * Decoding failures are raised as typed errors via the `Raise[List[DecodingError]]` effect.
+      * Decoding failures are raised as typed errors via the `Raise[DecodingError]` effect.
       *
       * Example:
       * {{{
       * // With a custom BodyDecoder[User] in scope
-      * val user: User raises List[DecodingError] = request.as[User]
+      * val user: User raises DecodingError = request.as[User]
       *
-      * // In a handler that declares Raise[List[DecodingError]]
-      * def handleCreateUser(req: Request): Response raises List[DecodingError] = {
+      * // In a handler that declares Raise[DecodingError]
+      * def handleCreateUser(req: Request): Response raises DecodingError = {
       *   val user = req.as[User]
       *   // ... process user ...
       *   Response.created(user)
@@ -65,7 +65,7 @@ object Request {
       * @return
       *   The decoded value
       */
-    def as[A](using decoder: BodyDecoder[A]): A raises List[DecodingError] =
+    def as[A](using decoder: BodyDecoder[A]): A raises DecodingError =
       decoder.decode(req.body)
 
     /** Get a header value by name (case-insensitive).
