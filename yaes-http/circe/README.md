@@ -31,6 +31,7 @@ Import the circe encoder/decoder instances and use typed request/response bodies
 import in.rcard.yaes.*
 import in.rcard.yaes.Log.given
 import in.rcard.yaes.http.server.*
+import in.rcard.yaes.http.core.DecodingError
 import in.rcard.yaes.http.circe.given
 import io.circe.{Encoder, Decoder}
 

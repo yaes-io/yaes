@@ -20,6 +20,7 @@ package object yaes {
     *
     * Example:
     * {{{
+    * import cats.data.{NonEmptyList => CatsNonEmptyList}
     * import in.rcard.yaes.{Raise, RaiseNel}
     * import in.rcard.yaes.Raise.accumulating
     * import in.rcard.yaes.instances.accumulate.given
@@ -28,7 +29,7 @@ package object yaes {
     *   if (n > 0) n else Raise.raise(s"$n is not positive")
     *
     * val result: RaiseNel[String] ?=> (Int, Int) =
-    *   Raise.accumulate[NonEmptyList, String, (Int, Int)] {
+    *   Raise.accumulate[CatsNonEmptyList, String, (Int, Int)] {
     *     val a = accumulating { validatePositive(-1) }
     *     val b = accumulating { validatePositive(-2) }
     *     (a, b)

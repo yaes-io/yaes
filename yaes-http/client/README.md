@@ -204,6 +204,8 @@ response.header("content-type")    // Option[String] (case-insensitive)
 Use `response.as[A]` to decode the body into a typed value. This raises `HttpError` for non-2xx status codes and a `DecodingError` if decoding fails:
 
 ```scala
+import in.rcard.yaes.http.core.DecodingError
+
 Raise.run[HttpError | DecodingError] {
   val user: String = response.as[String]
 }
@@ -273,6 +275,8 @@ Raised by `response.as[A]` when the status code is outside 2xx:
 Use the `ClientHttpError` and `ServerHttpError` marker traits to match error categories:
 
 ```scala
+import in.rcard.yaes.http.core.DecodingError
+
 val result = Raise.either[HttpError | DecodingError, String] {
   response.as[String]
 }
@@ -290,6 +294,7 @@ Many REST APIs return structured error payloads alongside non-2xx responses (e.g
 ```scala
 import io.circe.Decoder
 import in.rcard.yaes.http.circe.given
+import in.rcard.yaes.http.core.DecodingError
 
 case class ApiError(field: String, message: String)
 given Decoder[ApiError] =
@@ -402,6 +407,7 @@ Raise.run[Uri.InvalidUri] {
 ```scala
 import in.rcard.yaes.*
 import in.rcard.yaes.http.client.*
+import in.rcard.yaes.http.core.DecodingError
 import scala.concurrent.duration.*
 
 Raise.run[ConnectionError] {
