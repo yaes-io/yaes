@@ -84,8 +84,12 @@ class CirceCodecSpec extends AnyFlatSpec with Matchers with EitherValues {
     }
 
     result.isLeft shouldBe true
-    val errors = result.left.value.asInstanceOf[DecodingError.ValidationErrors]
-    errors.reasons.toList.size should be >= 2
+    result.left.value match {
+      case errors: DecodingError.ValidationErrors =>
+        errors.reasons.toList.size should be >= 2
+      case other =>
+        fail(s"Expected ValidationErrors but got $other")
+    }
   }
 
   it should "work with semi-automatic derivation" in {
