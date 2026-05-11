@@ -1,6 +1,7 @@
 package in.rcard
 
-import cats.data.{NonEmptyChain, NonEmptyList}
+import cats.data.NonEmptyChain
+import cats.data.NonEmptyList as CatsNonEmptyList
 
 /** YAES (Yet Another Effect System) - Core package.
   *
@@ -34,7 +35,7 @@ package object yaes {
     *   }
     * }}}
     */
-  type RaiseNel[E] = Raise[NonEmptyList[E]]
+  type RaiseNel[E] = Raise[CatsNonEmptyList[E]]
 
   /** Type alias for `Raise[NonEmptyChain[E]]`.
     *
