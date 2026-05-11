@@ -361,7 +361,7 @@ val result: Either[List[DecodingError], User | ValidationError] =
   }
 ```
 
-`err.as[E]` raises `List[DecodingError]` if decoding fails — identical semantics to `response.as[A]`. It is available on all `HttpError` subtypes: `ClientHttpError`, `ServerHttpError`, and `UnexpectedStatus`.
+`err.as[E]` raises `DecodingError` if decoding fails. It is available on all `HttpError` subtypes: `ClientHttpError`, `ServerHttpError`, and `UnexpectedStatus`.
 
 ---
 
