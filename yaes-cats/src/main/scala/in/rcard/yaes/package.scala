@@ -13,7 +13,7 @@ package object yaes {
 
   // Type aliases for Raise with Cats non-empty collections
 
-  /** Type alias for `Raise[NonEmptyList[E]]`.
+  /** Type alias for `Raise[cats.data.NonEmptyList[E]]`.
     *
     * Provides a convenient shorthand for error accumulation with `NonEmptyList`,
     * ensuring at least one error is present when raised.
