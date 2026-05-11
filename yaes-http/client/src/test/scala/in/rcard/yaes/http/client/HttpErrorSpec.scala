@@ -55,7 +55,7 @@ class HttpErrorSpec extends AnyFlatSpec with Matchers:
 
   "HttpError.as" should "decode body into Int from a ClientHttpError" in {
     val err    = HttpError.UnprocessableEntity("42")
-    val result = Raise.either[List[DecodingError], Int] { err.as[Int] }
+    val result = Raise.either[DecodingError, Int] { err.as[Int] }
     result shouldBe Right(42)
   }
 
@@ -63,13 +63,13 @@ class HttpErrorSpec extends AnyFlatSpec with Matchers:
     val clientErr  = HttpError.NotFound("not here")
     val serverErr  = HttpError.InternalServerError("boom")
     val unexpected = HttpError.UnexpectedStatus(301, "moved")
-    Raise.either[List[DecodingError], String] { clientErr.as[String] }  shouldBe Right("not here")
-    Raise.either[List[DecodingError], String] { serverErr.as[String] }  shouldBe Right("boom")
-    Raise.either[List[DecodingError], String] { unexpected.as[String] } shouldBe Right("moved")
+    Raise.either[DecodingError, String] { clientErr.as[String] }  shouldBe Right("not here")
+    Raise.either[DecodingError, String] { serverErr.as[String] }  shouldBe Right("boom")
+    Raise.either[DecodingError, String] { unexpected.as[String] } shouldBe Right("moved")
   }
 
-  it should "raise List[DecodingError] when body cannot be decoded" in {
+  it should "raise DecodingError when body cannot be decoded" in {
     val err    = HttpError.BadRequest("not-a-number")
-    val result = Raise.either[List[DecodingError], Int] { err.as[Int] }
-    result shouldBe Left(List(DecodingError.ParseError("Invalid integer: not-a-number")))
+    val result = Raise.either[DecodingError, Int] { err.as[Int] }
+    result shouldBe Left(DecodingError.ParseError("Invalid integer: not-a-number"))
   }

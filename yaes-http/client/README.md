@@ -201,10 +201,12 @@ response.header("content-type")    // Option[String] (case-insensitive)
 
 ### Typed Decoding
 
-Use `response.as[A]` to decode the body into a typed value. This raises `HttpError` for non-2xx status codes and a non-empty `List[DecodingError]` if decoding fails:
+Use `response.as[A]` to decode the body into a typed value. This raises `HttpError` for non-2xx status codes and a `DecodingError` if decoding fails:
 
 ```scala
-Raise.run[HttpError | List[DecodingError]] {
+import in.rcard.yaes.http.core.DecodingError
+
+Raise.run[HttpError | DecodingError] {
   val user: String = response.as[String]
 }
 ```
@@ -273,44 +275,47 @@ Raised by `response.as[A]` when the status code is outside 2xx:
 Use the `ClientHttpError` and `ServerHttpError` marker traits to match error categories:
 
 ```scala
-val result = Raise.either[HttpError | List[DecodingError], String] {
+import in.rcard.yaes.http.core.DecodingError
+
+val result = Raise.either[HttpError | DecodingError, String] {
   response.as[String]
 }
 result match
-  case Left(e: ClientHttpError)          => println(s"Client error ${e.status}: ${e.body}")
-  case Left(e: ServerHttpError)          => println(s"Server error ${e.status}: ${e.body}")
-  case Left(errors: List[DecodingError]) => println(s"Decoding failed: ${errors.map(_.message).mkString(", ")}")
-  case Right(value)                      => println(s"Success: $value")
+  case Left(e: ClientHttpError)  => println(s"Client error ${e.status}: ${e.body}")
+  case Left(e: ServerHttpError)  => println(s"Server error ${e.status}: ${e.body}")
+  case Left(error: DecodingError) => println(s"Decoding failed: ${error.message}")
+  case Right(value)               => println(s"Success: $value")
 ```
 
 ### Typed Error Body Decoding
 
-Many REST APIs return structured error payloads alongside non-2xx responses (e.g. a `422` with a JSON `ValidationError`). Use `err.as[E]` on any `HttpError` to decode the raw error body into a typed value using the same `BodyDecoder` infrastructure as the success path:
+Many REST APIs return structured error payloads alongside non-2xx responses (e.g. a `422` with a JSON `ApiError`). Use `err.as[E]` on any `HttpError` to decode the raw error body into a typed value using the same `BodyDecoder` infrastructure as the success path:
 
 ```scala
 import io.circe.Decoder
 import in.rcard.yaes.http.circe.given
+import in.rcard.yaes.http.core.DecodingError
 
-case class ValidationError(field: String, message: String)
-given Decoder[ValidationError] =
-  Decoder.forProduct2("field", "message")(ValidationError.apply)
+case class ApiError(field: String, message: String)
+given Decoder[ApiError] =
+  Decoder.forProduct2("field", "message")(ApiError.apply)
 
-val result: Either[List[DecodingError], ValidationError | User] =
+val result: Either[DecodingError, ApiError | User] =
   Raise.fold {
     response.as[User]
   } {
     case err: HttpError =>
-      Raise.either[List[DecodingError], ValidationError | User] {
-        err.as[ValidationError]
+      Raise.either[DecodingError, ApiError | User] {
+        err.as[ApiError]
       }
-    case errors: List[DecodingError] =>
-      Left(errors)
+    case error: DecodingError =>
+      Left(error)
   } {
     user => Right(user)
   }
 ```
 
-`err.as[E]` raises `List[DecodingError]` if decoding fails — the same semantics as `response.as[A]`.
+`err.as[E]` raises `DecodingError` if decoding fails — the same semantics as `response.as[A]`.
 
 ## Path Parameters
 
@@ -402,6 +407,7 @@ Raise.run[Uri.InvalidUri] {
 ```scala
 import in.rcard.yaes.*
 import in.rcard.yaes.http.client.*
+import in.rcard.yaes.http.core.DecodingError
 import scala.concurrent.duration.*
 
 Raise.run[ConnectionError] {
@@ -420,13 +426,13 @@ Raise.run[ConnectionError] {
 
       val response = client.send(request)
 
-      val result = Raise.either[HttpError | List[DecodingError], String] {
+      val result = Raise.either[HttpError | DecodingError, String] {
         response.as[String]
       }
       result match
-        case Left(e: HttpError)                => println(s"HTTP error ${e.status}")
-        case Left(errors: List[DecodingError]) => println(s"Decoding failed")
-        case Right(body)                       => println(s"Response: $body")
+        case Left(e: HttpError)        => println(s"HTTP error ${e.status}")
+        case Left(error: DecodingError) => println(s"Decoding failed")
+        case Right(body)               => println(s"Response: $body")
     }
   }
 }

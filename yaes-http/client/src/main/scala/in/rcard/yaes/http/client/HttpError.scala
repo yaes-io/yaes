@@ -11,7 +11,7 @@ import in.rcard.yaes.http.core.{BodyDecoder, DecodingError}
   *
   * Example:
   * {{{
-  * val result = Raise.either[HttpError | List[DecodingError], User] {
+  * val result = Raise.either[HttpError | DecodingError, User] {
   *   response.as[User]
   * }
   * result match
@@ -54,13 +54,13 @@ object HttpError:
 
   /** Decodes the error response body into a typed value.
     *
-    * Raises a non-empty `List[DecodingError]` if the body cannot be decoded.
+    * Raises a [[DecodingError]] if the body cannot be decoded.
     *
     * @tparam A the target type
     * @return the decoded value
     */
   extension (err: HttpError)
-    def as[A](using decoder: BodyDecoder[A]): A raises List[DecodingError] =
+    def as[A](using decoder: BodyDecoder[A]): A raises DecodingError =
       decoder.decode(err.body)
 
   /** Maps an HTTP status code to the corresponding [[HttpError]] subtype.

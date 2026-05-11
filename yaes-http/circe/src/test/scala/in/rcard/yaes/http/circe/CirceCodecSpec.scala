@@ -5,8 +5,9 @@ import in.rcard.yaes.http.core.{BodyDecoder, BodyEncoder, DecodingError}
 import io.circe.{Encoder, Decoder}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.EitherValues
 
-class CirceCodecSpec extends AnyFlatSpec with Matchers {
+class CirceCodecSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   case class User(name: String, age: Int) derives Encoder.AsObject, Decoder
 
@@ -55,21 +56,21 @@ class CirceCodecSpec extends AnyFlatSpec with Matchers {
 
   it should "raise ParseError for malformed JSON" in {
     val dec = summon[BodyDecoder[User]]
-    val result = Raise.either[List[DecodingError], User] {
+    val result = Raise.either[DecodingError, User] {
       dec.decode("not json at all")
     }
     result.isLeft shouldBe true
-    result.left.get.head shouldBe a[DecodingError.ParseError]
-    result.left.get.head.asInstanceOf[DecodingError.ParseError].cause shouldBe defined
+    result.left.value shouldBe a[DecodingError.ParseError]
+    result.left.value.asInstanceOf[DecodingError.ParseError].cause shouldBe defined
   }
 
-  it should "raise ValidationError for JSON with missing fields" in {
+  it should "raise ValidationErrors for JSON with missing fields" in {
     val dec = summon[BodyDecoder[User]]
-    val result = Raise.either[List[DecodingError], User] {
+    val result = Raise.either[DecodingError, User] {
       dec.decode("""{"name":"Alice"}""")
     }
     result.isLeft shouldBe true
-    result.left.get.head shouldBe a[DecodingError.ValidationError]
+    result.left.value shouldBe a[DecodingError.ValidationErrors]
   }
 
   it should "accumulate multiple decoding errors" in {
@@ -78,14 +79,17 @@ class CirceCodecSpec extends AnyFlatSpec with Matchers {
       io.circe.Decoder.forProduct2("name", "age")(PersonFlat.apply)
     val dec = summon[BodyDecoder[PersonFlat]]
 
-    val result = Raise.either[List[DecodingError], PersonFlat] {
+    val result = Raise.either[DecodingError, PersonFlat] {
       dec.decode("""{"age":"not-an-int"}""")
     }
 
     result.isLeft shouldBe true
-    val errors = result.left.toOption.get
-    errors.size should be >= 2
-    errors.collect { case DecodingError.ValidationError(msg) => msg }.size shouldBe errors.size
+    result.left.value match {
+      case errors: DecodingError.ValidationErrors =>
+        errors.reasons.toList.size should be >= 2
+      case other =>
+        fail(s"Expected ValidationErrors but got $other")
+    }
   }
 
   it should "work with semi-automatic derivation" in {
