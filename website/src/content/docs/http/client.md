@@ -242,15 +242,15 @@ response.header("content-type")    // Option[String] (case-insensitive lookup)
 
 Use `response.as[A]` to decode the body into a typed value. This method:
 1. Checks the status code — raises `HttpError` for non-2xx
-2. Decodes the body — raises a non-empty `List[DecodingError]` if decoding fails
+2. Decodes the body — raises a `DecodingError` if decoding fails
 
 ```scala
-Raise.run[HttpError | List[DecodingError]] {
+Raise.run[HttpError | DecodingError] {
   val body: String = response.as[String]
 }
 ```
 
-The union type `HttpError | List[DecodingError]` makes both error types explicit in the effect signature.
+The union type `HttpError | DecodingError` makes both error types explicit in the effect signature.
 
 ---
 
@@ -326,14 +326,14 @@ Raised by `response.as[A]` when the status code is outside the 2xx range. The er
 **Matching by error category:**
 
 ```scala
-val result = Raise.either[HttpError | List[DecodingError], String] {
+val result = Raise.either[HttpError | DecodingError, String] {
   response.as[String]
 }
 result match
-  case Left(e: ClientHttpError)          => println(s"Client error ${e.status}: ${e.body}")
-  case Left(e: ServerHttpError)          => println(s"Server error ${e.status}: ${e.body}")
-  case Left(errors: List[DecodingError]) => println(s"Decoding failed: ${errors.map(_.message).mkString(", ")}")
-  case Right(value)                      => println(s"Success: $value")
+  case Left(e: ClientHttpError) => println(s"Client error ${e.status}: ${e.body}")
+  case Left(e: ServerHttpError) => println(s"Server error ${e.status}: ${e.body}")
+  case Left(err: DecodingError) => println(s"Decoding failed: ${err.message}")
+  case Right(value)             => println(s"Success: $value")
 ```
 
 ### Typed Error Body Decoding
@@ -346,22 +346,22 @@ import in.rcard.yaes.http.circe.given
 
 case class ValidationError(field: String, message: String) derives Decoder
 
-val result: Either[List[DecodingError], User | ValidationError] =
+val result: Either[DecodingError, User | ValidationError] =
   Raise.fold {
     response.as[User]
   } {
     case err: HttpError =>
-      Raise.either[List[DecodingError], User | ValidationError] {
+      Raise.either[DecodingError, User | ValidationError] {
         err.as[ValidationError]
       }
-    case errors: List[DecodingError] =>
-      Left(errors)
+    case err: DecodingError =>
+      Left(err)
   } {
     user => Right(user)
   }
 ```
 
-`err.as[E]` raises `List[DecodingError]` if decoding fails — identical semantics to `response.as[A]`. It is available on all `HttpError` subtypes: `ClientHttpError`, `ServerHttpError`, and `UnexpectedStatus`.
+`err.as[E]` raises a `DecodingError` if decoding fails — identical semantics to `response.as[A]`. It is available on all `HttpError` subtypes: `ClientHttpError`, `ServerHttpError`, and `UnexpectedStatus`.
 
 ---
 
@@ -511,13 +511,13 @@ Raise.run[ConnectionError] {
       val response = client.send(request)
 
       // Decode the response with error handling
-      val result = Raise.either[HttpError | List[DecodingError], String] {
+      val result = Raise.either[HttpError | DecodingError, String] {
         response.as[String]
       }
       result match
-        case Left(e: HttpError)                => println(s"HTTP error ${e.status}")
-        case Left(errors: List[DecodingError]) => println(s"Decoding failed")
-        case Right(body)                       => println(s"Response: $body")
+        case Left(e: HttpError)    => println(s"HTTP error ${e.status}")
+        case Left(err: DecodingError) => println(s"Decoding failed: ${err.message}")
+        case Right(body)           => println(s"Response: $body")
     }
   }
 }
