@@ -14,7 +14,7 @@ JSON body encoder/decoder integration for the λÆS HTTP server using [Circe](ht
 Add the dependency to your `build.sbt`:
 
 ```scala
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-circe" % "0.18.0"
+libraryDependencies += "in.rcard.yaes" %% "yaes-http-circe" % "0.19.0"
 ```
 
 This module depends on `yaes-http-server` and `circe-core`/`circe-parser` (included transitively). If you want to use Circe's automatic derivation features, also include `circe-generic`:
@@ -31,6 +31,7 @@ Import the circe encoder/decoder instances and use typed request/response bodies
 import in.rcard.yaes.*
 import in.rcard.yaes.Log.given
 import in.rcard.yaes.http.server.*
+import in.rcard.yaes.http.core.DecodingError
 import in.rcard.yaes.http.circe.given
 import io.circe.{Encoder, Decoder}
 
@@ -49,8 +50,8 @@ Shutdown.run {
         Raise.fold {
           val user = req.as[User]
           Response.created(user)
-        } { case errors: List[DecodingError] =>
-          Response.badRequest(errors.map(_.message).mkString(", "))
+        } { case error: DecodingError =>
+          Response.badRequest(error.message)
         }
       }
     )
@@ -72,7 +73,7 @@ given circeBodyDecoder[A](using Decoder[A]): BodyDecoder[A]
 Each instance is gated on a single Circe constraint, so you can bring only what you need into scope. Importing `in.rcard.yaes.http.circe.given` brings both into scope at once.
 
 - **`circeBodyEncoder`**: encodes values as compact JSON using `asJson.noSpaces` and sets the `Content-Type` header to `application/json`
-- **`circeBodyDecoder`**: decodes JSON bodies using Circe's parser, mapping parse failures (`ParsingFailure`) to `DecodingError.ParseError` and decoding/schema failures (`DecodingFailure`) to `DecodingError.ValidationError`; all failures are raised as a non-empty `List[DecodingError]`
+- **`circeBodyDecoder`**: decodes JSON bodies using Circe's parser, mapping parse failures (`ParsingFailure`) to `DecodingError.ParseError` and decoding/schema failures (`DecodingFailure`) to `DecodingError.ValidationErrors` carrying a `NonEmptyList[String]` of accumulated reasons; failures are raised as a single `DecodingError`
 
 ## Derivation Strategies
 
@@ -108,20 +109,20 @@ encoder.encode(Person("Alice", Address("123 Main St", "Springfield")))
 // {"name":"Alice","address":{"street":"123 Main St","city":"Springfield"}}
 
 val decoder = summon[BodyDecoder[Person]]
-// decoder.decode(body) raises List[DecodingError] on failure
+// decoder.decode(body) raises DecodingError on failure
 ```
 
 ## Error Handling
 
-When JSON decoding fails, the codec raises a non-empty `List[DecodingError]` accumulating all errors found in the body. Use `Raise.fold` to handle decoding errors in routes:
+When JSON decoding fails, the codec raises a single `DecodingError`. Use `Raise.fold` to handle decoding errors in routes:
 
 ```scala
 POST(p"/users") { req =>
   Raise.fold {
     val user = req.as[User]
     Response.created(user)
-  } { case errors: List[DecodingError] =>
-    Response.badRequest(errors.map(_.message).mkString(", "))
+  } { case error: DecodingError =>
+    Response.badRequest(error.message)
   }
 }
 ```

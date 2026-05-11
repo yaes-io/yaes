@@ -1,6 +1,7 @@
 package in.rcard
 
-import cats.data.{NonEmptyChain, NonEmptyList}
+import cats.data.NonEmptyChain
+import cats.data.NonEmptyList as CatsNonEmptyList
 
 /** YAES (Yet Another Effect System) - Core package.
   *
@@ -12,13 +13,14 @@ package object yaes {
 
   // Type aliases for Raise with Cats non-empty collections
 
-  /** Type alias for `Raise[NonEmptyList[E]]`.
+  /** Type alias for `Raise[cats.data.NonEmptyList[E]]`.
     *
     * Provides a convenient shorthand for error accumulation with `NonEmptyList`,
     * ensuring at least one error is present when raised.
     *
     * Example:
     * {{{
+    * import cats.data.{NonEmptyList => CatsNonEmptyList}
     * import in.rcard.yaes.{Raise, RaiseNel}
     * import in.rcard.yaes.Raise.accumulating
     * import in.rcard.yaes.instances.accumulate.given
@@ -27,14 +29,14 @@ package object yaes {
     *   if (n > 0) n else Raise.raise(s"$n is not positive")
     *
     * val result: RaiseNel[String] ?=> (Int, Int) =
-    *   Raise.accumulate[NonEmptyList, String, (Int, Int)] {
+    *   Raise.accumulate[CatsNonEmptyList, String, (Int, Int)] {
     *     val a = accumulating { validatePositive(-1) }
     *     val b = accumulating { validatePositive(-2) }
     *     (a, b)
     *   }
     * }}}
     */
-  type RaiseNel[E] = Raise[NonEmptyList[E]]
+  type RaiseNel[E] = Raise[CatsNonEmptyList[E]]
 
   /** Type alias for `Raise[NonEmptyChain[E]]`.
     *

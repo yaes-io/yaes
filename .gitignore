@@ -102,3 +102,4 @@ STOP.md
 docs/plans/*
 
 async-*
+.worktrees/

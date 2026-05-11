@@ -11,10 +11,11 @@ An effect-based HTTP client built on YAES effects and Java's `java.net.http.Http
 **Key Features:**
 - **Java HttpClient backend** - Built on `java.net.http.HttpClient` with virtual thread support
 - **Effect integration** - Uses `Sync`, `Raise`, and `Resource` effects for structured error handling and lifecycle management
-- **Typed error hierarchy** - Separate `ConnectionError` (transport) and `HttpError` (HTTP status) error types
+- **Typed error hierarchy** - Separate `ConnectionError` (transport) and `HttpError` (HTTP status) error types; error bodies decodable via `err.as[E]`
 - **Fluent builder API** - Immutable request construction with `header`, `queryParam`, and `timeout` extension methods
 - **Body codecs** - Request body encoding via `BodyEncoder` and response body decoding via `BodyDecoder`
 - **URI validation** - Opaque `Uri` type with construction-time validation via the `Raise` effect
+- **Path parameter interpolation** - `uri"..."` string interpolator for ergonomic, type-safe path param encoding via `PathParamStringifier`
 
 **Requirements:**
 - Java 25+ (for Virtual Threads and Structured Concurrency)
@@ -28,7 +29,7 @@ An effect-based HTTP client built on YAES effects and Java's `java.net.http.Http
 Add `yaes-http-client` to your project dependencies:
 
 ```scala
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-client" % "0.18.0"
+libraryDependencies += "in.rcard.yaes" %% "yaes-http-client" % "0.19.0"
 ```
 
 > Check [Maven Central](https://central.sonatype.com/artifact/in.rcard.yaes/yaes-http-client_3) for the latest version.
@@ -241,15 +242,15 @@ response.header("content-type")    // Option[String] (case-insensitive lookup)
 
 Use `response.as[A]` to decode the body into a typed value. This method:
 1. Checks the status code — raises `HttpError` for non-2xx
-2. Decodes the body — raises a non-empty `List[DecodingError]` if decoding fails
+2. Decodes the body — raises a `DecodingError` if decoding fails
 
 ```scala
-Raise.run[HttpError | List[DecodingError]] {
+Raise.run[HttpError | DecodingError] {
   val body: String = response.as[String]
 }
 ```
 
-The union type `HttpError | List[DecodingError]` makes both error types explicit in the effect signature.
+The union type `HttpError | DecodingError` makes both error types explicit in the effect signature.
 
 ---
 
@@ -325,15 +326,95 @@ Raised by `response.as[A]` when the status code is outside the 2xx range. The er
 **Matching by error category:**
 
 ```scala
-val result = Raise.either[HttpError | List[DecodingError], String] {
+val result = Raise.either[HttpError | DecodingError, String] {
   response.as[String]
 }
 result match
-  case Left(e: ClientHttpError)          => println(s"Client error ${e.status}: ${e.body}")
-  case Left(e: ServerHttpError)          => println(s"Server error ${e.status}: ${e.body}")
-  case Left(errors: List[DecodingError]) => println(s"Decoding failed: ${errors.map(_.message).mkString(", ")}")
-  case Right(value)                      => println(s"Success: $value")
+  case Left(e: ClientHttpError) => println(s"Client error ${e.status}: ${e.body}")
+  case Left(e: ServerHttpError) => println(s"Server error ${e.status}: ${e.body}")
+  case Left(err: DecodingError) => println(s"Decoding failed: ${err.message}")
+  case Right(value)             => println(s"Success: $value")
 ```
+
+### Typed Error Body Decoding
+
+Many REST APIs return structured error payloads alongside non-2xx responses — for example, a `422 Unprocessable Entity` with a JSON `ValidationError` object. Use `err.as[E]` on any `HttpError` to decode the raw error body into a typed value using the same `BodyDecoder` infrastructure as the success path:
+
+```scala
+import io.circe.Decoder
+import in.rcard.yaes.http.circe.given
+
+case class ValidationError(field: String, message: String) derives Decoder
+
+val result: Either[DecodingError, User | ValidationError] =
+  Raise.fold {
+    response.as[User]
+  } {
+    case err: HttpError =>
+      Raise.either[DecodingError, User | ValidationError] {
+        err.as[ValidationError]
+      }
+    case err: DecodingError =>
+      Left(err)
+  } {
+    user => Right(user)
+  }
+```
+
+`err.as[E]` raises `DecodingError` if decoding fails. It is available on all `HttpError` subtypes: `ClientHttpError`, `ServerHttpError`, and `UnexpectedStatus`.
+
+---
+
+## Path Parameters
+
+Use the `uri"..."` string interpolator to construct URIs with path parameters ergonomically. Each interpolated argument is URL-encoded automatically (spaces → `%20`, slashes → `%2F`, etc.) via the `PathParamStringifier[A]` typeclass. The literal parts of the URI template are validated at **compile time**. Since interpolations are URL-encoded and intended for path segments, the assembled URI is always well-formed when placeholders appear only in path positions — no `Raise` effect is needed at runtime.
+
+```scala
+import in.rcard.yaes.*
+import in.rcard.yaes.http.client.*
+
+val userId: Int     = 42
+val orderId: String = "ord-99"
+
+val request = HttpRequest.get(uri"https://api.example.com/users/$userId/orders/$orderId")
+// => GET https://api.example.com/users/42/orders/ord-99
+```
+
+Built-in `PathParamStringifier` instances are provided for `String`, `Int`, `Long`, `Boolean`, `Double`, and `UUID`.
+
+### Special Character Encoding
+
+The interpolator correctly percent-encodes values that would otherwise break URI structure:
+
+| Character | Encoded as |
+|-----------|------------|
+| Space | `%20` |
+| `/` | `%2F` |
+| `?` | `%3F` |
+| `#` | `%23` |
+| `%` | `%25` |
+| `+` | `%2B` |
+
+### Custom Encoders
+
+Provide a `given PathParamStringifier[A]` for your own types:
+
+```scala
+import in.rcard.yaes.*
+import in.rcard.yaes.http.client.*
+
+case class ItemId(value: Int)
+
+given PathParamStringifier[ItemId] with {
+  def encode(v: ItemId): String = s"item-${v.value}"
+}
+
+val id = ItemId(5)
+val request = HttpRequest.get(uri"https://api.example.com/items/$id")
+// => GET https://api.example.com/items/item-5
+```
+
+> **Compile-time safety:** A missing `PathParamStringifier` instance is a compile error. The interpolator never falls back to `.toString`.
 
 ---
 
@@ -381,7 +462,7 @@ The client uses `BodyEncoder[A]` for encoding request bodies (in `post`, `put`, 
 For JSON support, add the `yaes-http-circe` module which provides automatic `BodyEncoder` and `BodyDecoder` instances for types with Circe `Encoder` and `Decoder` respectively:
 
 ```scala
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-circe" % "0.18.0"
+libraryDependencies += "in.rcard.yaes" %% "yaes-http-circe" % "0.19.0"
 ```
 
 ```scala
@@ -430,13 +511,13 @@ Raise.run[ConnectionError] {
       val response = client.send(request)
 
       // Decode the response with error handling
-      val result = Raise.either[HttpError | List[DecodingError], String] {
+      val result = Raise.either[HttpError | DecodingError, String] {
         response.as[String]
       }
       result match
-        case Left(e: HttpError)                => println(s"HTTP error ${e.status}")
-        case Left(errors: List[DecodingError]) => println(s"Decoding failed")
-        case Right(body)                       => println(s"Response: $body")
+        case Left(e: HttpError)    => println(s"HTTP error ${e.status}")
+        case Left(err: DecodingError) => println(s"Decoding failed: ${err.message}")
+        case Right(body)           => println(s"Response: $body")
     }
   }
 }

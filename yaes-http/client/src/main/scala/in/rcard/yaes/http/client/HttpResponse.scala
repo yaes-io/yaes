@@ -13,7 +13,7 @@ import java.util.Locale
   * {{{
   * val resp: HttpResponse = client.send(request)
   * resp.header("content-type")  // Option[String]
-  * resp.as[User]                // User raises (HttpError | List[DecodingError])
+  * resp.as[User]                // User raises (HttpError | DecodingError)
   * }}}
   *
   * @param status  the HTTP status code
@@ -38,12 +38,12 @@ extension (resp: HttpResponse)
   /** Decodes the response body into a typed value.
     *
     * Raises [[HttpError]] for non-2xx status codes (checked before decoding).
-    * Raises a non-empty `List[DecodingError]` if the body cannot be decoded by the decoder.
+    * Raises a [[DecodingError]] if the body cannot be decoded by the decoder.
     *
     * @tparam A the target type
     * @return the decoded value
     */
-  def as[A](using decoder: BodyDecoder[A]): A raises (HttpError | List[DecodingError]) =
+  def as[A](using decoder: BodyDecoder[A]): A raises (HttpError | DecodingError) =
     if resp.status < 200 || resp.status >= 300 then
       Raise.raise(HttpError.fromStatus(resp.status, resp.body))
     else

@@ -1,5 +1,8 @@
 package in.rcard.yaes.http.client
 
+import in.rcard.yaes.*
+import in.rcard.yaes.http.core.{BodyDecoder, DecodingError}
+
 /** HTTP-level errors derived from non-2xx response status codes.
   *
   * Raised by [[HttpResponse.as]] when the response status code is outside the 2xx range. The error
@@ -8,7 +11,7 @@ package in.rcard.yaes.http.client
   *
   * Example:
   * {{{
-  * val result = Raise.either[HttpError | List[DecodingError], User] {
+  * val result = Raise.either[HttpError | DecodingError, User] {
   *   response.as[User]
   * }
   * result match
@@ -48,6 +51,17 @@ object HttpError:
 
   /** Catch-all for status codes outside 4xx and 5xx (e.g. 1xx, 3xx). */
   case class UnexpectedStatus(status: Int, body: String) extends HttpError
+
+  /** Decodes the error response body into a typed value.
+    *
+    * Raises a [[DecodingError]] if the body cannot be decoded.
+    *
+    * @tparam A the target type
+    * @return the decoded value
+    */
+  extension (err: HttpError)
+    def as[A](using decoder: BodyDecoder[A]): A raises DecodingError =
+      decoder.decode(err.body)
 
   /** Maps an HTTP status code to the corresponding [[HttpError]] subtype.
     *

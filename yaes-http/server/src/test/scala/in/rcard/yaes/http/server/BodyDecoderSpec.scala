@@ -4,6 +4,7 @@ import in.rcard.yaes.*
 import in.rcard.yaes.http.core.{BodyDecoder, DecodingError}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import in.rcard.yaes.NonEmptyList
 
 class BodyDecoderSpec extends AnyFlatSpec with Matchers {
 
@@ -31,13 +32,13 @@ class BodyDecoderSpec extends AnyFlatSpec with Matchers {
     result shouldBe Right(123)
   }
 
-  it should "raise List[DecodingError] for invalid integers" in {
+  it should "raise DecodingError for invalid integers" in {
     val decoder = summon[BodyDecoder[Int]]
-    val result = Raise.either[List[DecodingError], Int] {
+    val result = Raise.either[DecodingError, Int] {
       decoder.decode("not a number")
     }
     result.isLeft shouldBe true
-    result.left.get shouldBe List(DecodingError.ParseError("Invalid integer: not a number"))
+    result.left.get shouldBe DecodingError.ParseError("Invalid integer: not a number")
   }
 
   "BodyDecoder[Long]" should "decode valid long strings" in {
@@ -48,13 +49,13 @@ class BodyDecoderSpec extends AnyFlatSpec with Matchers {
     result shouldBe Right(987654321L)
   }
 
-  it should "raise List[DecodingError] for invalid longs" in {
+  it should "raise DecodingError for invalid longs" in {
     val decoder = summon[BodyDecoder[Long]]
-    val result = Raise.either[List[DecodingError], Long] {
+    val result = Raise.either[DecodingError, Long] {
       decoder.decode("not a long")
     }
     result.isLeft shouldBe true
-    result.left.get shouldBe List(DecodingError.ParseError("Invalid long: not a long"))
+    result.left.get shouldBe DecodingError.ParseError("Invalid long: not a long")
   }
 
   "BodyDecoder[Double]" should "decode valid double strings" in {
@@ -65,13 +66,13 @@ class BodyDecoderSpec extends AnyFlatSpec with Matchers {
     result shouldBe Right(2.718)
   }
 
-  it should "raise List[DecodingError] for invalid doubles" in {
+  it should "raise DecodingError for invalid doubles" in {
     val decoder = summon[BodyDecoder[Double]]
-    val result = Raise.either[List[DecodingError], Double] {
+    val result = Raise.either[DecodingError, Double] {
       decoder.decode("not a double")
     }
     result.isLeft shouldBe true
-    result.left.get shouldBe List(DecodingError.ParseError("Invalid double: not a double"))
+    result.left.get shouldBe DecodingError.ParseError("Invalid double: not a double")
   }
 
   "BodyDecoder[Boolean]" should "decode valid boolean strings" in {
@@ -86,20 +87,20 @@ class BodyDecoderSpec extends AnyFlatSpec with Matchers {
     resultFalse shouldBe Right(false)
   }
 
-  it should "raise List[DecodingError] for invalid booleans" in {
+  it should "raise DecodingError for invalid booleans" in {
     val decoder = summon[BodyDecoder[Boolean]]
-    val result = Raise.either[List[DecodingError], Boolean] {
+    val result = Raise.either[DecodingError, Boolean] {
       decoder.decode("not a boolean")
     }
     result.isLeft shouldBe true
-    result.left.get shouldBe List(DecodingError.ParseError("Invalid boolean: not a boolean"))
+    result.left.get shouldBe DecodingError.ParseError("Invalid boolean: not a boolean")
   }
 
   // Custom decoder for testing
   case class User(name: String, age: Int)
 
   given BodyDecoder[User] with {
-    def decode(body: String): User raises List[DecodingError] = {
+    def decode(body: String): User raises DecodingError = {
       val namePattern = """"name":"([^"]+)"""".r
       val agePattern  = """"age":(\d+)""".r
 
@@ -108,7 +109,7 @@ class BodyDecoderSpec extends AnyFlatSpec with Matchers {
 
       (nameOpt, ageOpt) match {
         case (Some(name), Some(age)) => User(name, age)
-        case _ => Raise.raise(List(DecodingError.ParseError(s"Invalid User JSON: $body")))
+        case _ => Raise.raise(DecodingError.ParseError(s"Invalid User JSON: $body"))
       }
     }
   }
@@ -121,21 +122,56 @@ class BodyDecoderSpec extends AnyFlatSpec with Matchers {
     result shouldBe Right(User("Bob", 25))
   }
 
-  it should "raise List[DecodingError] for invalid JSON" in {
+  it should "raise DecodingError for invalid JSON" in {
     val decoder = summon[BodyDecoder[User]]
-    val result = Raise.either[List[DecodingError], User] {
+    val result = Raise.either[DecodingError, User] {
       decoder.decode("""{"invalid":"json"}""")
     }
     result.isLeft shouldBe true
-    result.left.get shouldBe List(DecodingError.ParseError("""Invalid User JSON: {"invalid":"json"}"""))
+    result.left.get shouldBe DecodingError.ParseError("""Invalid User JSON: {"invalid":"json"}""")
   }
 
-  it should "raise List[DecodingError] for malformed JSON" in {
+  it should "raise DecodingError for malformed JSON" in {
     val decoder = summon[BodyDecoder[User]]
-    val result = Raise.either[List[DecodingError], User] {
+    val result = Raise.either[DecodingError, User] {
       decoder.decode("not json at all")
     }
     result.isLeft shouldBe true
-    result.left.get shouldBe List(DecodingError.ParseError("Invalid User JSON: not json at all"))
+    result.left.get shouldBe DecodingError.ParseError("Invalid User JSON: not json at all")
+  }
+
+  case class ValidatedItem(value: String)
+
+  given BodyDecoder[ValidatedItem] with {
+    def decode(body: String): ValidatedItem raises DecodingError = {
+      val errors = List.newBuilder[String]
+      if (body.trim.isEmpty) errors += "value must not be blank"
+      if (body.length > 100) errors += "value must not exceed 100 characters"
+      NonEmptyList.fromList(errors.result()) match {
+        case Some(nel) => Raise.raise(DecodingError.ValidationErrors(nel))
+        case None      => ValidatedItem(body)
+      }
+    }
+  }
+
+  "ValidationErrors" should "join reasons with a semicolon separator" in {
+    val error = DecodingError.ValidationErrors(NonEmptyList.of("field is required", "value is negative"))
+    error.message shouldBe "field is required; value is negative"
+  }
+
+  it should "allow a custom BodyDecoder to raise ValidationErrors with multiple reasons" in {
+    val decoder = summon[BodyDecoder[ValidatedItem]]
+    val result = Raise.either[DecodingError, ValidatedItem] {
+      decoder.decode(" " * 101)
+    }
+    result.isLeft shouldBe true
+    result.left.get shouldBe DecodingError.ValidationErrors(
+      NonEmptyList.of("value must not be blank", "value must not exceed 100 characters")
+    )
+  }
+
+  it should "work with a single reason via NonEmptyList.one" in {
+    val error = DecodingError.ValidationErrors(NonEmptyList.one("field is required"))
+    error.message shouldBe "field is required"
   }
 }

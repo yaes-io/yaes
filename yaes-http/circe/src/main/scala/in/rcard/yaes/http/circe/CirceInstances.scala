@@ -33,14 +33,13 @@ given circeBodyEncoder[A](using encoder: Encoder[A]): BodyEncoder[A] with {
 
 /** Default `BodyDecoder` instance for any type `A` that has a Circe [[io.circe.Decoder]] in scope.
   *
-  * Decodes JSON bodies using Circe's `decodeAccumulating`, collecting all failures into a
-  * non-empty `List[DecodingError]`:
-  *   - A [[io.circe.ParsingFailure]] (invalid JSON syntax) is mapped to
+  * Decodes JSON bodies using Circe's `decodeAccumulating`, raising a single [[DecodingError]]:
+  *   - A [[io.circe.ParsingFailure]] (invalid JSON syntax) is raised as
   *     [[in.rcard.yaes.http.core.DecodingError.ParseError]] with the original message and
   *     underlying exception attached.
-  *   - Each [[io.circe.DecodingFailure]] (valid JSON but wrong shape, e.g. missing or mistyped
-  *     fields) is mapped to [[in.rcard.yaes.http.core.DecodingError.ValidationError]] with the
-  *     original message.
+  *   - [[io.circe.DecodingFailure]]s (valid JSON but wrong shape, e.g. missing or mistyped
+  *     fields) are collected into a
+  *     [[in.rcard.yaes.http.core.DecodingError.ValidationErrors]] with all failure messages.
   *
   * Example:
   * {{{
@@ -52,7 +51,7 @@ given circeBodyEncoder[A](using encoder: Encoder[A]): BodyEncoder[A] with {
   *   final case class MyPayload(value: String) derives Decoder
   *
   *   // `circeBodyDecoder` provides an implicit BodyDecoder[MyPayload]
-  *   val result = Raise.either[List[DecodingError], MyPayload] {
+  *   val result = Raise.either[DecodingError, MyPayload] {
   *     summon[BodyDecoder[MyPayload]].decode("""{"value":"hello"}""")
   *   }
   *   // result: Right(MyPayload("hello"))
@@ -61,13 +60,18 @@ given circeBodyEncoder[A](using encoder: Encoder[A]): BodyEncoder[A] with {
   * @tparam A the type to decode from the HTTP body string
   */
 given circeBodyDecoder[A](using decoder: Decoder[A]): BodyDecoder[A] with {
-  def decode(body: String): A raises List[DecodingError] =
+  def decode(body: String): A raises DecodingError =
     circeDecodeAccumulating[A](body) match {
       case Validated.Valid(a) => a
       case Validated.Invalid(errs) =>
-        Raise.raise(errs.toList.map {
-          case pf: ParsingFailure  => DecodingError.ParseError(pf.getMessage, Option(pf.underlying))
-          case df: DecodingFailure => DecodingError.ValidationError(df.getMessage)
-        })
+        errs.head match {
+          // circe emits ParsingFailure alone; decodeAccumulating short-circuits on parse errors
+          case pf: ParsingFailure =>
+            Raise.raise(DecodingError.ParseError(pf.getMessage, Option(pf.underlying)))
+          case df: DecodingFailure =>
+            Raise.raise(DecodingError.ValidationErrors(
+              NonEmptyList.of(df.getMessage, errs.tail.map(_.getMessage)*)
+            ))
+        }
     }
 }

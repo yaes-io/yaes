@@ -57,23 +57,21 @@ class JsoniterInstancesSpec extends AnyFlatSpec with Matchers with EitherValues 
 
   it should "raise ParseError for malformed JSON" in {
     val dec    = summon[BodyDecoder[User]]
-    val result = Raise.either[List[DecodingError], User] { dec.decode("not json at all") }
-    val errors = result.left.value
-    errors.head shouldBe a[DecodingError.ParseError]
-    errors.head.asInstanceOf[DecodingError.ParseError].cause shouldBe defined
+    val result = Raise.either[DecodingError, User] { dec.decode("not json at all") }
+    result.left.value shouldBe a[DecodingError.ParseError]
+    result.left.value.asInstanceOf[DecodingError.ParseError].cause shouldBe defined
   }
 
   it should "raise ParseError for empty input" in {
     val dec    = summon[BodyDecoder[User]]
-    val result = Raise.either[List[DecodingError], User] { dec.decode("") }
-    result.left.value.head shouldBe a[DecodingError.ParseError]
+    val result = Raise.either[DecodingError, User] { dec.decode("") }
+    result.left.value shouldBe a[DecodingError.ParseError]
   }
 
   it should "raise ParseError for JSON with missing required fields" in {
     val dec    = summon[BodyDecoder[User]]
-    val result = Raise.either[List[DecodingError], User] { dec.decode("""{"name":"Alice"}""") }
-    result.isLeft shouldBe true
-    result.left.get.head shouldBe a[DecodingError.ParseError]
+    val result = Raise.either[DecodingError, User] { dec.decode("""{"name":"Alice"}""") }
+    result.left.value shouldBe a[DecodingError.ParseError]
   }
 
   it should "work with nested case classes" in {

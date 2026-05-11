@@ -1,5 +1,7 @@
 package in.rcard.yaes.http.client
 
+import in.rcard.yaes.*
+import in.rcard.yaes.http.core.DecodingError
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -49,4 +51,25 @@ class HttpErrorSpec extends AnyFlatSpec with Matchers:
     HttpError.fromStatus(200, "ok") shouldBe HttpError.UnexpectedStatus(200,"ok")
     HttpError.fromStatus(301, "moved") shouldBe HttpError.UnexpectedStatus(301,"moved")
     HttpError.fromStatus(100, "continue") shouldBe HttpError.UnexpectedStatus(100,"continue")
+  }
+
+  "HttpError.as" should "decode body into Int from a ClientHttpError" in {
+    val err    = HttpError.UnprocessableEntity("42")
+    val result = Raise.either[DecodingError, Int] { err.as[Int] }
+    result shouldBe Right(42)
+  }
+
+  it should "decode body into String (identity) from any HttpError subtype" in {
+    val clientErr  = HttpError.NotFound("not here")
+    val serverErr  = HttpError.InternalServerError("boom")
+    val unexpected = HttpError.UnexpectedStatus(301, "moved")
+    Raise.either[DecodingError, String] { clientErr.as[String] }  shouldBe Right("not here")
+    Raise.either[DecodingError, String] { serverErr.as[String] }  shouldBe Right("boom")
+    Raise.either[DecodingError, String] { unexpected.as[String] } shouldBe Right("moved")
+  }
+
+  it should "raise DecodingError when body cannot be decoded" in {
+    val err    = HttpError.BadRequest("not-a-number")
+    val result = Raise.either[DecodingError, Int] { err.as[Int] }
+    result shouldBe Left(DecodingError.ParseError("Invalid integer: not-a-number"))
   }
