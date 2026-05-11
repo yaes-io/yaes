@@ -21,6 +21,8 @@ Available modules are:
  * `yaes-data`: A set of data structures that can be used with the λÆS library.
  * `yaes-cats`: Integration with Cats and Cats Effect, providing interoperability and typeclass instances.
  * `yaes-slf4j`: SLF4J integration for the `Log` effect, enabling any SLF4J-compatible logging backend.
+ * `yaes-http`: HTTP client and server built on λÆS effects, with optional Circe and jsoniter-scala JSON support.
+ * `yaes-test`: Testing utilities for λÆS effects, including ScalaTest integration.
 
 What's new in λÆS when compared to other effect systems? Well, λÆS embraces direct style — no monads, no for-comprehensions, just plain Scala:
 
@@ -95,10 +97,40 @@ libraryDependencies += "in.rcard.yaes" %% "yaes-cats" % "0.19.0"
 libraryDependencies += "in.rcard.yaes" %% "yaes-slf4j" % "0.19.0"
 ```
 
+**For HTTP core abstractions** (shared HTTP types and DSL):
+
+```sbt
+libraryDependencies += "in.rcard.yaes" %% "yaes-http-core" % "0.19.0"
+```
+
 **For HTTP Server based on λÆS effects**:
 
 ```sbt
 libraryDependencies += "in.rcard.yaes" %% "yaes-http-server" % "0.19.0"
+```
+
+**For HTTP Client based on λÆS effects**:
+
+```sbt
+libraryDependencies += "in.rcard.yaes" %% "yaes-http-client" % "0.19.0"
+```
+
+**For Circe JSON integration** (HTTP + Circe codecs):
+
+```sbt
+libraryDependencies += "in.rcard.yaes" %% "yaes-http-circe" % "0.19.0"
+```
+
+**For jsoniter-scala JSON integration** (HTTP + jsoniter codecs):
+
+```sbt
+libraryDependencies += "in.rcard.yaes" %% "yaes-http-jsoniter" % "0.19.0"
+```
+
+**For ScalaTest integration** (test helpers for λÆS effects):
+
+```sbt
+libraryDependencies += "in.rcard.yaes" %% "yaes-core-test-scalatest" % "0.19.0" % Test
 ```
 
 The library is only available for Scala 3 and is currently in an experimental stage. The API is subject to change.
