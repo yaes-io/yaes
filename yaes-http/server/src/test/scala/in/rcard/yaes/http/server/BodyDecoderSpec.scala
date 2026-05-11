@@ -145,7 +145,7 @@ class BodyDecoderSpec extends AnyFlatSpec with Matchers {
   given BodyDecoder[ValidatedItem] with {
     def decode(body: String): ValidatedItem raises DecodingError = {
       val errors = List.newBuilder[String]
-      if (body.isEmpty) errors += "value must not be empty"
+      if (body.trim.isEmpty) errors += "value must not be blank"
       if (body.length > 100) errors += "value must not exceed 100 characters"
       NonEmptyList.fromList(errors.result()) match {
         case Some(nel) => Raise.raise(DecodingError.ValidationErrors(nel))
@@ -162,10 +162,12 @@ class BodyDecoderSpec extends AnyFlatSpec with Matchers {
   it should "allow a custom BodyDecoder to raise ValidationErrors with multiple reasons" in {
     val decoder = summon[BodyDecoder[ValidatedItem]]
     val result = Raise.either[DecodingError, ValidatedItem] {
-      decoder.decode("")
+      decoder.decode(" " * 101)
     }
     result.isLeft shouldBe true
-    result.left.get shouldBe DecodingError.ValidationErrors(NonEmptyList.one("value must not be empty"))
+    result.left.get shouldBe DecodingError.ValidationErrors(
+      NonEmptyList.of("value must not be blank", "value must not exceed 100 characters")
+    )
   }
 
   it should "work with a single reason via NonEmptyList.one" in {
