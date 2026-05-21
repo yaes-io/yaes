@@ -22,3 +22,17 @@ Never use `require`, `assert`, or throw exceptions in public API surfaces.
 - Architecture and module structure: `ARCHITECTURE.md`
 - Code style and documentation standards: `CONVENTIONS.md`
 - Module-specific guidance: `<module>/CLAUDE.md`
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in GitHub Issues (`github.com/rcardin/yaes`). See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Using default label vocabulary (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Multi-context layout (`CONTEXT-MAP.md` at root, per-context `CONTEXT.md` files under `src/<context>/`). See `docs/agents/domain.md`.
