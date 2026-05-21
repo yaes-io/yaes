@@ -60,6 +60,24 @@ object Uri:
       else if Option(uri.getScheme).exists(_.equalsIgnoreCase("https")) then 443
       else 80
 
+    /** Appends a URL-encoded path segment to this URI.
+      *
+      * Trailing slashes on the base URI are normalised before appending, so
+      * chained calls always produce a clean path.
+      *
+      * Example:
+      * {{{
+      * val base = uri"https://api.example.com/users"
+      * val id   = 42L
+      * val u    = base / id   // https://api.example.com/users/42
+      * }}}
+      *
+      * @param segment the path segment to append, URL-encoded via [[UriParam]]
+      * @return a new [[Uri]] with the segment appended
+      */
+    def /(segment: UriParam): Uri =
+      Uri.fromTrustedString(s"${uri.value.stripSuffix("/")}/${segment.encoded}")
+
     /** Appends query parameters to the URI, URL-encoding keys and values.
       *
       * If the URI already contains a query string, parameters are appended with `&`.
