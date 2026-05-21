@@ -713,6 +713,30 @@ class RaiseSpec extends AsyncFlatSpec with Matchers {
     result.left.map(_.toSet) should be(Left(Set("error2", "error4")))
   }
 
+  it should "catch subclasses of E" in {
+    val result = Raise.either[RuntimeException, Int] {
+      Raise.catching[RuntimeException, Int](throw new ArithmeticException("/ by zero"))
+    }
+    result shouldBe a[Left[?, ?]]
+    result.left.get shouldBe a[ArithmeticException]
+  }
+
+  it should "catch exact class E" in {
+    val result = Raise.either[ArithmeticException, Int] {
+      Raise.catching[ArithmeticException, Int](throw new ArithmeticException("/ by zero"))
+    }
+    result shouldBe a[Left[?, ?]]
+    result.left.get shouldBe a[ArithmeticException]
+  }
+
+  it should "not catch sibling exceptions unrelated to E" in {
+    assertThrows[ArithmeticException] {
+      Raise.either[IllegalArgumentException, Int] {
+        Raise.catching[IllegalArgumentException, Int](throw new ArithmeticException("/ by zero"))
+      }
+    }
+  }
+
   private def int(value: Int): Raise[String] ?=> Int = {
     if value >= 2 then Raise.raise(value.toString)
     else value
