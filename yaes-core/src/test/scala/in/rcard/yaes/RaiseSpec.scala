@@ -717,16 +717,18 @@ class RaiseSpec extends AsyncFlatSpec with Matchers {
     val result = Raise.either[RuntimeException, Int] {
       Raise.catching[RuntimeException, Int](throw new ArithmeticException("/ by zero"))
     }
-    result shouldBe a[Left[?, ?]]
-    result.left.get shouldBe a[ArithmeticException]
+    result match
+      case Left(ex) => ex shouldBe a[ArithmeticException]
+      case Right(_) => fail("expected Left")
   }
 
   it should "catch exact class E" in {
     val result = Raise.either[ArithmeticException, Int] {
       Raise.catching[ArithmeticException, Int](throw new ArithmeticException("/ by zero"))
     }
-    result shouldBe a[Left[?, ?]]
-    result.left.get shouldBe a[ArithmeticException]
+    result match
+      case Left(ex) => ex shouldBe a[ArithmeticException]
+      case Right(_) => fail("expected Left")
   }
 
   it should "not catch sibling exceptions unrelated to E" in {
