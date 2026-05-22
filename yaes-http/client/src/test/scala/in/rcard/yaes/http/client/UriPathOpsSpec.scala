@@ -44,6 +44,18 @@ class UriPathOpsSpec extends AnyFlatSpec with Matchers:
     result.value shouldBe "https://api.example.com/search/hello%20world"
   }
 
+  it should "preserve an existing query string when appending a segment" in {
+    val base   = makeUri("https://api.example.com/users?page=1")
+    val result = base / "profile"
+    result.value shouldBe "https://api.example.com/users/profile?page=1"
+  }
+
+  it should "preserve an existing fragment when appending a segment" in {
+    val base   = makeUri("https://api.example.com/docs#section")
+    val result = base / "intro"
+    result.value shouldBe "https://api.example.com/docs/intro#section"
+  }
+
   it should "work with a custom PathParamStringifier" in {
     case class ProductId(value: Int)
     given PathParamStringifier[ProductId] with {
