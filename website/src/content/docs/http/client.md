@@ -489,7 +489,7 @@ Raise.run[Uri.InvalidUri] {
 }
 ```
 
-Any type with a `PathParamStringifier` instance is accepted — the same built-in instances (`String`, `Int`, `Long`, `Boolean`, `Double`, `UUID`) and custom `given` instances all work. A trailing slash on the base URI is normalised before appending, so `base / "x"` and `base/ / "x"` produce identical results.
+Any type with a `PathParamStringifier` instance is accepted — the same built-in instances (`String`, `Int`, `Long`, `Boolean`, `Double`, `UUID`) and custom `given` instances all work. A trailing slash on the base URI is normalised before appending, so `Uri("https://api.example.com/users") / "x"` and `Uri("https://api.example.com/users/") / "x"` produce identical results.
 
 ---
 
