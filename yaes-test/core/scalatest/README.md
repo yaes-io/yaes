@@ -80,7 +80,7 @@ import org.scalatest.matchers.should.Matchers
 class MySpec extends AnyFlatSpec with Matchers with RandomSpec {
 
   "myFunction" should "use a deterministic random int" in {
-    RandomStub.nextInts(42)
+    rand.nextInts(42)
     val result = Random.nextInt
     result shouldBe 42
   }
@@ -138,9 +138,9 @@ class MySpec extends AnyFlatSpec with Matchers with SyncSpec {
 
 | API | Description |
 |-----|-------------|
-| `val RandomStub: RandomStub` | The shared stub instance. Call `nextInts(...)`, `nextLongs(...)`, `nextBooleans(...)`, or `nextDoubles(...)` to enqueue values. |
-| `given Random` | The `Random` given backed by `RandomStub`. |
-| `RandomStub.reset()` | Clears all queues. Called automatically before each test via `withFixture`. |
+| `val rand: RandomStub` | The shared stub instance. Call `nextInts(...)`, `nextLongs(...)`, `nextBooleans(...)`, or `nextDoubles(...)` to enqueue values. |
+| `given Random` | The `Random` given backed by `rand`. |
+| `rand.reset()` | Clears all queues. Called automatically before each test via `withFixture`. |
 
 ### SyncSpec
 

@@ -127,7 +127,7 @@ class RandomStub extends Random.Unsafe {
   * class MySpec extends AnyFlatSpec with Matchers with RandomSpec {
   *
   *   "myFunction" should "use a queued int" in {
-  *     RandomStub.nextInts(42)
+  *     rand.nextInts(42)
   *     val result = Random.nextInt()
   *     result shouldBe 42
   *   }
@@ -143,10 +143,10 @@ class RandomStub extends Random.Unsafe {
 trait RandomSpec extends TestSuite {
 
   /** The shared [[RandomStub]] instance. Enqueue values on this before calling code under test. */
-  val RandomStub: RandomStub = new RandomStub()
+  val rand: RandomStub = new RandomStub()
 
-  /** The [[Random]] given instance backed by [[RandomStub]]. */
-  given Random = RandomStub
+  /** The [[Random]] given instance backed by [[rand]]. */
+  given Random = rand
 
   /** Resets the [[RandomStub]] before each test and delegates to the next `withFixture` in the
     * mixin stack.
@@ -157,7 +157,7 @@ trait RandomSpec extends TestSuite {
     *   The outcome of the test.
     */
   abstract override def withFixture(test: NoArgTest): Outcome = {
-    RandomStub.reset()
+    rand.reset()
     super.withFixture(test)
   }
 }

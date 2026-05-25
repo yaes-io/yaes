@@ -2,17 +2,15 @@ package in.rcard.yaes.test.scalatest
 
 import in.rcard.yaes.{Executor, Sync}
 
-import scala.concurrent.Await
 import scala.concurrent.Future
-import scala.concurrent.duration.Duration
 import scala.util.Try
 
 /** Mixin trait providing a synchronous [[Sync]] runner for ScalaTest specs.
   *
   * Mix this trait into a ScalaTest spec class to get the [[withSync]] helper. Unlike the
   * production [[Sync.run]] handler, [[withSync]] executes the program synchronously on the calling
-  * thread using a `Try`-based [[Executor]] — no virtual threads are involved. This keeps test
-  * execution simple and deterministic while still satisfying `using Sync` context parameters.
+  * thread inside a `Try`. No virtual threads, no Future awaiting. This keeps test execution simple
+  * and deterministic while still satisfying `using Sync` context parameters.
   *
   * Example:
   * {{{
@@ -39,9 +37,8 @@ trait SyncSpec {
 
   /** Runs a [[Sync]]-effectful program synchronously and returns its result.
     *
-    * The program is executed on the calling thread via a `Try`-backed [[Executor]], so no virtual
-    * threads or thread pools are used. Any exception thrown by the program propagates directly to
-    * the caller.
+    * The program is evaluated on the calling thread inside a `Try`. No virtual threads or thread
+    * pools are used. Any exception thrown by the program propagates directly to the caller.
     *
     * @param program
     *   The effectful computation to run.
@@ -62,6 +59,6 @@ trait SyncSpec {
       }
     }
     given Sync = syncInstance
-    Await.result(syncInstance.executor.submit(program), Duration.Inf)
+    Try(program).fold(throw _, identity)
   }
 }
