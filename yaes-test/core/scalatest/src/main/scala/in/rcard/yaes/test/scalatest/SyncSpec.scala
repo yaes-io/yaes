@@ -3,32 +3,26 @@ package in.rcard.yaes.test.scalatest
 import in.rcard.yaes.{Executor, Sync}
 
 import scala.concurrent.Future
-import scala.util.Try
 
-/** Mixin trait providing a synchronous [[Sync]] runner for ScalaTest specs.
+/** Mixin trait providing a stub [[Sync]] given instance for ScalaTest specs.
   *
-  * Mix this trait into a ScalaTest spec class to get the [[withSync]] helper. Unlike the
-  * production [[Sync.run]] handler, [[withSync]] executes the program synchronously on the calling
-  * thread through the [[Executor]] defined on the [[Sync]] instance. No virtual threads, no Future
-  * awaiting. This keeps test execution simple and deterministic while still satisfying `using Sync`
-  * context parameters.
+  * Mix this trait into a ScalaTest spec class to get the [[withSync]] helper.
+  * [[Sync.apply]] is identity, so the [[Executor]] is never invoked. The stub
+  * executor exists only to satisfy [[Sync.Unsafe]] and fails loudly if called.
+  * Programs run on the calling thread; exceptions propagate directly.
   *
   * Example:
   * {{{
   * class MySpec extends AnyFlatSpec with Matchers with SyncSpec {
   *
   *   "withSync" should "return the computed value" in {
-  *     val result = withSync {
-  *       42
-  *     }
+  *     val result = withSync { 42 }
   *     result shouldBe 42
   *   }
   *
   *   it should "propagate exceptions thrown by the program" in {
   *     intercept[RuntimeException] {
-  *       withSync {
-  *         throw new RuntimeException("boom")
-  *       }
+  *       withSync { throw new RuntimeException("boom") }
   *     }
   *   }
   * }
@@ -36,31 +30,12 @@ import scala.util.Try
   */
 trait SyncSpec {
 
-  /** Runs a [[Sync]]-effectful program synchronously and returns its result.
-    *
-    * The program is submitted through the [[Executor]] on the [[Sync]] instance, which wraps it in
-    * a completed `Future` on the calling thread. No virtual threads or thread pools are used. Any
-    * exception thrown by the program propagates directly to the caller.
-    *
-    * @param program
-    *   The effectful computation to run.
-    * @tparam A
-    *   The result type of the computation.
-    * @return
-    *   The result of the computation.
-    * @throws Throwable
-    *   if the program throws an exception.
-    */
-  def withSync[A](program: Sync ?=> A): A = runSync(program)
-
-  private def runSync[A](program: Sync ?=> A): A = {
-    val syncInstance = new Sync.Unsafe {
-      override val executor: Executor = new Executor {
-        override def submit[A](task: => A): Future[A] =
-          Try(task).fold(Future.failed(_), Future.successful)
-      }
+  given Sync = new Sync.Unsafe {
+    override val executor: Executor = new Executor {
+      override def submit[A](task: => A): Future[A] =
+        throw new UnsupportedOperationException("SyncSpec: Executor.submit must not be called in tests")
     }
-    given Sync = syncInstance
-    syncInstance.executor.submit(program).value.get.fold(throw _, identity)
   }
+
+  def withSync[A](program: Sync ?=> A): A = program
 }
