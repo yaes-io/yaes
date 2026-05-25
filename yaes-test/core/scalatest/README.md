@@ -150,7 +150,7 @@ class MySpec extends AnyFlatSpec with Matchers with SyncSpec {
 
 | Method | Description |
 |--------|-------------|
-| `withSync[A](program: Sync ?=> A): A` | Runs the program synchronously on the calling thread. Exceptions propagate directly to the caller. No virtual threads are used. |
+| `withSync[A](program: Sync ?=> A): A` | Runs the program synchronously on the calling thread. Exceptions propagate directly to the caller. For `Sync.apply`-based computations that do not invoke `Sync.run` or `Sync.runBlocking`, no virtual threads are used; code that calls `Sync.run`/`Sync.runBlocking` may still use `Sync`’s internal executor and create virtual threads. |
 
 ## Requirements
 
