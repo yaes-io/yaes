@@ -15,6 +15,7 @@ An effect-based HTTP client built on YAES effects and Java's `java.net.http.Http
 - **Fluent builder API** - Immutable request construction with `header`, `queryParam`, and `timeout` extension methods
 - **Body codecs** - Request body encoding via `BodyEncoder` and response body decoding via `BodyDecoder`
 - **URI validation** - Opaque `Uri` type with construction-time validation via the `Raise` effect
+- **Path segment operator** - `uri / segment` to append URL-encoded segments dynamically, preserving query strings and fragments
 - **Path parameter interpolation** - `uri"..."` string interpolator for ergonomic, type-safe path param encoding via `PathParamStringifier`
 
 **Requirements:**
@@ -448,8 +449,47 @@ result match
 |--------|-------------|-------------|
 | `value` | `String` | The URI as a string |
 | `host` | `Option[String]` | The host component |
-| `port` | `Int` | The port (defaults to 80 if unspecified) |
+| `port` | `Int` | The port (defaults to 443 for `https` and 80 otherwise, if unspecified) |
 | `toJavaURI` | `java.net.URI` | The underlying Java URI |
+| `/ (segment)` | `Uri` | Append a URL-encoded path segment |
+
+### Path Segment Operator (`/`)
+
+Use `uri / segment` to append a single path segment to an existing `Uri`. The segment is URL-encoded via the same `PathParamStringifier` typeclass used by the `uri"..."` interpolator. Query strings and fragments are preserved.
+
+```scala
+import in.rcard.yaes.*
+import in.rcard.yaes.http.client.*
+
+Raise.run[Uri.InvalidUri] {
+  val base   = Uri("https://api.example.com/users")
+  val userId = 42
+
+  val uri = base / userId
+  // => https://api.example.com/users/42
+}
+```
+
+Operators chain naturally:
+
+```scala
+Raise.run[Uri.InvalidUri] {
+  val uri = Uri("https://api.example.com") / "users" / 42 / "orders"
+  // => https://api.example.com/users/42/orders
+}
+```
+
+Query strings and fragments survive the append:
+
+```scala
+Raise.run[Uri.InvalidUri] {
+  val base = Uri("https://api.example.com/users?active=true")
+  val uri  = base / 42
+  // => https://api.example.com/users/42?active=true
+}
+```
+
+Any type with a `PathParamStringifier` instance is accepted — the same built-in instances (`String`, `Int`, `Long`, `Boolean`, `Double`, `UUID`) and custom `given` instances all work. A trailing slash on the base URI is normalised before appending, so `Uri("https://api.example.com/users") / "x"` and `Uri("https://api.example.com/users/") / "x"` produce identical results.
 
 ---
 
