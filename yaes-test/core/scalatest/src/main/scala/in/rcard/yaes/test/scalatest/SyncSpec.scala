@@ -9,8 +9,9 @@ import scala.util.Try
   *
   * Mix this trait into a ScalaTest spec class to get the [[withSync]] helper. Unlike the
   * production [[Sync.run]] handler, [[withSync]] executes the program synchronously on the calling
-  * thread inside a `Try`. No virtual threads, no Future awaiting. This keeps test execution simple
-  * and deterministic while still satisfying `using Sync` context parameters.
+  * thread through the [[Executor]] defined on the [[Sync]] instance. No virtual threads, no Future
+  * awaiting. This keeps test execution simple and deterministic while still satisfying `using Sync`
+  * context parameters.
   *
   * Example:
   * {{{
@@ -37,8 +38,9 @@ trait SyncSpec {
 
   /** Runs a [[Sync]]-effectful program synchronously and returns its result.
     *
-    * The program is evaluated on the calling thread inside a `Try`. No virtual threads or thread
-    * pools are used. Any exception thrown by the program propagates directly to the caller.
+    * The program is submitted through the [[Executor]] on the [[Sync]] instance, which wraps it in
+    * a completed `Future` on the calling thread. No virtual threads or thread pools are used. Any
+    * exception thrown by the program propagates directly to the caller.
     *
     * @param program
     *   The effectful computation to run.
@@ -59,6 +61,6 @@ trait SyncSpec {
       }
     }
     given Sync = syncInstance
-    Try(program).fold(throw _, identity)
+    syncInstance.executor.submit(program).value.get.fold(throw _, identity)
   }
 }
