@@ -7,9 +7,15 @@ import scala.concurrent.Future
 /** Mixin trait providing a stub [[Sync]] given instance for ScalaTest specs.
   *
   * Mix this trait into a ScalaTest spec class to get the [[withSync]] helper.
-  * [[Sync.apply]] is identity, so the [[Executor]] is never invoked. The stub
-  * executor exists only to satisfy [[Sync.Unsafe]] and fails loudly if called.
-  * Programs run on the calling thread; exceptions propagate directly.
+  * [[withSync]] evaluates `Sync ?=> A` computations synchronously on the calling thread by
+  * supplying a contextual `Sync` whose [[Sync.apply]] is the identity. Exceptions propagate
+  * directly to the caller.
+  *
+  * '''Limitation:''' [[withSync]] is intended for computations that use `Sync.apply` directly
+  * (e.g., `Sync { expr }`). It does '''not''' change the behavior of `Sync.run` or
+  * `Sync.runBlocking`, which always use `Sync`'s internal `JvmExecutor` (virtual threads)
+  * regardless of the contextual `given Sync`. If the program under test calls `Sync.run*`
+  * internally, virtual threads may still be created.
   *
   * Example:
   * {{{

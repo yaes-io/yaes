@@ -19,10 +19,10 @@ import scala.collection.mutable
   * stub.nextBooleans(true)
   *
   * given Random = stub
-  * Random.nextInt()    // 42
-  * Random.nextInt()    // 7
-  * Random.nextBoolean() // true
-  * Random.nextInt()    // throws TestFailedException: "RandomStub: no ints queued"
+  * Random.nextInt    // 42
+  * Random.nextInt    // 7
+  * Random.nextBoolean // true
+  * Random.nextInt    // throws TestFailedException: "RandomStub: no ints queued"
   * }}}
   */
 class RandomStub extends Random.Unsafe {
@@ -79,7 +79,7 @@ class RandomStub extends Random.Unsafe {
     *   if the integer queue is empty.
     */
   override def nextInt(): Int =
-    if ints.isEmpty then throw new TestFailedException("RandomStub: no ints queued", 0)
+    if ints.isEmpty then throw new TestFailedException("RandomStub: no ints queued", 1)
     else ints.dequeue()
 
   /** Returns the next queued long, or fails the test if no longs are queued.
@@ -90,7 +90,7 @@ class RandomStub extends Random.Unsafe {
     *   if the long queue is empty.
     */
   override def nextLong(): Long =
-    if longs.isEmpty then throw new TestFailedException("RandomStub: no longs queued", 0)
+    if longs.isEmpty then throw new TestFailedException("RandomStub: no longs queued", 1)
     else longs.dequeue()
 
   /** Returns the next queued boolean, or fails the test if no booleans are queued.
@@ -101,7 +101,7 @@ class RandomStub extends Random.Unsafe {
     *   if the boolean queue is empty.
     */
   override def nextBoolean(): Boolean =
-    if booleans.isEmpty then throw new TestFailedException("RandomStub: no booleans queued", 0)
+    if booleans.isEmpty then throw new TestFailedException("RandomStub: no booleans queued", 1)
     else booleans.dequeue()
 
   /** Returns the next queued double, or fails the test if no doubles are queued.
@@ -112,7 +112,7 @@ class RandomStub extends Random.Unsafe {
     *   if the double queue is empty.
     */
   override def nextDouble(): Double =
-    if doubles.isEmpty then throw new TestFailedException("RandomStub: no doubles queued", 0)
+    if doubles.isEmpty then throw new TestFailedException("RandomStub: no doubles queued", 1)
     else doubles.dequeue()
 }
 
@@ -122,19 +122,23 @@ class RandomStub extends Random.Unsafe {
   * The stub is automatically reset before each test via the stackable `withFixture` override, so
   * values enqueued in one test cannot leak into the next.
   *
+  * '''Note:''' This trait is not safe for concurrent test execution. The shared [[RandomStub]]
+  * uses mutable queues, and concurrent queue operations or resets will race if tests run in
+  * parallel (e.g., when mixing in `ParallelTestExecution`). Use only with sequential test suites.
+  *
   * Example:
   * {{{
   * class MySpec extends AnyFlatSpec with Matchers with RandomSpec {
   *
   *   "myFunction" should "use a queued int" in {
   *     rand.nextInts(42)
-  *     val result = Random.nextInt()
+  *     val result = Random.nextInt
   *     result shouldBe 42
   *   }
   *
   *   it should "fail when no value is queued" in {
   *     intercept[TestFailedException] {
-  *       Random.nextInt()
+  *       Random.nextInt
   *     }
   *   }
   * }

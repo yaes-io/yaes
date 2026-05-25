@@ -91,7 +91,11 @@ The stub fails the test immediately with a descriptive `TestFailedException` if 
 
 ### SyncSpec
 
-Mix `SyncSpec` to run `Sync`-effectful programs synchronously on the calling thread, without virtual threads:
+Mix `SyncSpec` to run `Sync ?=> A` programs synchronously on the calling thread using `withSync`.
+`withSync` supplies a contextual `Sync` whose `apply` is identity, so computations written with
+`Sync { expr }` evaluate without virtual threads. Note that `Sync.run` and `Sync.runBlocking`
+bypass the contextual `Sync` and always use their internal `JvmExecutor` — if the code under test
+calls those methods, virtual threads may still be created.
 
 ```scala
 import in.rcard.yaes.Sync
