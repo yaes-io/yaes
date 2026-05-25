@@ -449,7 +449,7 @@ result match
 |--------|-------------|-------------|
 | `value` | `String` | The URI as a string |
 | `host` | `Option[String]` | The host component |
-| `port` | `Int` | The port (defaults to 80 if unspecified) |
+| `port` | `Int` | The port (defaults to 443 for `https` and 80 otherwise, if unspecified) |
 | `toJavaURI` | `java.net.URI` | The underlying Java URI |
 | `/ (segment)` | `Uri` | Append a URL-encoded path segment |
 
