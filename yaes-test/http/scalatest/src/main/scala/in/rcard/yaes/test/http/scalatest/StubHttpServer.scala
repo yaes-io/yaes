@@ -78,28 +78,30 @@ class StubHttpServer {
     s.createContext(
       "/",
       (exchange: HttpExchange) => {
-        val bodyBytes = exchange.getRequestBody.readAllBytes()
-        val body      = new String(bodyBytes, UTF_8)
-        val uri       = exchange.getRequestURI
-        val captured = CapturedRequest(
-          method = exchange.getRequestMethod,
-          path = uri.getRawPath,
-          rawQuery = Option(uri.getRawQuery),
-          headers = exchange.getRequestHeaders.entrySet().asScala.map { entry =>
-            entry.getKey.toLowerCase(Locale.ROOT) -> entry.getValue.asScala.toList
-          }.toMap,
-          body = body
-        )
-        requestsQueue.add(captured)
-        val response =
-          try handlerRef.get()(captured)
-          catch case _: Throwable => StubResponse(500, "handler error")
-        val responseBytes = response.body.getBytes(UTF_8)
-        response.headers.foreach { (k, v) => exchange.getResponseHeaders.set(k, v) }
-        exchange.sendResponseHeaders(response.statusCode, responseBytes.length)
-        val os = exchange.getResponseBody
-        try os.write(responseBytes)
-        finally os.close()
+        try
+          val bodyBytes = exchange.getRequestBody.readAllBytes()
+          val body      = new String(bodyBytes, UTF_8)
+          val uri       = exchange.getRequestURI
+          val captured = CapturedRequest(
+            method = exchange.getRequestMethod,
+            path = uri.getRawPath,
+            rawQuery = Option(uri.getRawQuery),
+            headers = exchange.getRequestHeaders.entrySet().asScala.map { entry =>
+              entry.getKey.toLowerCase(Locale.ROOT) -> entry.getValue.asScala.toList
+            }.toMap,
+            body = body
+          )
+          requestsQueue.add(captured)
+          val response =
+            try handlerRef.get()(captured)
+            catch case _: Throwable => StubResponse(500, "handler error")
+          val responseBytes = response.body.getBytes(UTF_8)
+          response.headers.foreach { (k, v) => exchange.getResponseHeaders.set(k, v) }
+          exchange.sendResponseHeaders(response.statusCode, responseBytes.length)
+          val os = exchange.getResponseBody
+          try os.write(responseBytes)
+          finally os.close()
+        finally exchange.close()
       }
     )
     s.setExecutor(null)
