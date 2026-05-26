@@ -91,13 +91,15 @@ class StubHttpServer {
           body = body
         )
         requestsQueue.add(captured)
-        val response      = handlerRef.get()(captured)
+        val response =
+          try handlerRef.get()(captured)
+          catch case _: Throwable => StubResponse(500, "handler error")
         val responseBytes = response.body.getBytes(UTF_8)
         response.headers.foreach { (k, v) => exchange.getResponseHeaders.set(k, v) }
         exchange.sendResponseHeaders(response.statusCode, responseBytes.length)
         val os = exchange.getResponseBody
-        os.write(responseBytes)
-        os.close()
+        try os.write(responseBytes)
+        finally os.close()
       }
     )
     s.setExecutor(null)
