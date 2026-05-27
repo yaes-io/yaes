@@ -72,6 +72,7 @@ class StubHttpServer {
 
   private val handlerRef    = new AtomicReference[CapturedRequest => StubResponse](defaultHandler)
   private val requestsQueue = new ConcurrentLinkedQueue[CapturedRequest]()
+  private val handlerError  = new AtomicReference[Option[Throwable]](None)
 
   private val jdkServer: HttpServer =
     val s = HttpServer.create(new InetSocketAddress(0), 0)
@@ -94,7 +95,10 @@ class StubHttpServer {
           requestsQueue.add(captured)
           val response =
             try handlerRef.get()(captured)
-            catch case _: Throwable => StubResponse(500, "handler error")
+            catch
+              case ex: Throwable =>
+                handlerError.set(Some(ex))
+                StubResponse(500, "handler error")
           val responseBytes = response.body.getBytes(UTF_8)
           response.headers.foreach { (k, v) => exchange.getResponseHeaders.set(k, v) }
           exchange.sendResponseHeaders(response.statusCode, responseBytes.length)
@@ -127,18 +131,33 @@ class StubHttpServer {
 
   /** Returns all requests captured since the last [[reset]] (or since construction).
     *
+    * If the request handler threw an exception during a previous invocation, that exception is
+    * re-thrown here so test assertions on the server thread surface immediately in the test body.
+    *
     * @return
     *   an ordered list of [[CapturedRequest]] values
+    * @throws Throwable
+    *   the exception thrown by the handler, if any
     */
-  def capturedRequests: List[CapturedRequest] = requestsQueue.asScala.toList
+  def capturedRequests: List[CapturedRequest] =
+    handlerError.getAndSet(None).foreach(ex => throw ex)
+    requestsQueue.asScala.toList
 
   /** Clears the captured-request queue and restores the default handler (which returns 500).
     *
+    * If the request handler threw an exception during a previous invocation, that exception is
+    * re-thrown here so failures on the server thread are not silently discarded between tests.
+    *
     * Intended to be called before each test so that each test starts with a clean slate.
+    *
+    * @throws Throwable
+    *   the exception thrown by the handler, if any
     */
   def reset(): Unit =
+    val storedError = handlerError.getAndSet(None)
     requestsQueue.clear()
     handlerRef.set(defaultHandler)
+    storedError.foreach(ex => throw ex)
 
   /** Stops the underlying JDK HTTP server, releasing the bound port.
     *
