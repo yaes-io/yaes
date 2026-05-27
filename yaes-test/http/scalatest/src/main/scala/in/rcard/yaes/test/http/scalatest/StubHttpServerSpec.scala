@@ -34,8 +34,8 @@ trait StubHttpServerSpec extends BeforeAndAfterAll with BeforeAndAfterEach {
 
   /** Stops the stub server after all tests in the suite have run. */
   abstract override def afterAll(): Unit =
-    try stubServer.stop()
-    finally super.afterAll()
+    try super.afterAll()
+    finally stubServer.stop()
 
   /** Resets the stub server (clears captured requests and restores the default handler) before each
     * test.
