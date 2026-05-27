@@ -59,7 +59,7 @@ lazy val `yaes-slf4j` = project
 
 lazy val `yaes-test` = project
   .in(file("yaes-test"))
-  .aggregate(`yaes-core-test-scalatest`)
+  .aggregate(`yaes-core-test-scalatest`, `yaes-http-test-scalatest`)
   .settings(scalaVersion := scala3Version)
 
 lazy val `yaes-core-test-scalatest` = project
@@ -68,6 +68,15 @@ lazy val `yaes-core-test-scalatest` = project
   .settings(commonSettings)
   .settings(
     name         := "yaes-core-test-scalatest",
+    scalaVersion := scala3Version,
+    libraryDependencies ++= Seq(dependencies.scalatest)
+  )
+
+lazy val `yaes-http-test-scalatest` = project
+  .in(file("yaes-test/http/scalatest"))
+  .settings(commonSettings)
+  .settings(
+    name         := "yaes-http-test-scalatest",
     scalaVersion := scala3Version,
     libraryDependencies ++= Seq(dependencies.scalatest)
   )
