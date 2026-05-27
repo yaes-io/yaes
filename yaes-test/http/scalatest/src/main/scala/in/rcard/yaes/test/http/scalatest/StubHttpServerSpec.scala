@@ -32,10 +32,36 @@ trait StubHttpServerSpec extends BeforeAndAfterAll with BeforeAndAfterEach {
   /** Convenience accessor for the base URL of the stub server (e.g. `http://localhost:54321`). */
   def stubBaseUrl: String = stubServer.baseUrl
 
-  /** Stops the stub server after all tests in the suite have run. */
-  abstract override def afterAll(): Unit =
+  /** Stops the stub server after all tests in the suite have run.
+    *
+    * We reset before stopping so that any deferred handler failure from the final test is surfaced
+    * deterministically during suite teardown.
+    */
+  abstract override def afterAll(): Unit = {
+    var teardownError: Throwable = null
+
     try super.afterAll()
-    finally stubServer.stop()
+    catch {
+      case t: Throwable =>
+        teardownError = t
+    }
+
+    try stubServer.reset()
+    catch {
+      case t: Throwable =>
+        if teardownError == null then teardownError = t
+        else teardownError.addSuppressed(t)
+    }
+
+    try stubServer.stop()
+    catch {
+      case t: Throwable =>
+        if teardownError == null then teardownError = t
+        else teardownError.addSuppressed(t)
+    }
+
+    if teardownError != null then throw teardownError
+  }
 
   /** Resets the stub server (clears captured requests and restores the default handler) before each
     * test.
