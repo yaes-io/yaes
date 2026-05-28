@@ -7,7 +7,7 @@
 
 # λÆS Test Utilities — ScalaTest
 
-Test utilities for λÆS effect code using ScalaTest. Provides `RaiseSpec`, a mixin trait that eliminates boilerplate handler wiring in tests for the `Raise` effect.
+Test utilities for λÆS effect code using ScalaTest. Provides mixin traits that eliminate boilerplate handler wiring in tests for the `Raise`, `Log`, `Random`, and `Sync` effects.
 
 ## Installation
 
@@ -20,6 +20,8 @@ libraryDependencies += "in.rcard.yaes" %% "yaes-core-test-scalatest" % "0.20.0" 
 Both `yaes-core` and ScalaTest are transitive dependencies — no need to declare them separately.
 
 ## Quick Start
+
+### RaiseSpec
 
 Mix `RaiseSpec` into your ScalaTest spec class:
 
@@ -46,17 +48,109 @@ class MySpec extends AnyFlatSpec with Matchers with RaiseSpec {
 }
 ```
 
+### LogSpec
+
+Mix `LogSpec` into your spec to suppress all logging output. A no-op `Log` given is provided automatically:
+
+```scala
+import in.rcard.yaes.Log
+import in.rcard.yaes.test.scalatest.LogSpec
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+
+class MySpec extends AnyFlatSpec with Matchers with LogSpec {
+
+  "myFunction" should "run without noisy log output" in {
+    val logger = Log.getLogger("test")
+    logger.info("silently discarded")  // no output, no exception
+  }
+}
+```
+
+### RandomSpec / RandomStub
+
+Mix `RandomSpec` to get a queue-based `RandomStub` with automatic reset between tests:
+
+```scala
+import in.rcard.yaes.Random
+import in.rcard.yaes.test.scalatest.RandomSpec
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+
+class MySpec extends AnyFlatSpec with Matchers with RandomSpec {
+
+  "myFunction" should "use a deterministic random int" in {
+    rand.nextInts(42)
+    val result = Random.nextInt
+    result shouldBe 42
+  }
+}
+```
+
+The stub fails the test immediately with a descriptive `TestFailedException` if the code under test consumes more values than were enqueued.
+
+### SyncSpec
+
+Mix `SyncSpec` to run `Sync ?=> A` programs synchronously on the calling thread using `withSync`.
+`withSync` supplies a contextual `Sync` whose `apply` is identity, so computations written with
+`Sync { expr }` evaluate without virtual threads. Note that `Sync.run` and `Sync.runBlocking`
+bypass the contextual `Sync` and always use their internal `JvmExecutor` — if the code under test
+calls those methods, virtual threads may still be created.
+
+```scala
+import in.rcard.yaes.Sync
+import in.rcard.yaes.test.scalatest.SyncSpec
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+
+class MySpec extends AnyFlatSpec with Matchers with SyncSpec {
+
+  "myFunction" should "return the computed value" in {
+    val result = withSync { 42 }
+    result shouldBe 42
+  }
+
+  it should "propagate exceptions" in {
+    intercept[RuntimeException] {
+      withSync { throw new RuntimeException("boom") }
+    }
+  }
+}
+```
+
 ## API
+
+### RaiseSpec
 
 | Method | Description |
 |--------|-------------|
 | `failOnRaise[E, A](body: Raise[E] ?=> A): A` | Runs body; returns result on success. Fails the test with a descriptive message if an error is raised. |
 | `interceptRaised[E, A](body: Raise[E] ?=> A): E` | Runs body; returns the raised error for further assertions. Fails the test if the body completes successfully. |
 
-### Failure Messages
+**Failure Messages:**
 
 - `failOnRaise` failure: `Expected the test not to raise any errors but it did with error '<error>'`
 - `interceptRaised` failure: `Expected an error to be raised but body evaluated successfully`
+
+### LogSpec
+
+| API | Description |
+|-----|-------------|
+| `given Log` | A no-op `Log` instance that silently discards all log messages at every severity level. |
+
+### RandomSpec / RandomStub
+
+| API | Description |
+|-----|-------------|
+| `val rand: RandomStub` | The shared stub instance. Call `nextInts(...)`, `nextLongs(...)`, `nextBooleans(...)`, or `nextDoubles(...)` to enqueue values. |
+| `given Random` | The `Random` given backed by `rand`. |
+| `rand.reset()` | Clears all queues. Called automatically before each test via `withFixture`. |
+
+### SyncSpec
+
+| Method | Description |
+|--------|-------------|
+| `withSync[A](program: Sync ?=> A): A` | Runs the program synchronously on the calling thread. Exceptions propagate directly to the caller. For `Sync.apply`-based computations that do not invoke `Sync.run` or `Sync.runBlocking`, no virtual threads are used; code that calls `Sync.run`/`Sync.runBlocking` may still use `Sync`’s internal executor and create virtual threads. |
 
 ## Requirements
 

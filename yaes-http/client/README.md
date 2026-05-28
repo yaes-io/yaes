@@ -29,6 +29,7 @@ libraryDependencies += "in.rcard.yaes" %% "yaes-http-client" % "0.20.0"
 - **Fluent Builder API**: Immutable request building with `header`, `queryParam`, and `timeout` extension methods
 - **Body Codecs**: Request body encoding via `BodyEncoder` and response body decoding via `BodyDecoder`
 - **URI Validation**: Opaque `Uri` type with compile-time-safe construction via the `Raise` effect
+- **Path Segment Operator**: `uri / segment` to append URL-encoded segments dynamically, preserving query strings and fragments
 - **Path Parameter Interpolation**: `uri"..."` string interpolator for ergonomic, type-safe path param encoding via `PathParamStringifier`
 - **Configurable**: Connect timeout, redirect policy, and HTTP version selection
 
@@ -378,6 +379,41 @@ result match
   case Right(uri) =>
     println(s"Host: ${uri.host}, Port: ${uri.port}")
 ```
+
+### Path Segment Operator (`/`)
+
+Use `uri / segment` to append a single path segment to an existing `Uri`. The segment is URL-encoded via the same `PathParamStringifier` typeclass used by the `uri"..."` interpolator. Query strings and fragments are preserved.
+
+```scala
+Raise.run[Uri.InvalidUri] {
+  val base   = Uri("https://api.example.com/users")
+  val userId = 42
+
+  val uri = base / userId
+  // => https://api.example.com/users/42
+}
+```
+
+Operators chain naturally:
+
+```scala
+Raise.run[Uri.InvalidUri] {
+  val uri = Uri("https://api.example.com") / "users" / 42 / "orders"
+  // => https://api.example.com/users/42/orders
+}
+```
+
+Query strings and fragments survive the append:
+
+```scala
+Raise.run[Uri.InvalidUri] {
+  val base = Uri("https://api.example.com/users?active=true")
+  val uri  = base / 42
+  // => https://api.example.com/users/42?active=true
+}
+```
+
+Any type with a `PathParamStringifier` instance is accepted. A trailing slash on the base URI is normalised before appending.
 
 ## Body Codecs
 

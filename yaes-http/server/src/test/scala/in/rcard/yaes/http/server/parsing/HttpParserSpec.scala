@@ -211,6 +211,20 @@ class HttpParserSpec extends AnyFlatSpec with Matchers {
     ))
   }
 
+  it should "normalize header names to lowercase using locale-insensitive comparison" in {
+    val defaultLocale = java.util.Locale.getDefault
+    try {
+      java.util.Locale.setDefault(new java.util.Locale("tr", "TR"))
+      val headerLines = List("X-API-Key: secret", "X-IBM-Client-Id: abc123")
+      val result = Raise.either[HttpParseError, Map[String, String]] {
+        HttpParser.parseHeaders(headerLines, 16384)
+      }
+      result shouldBe Right(Map("x-api-key" -> "secret", "x-ibm-client-id" -> "abc123"))
+    } finally {
+      java.util.Locale.setDefault(defaultLocale)
+    }
+  }
+
   it should "return 400 Bad Request when headers exceed max size" in {
     val largeValue = "x" * 10000
     val headerLines = List(
