@@ -421,7 +421,7 @@ object Raise {
       block
     } catch {
       case NonFatal(nfex) =>
-        if (nfex.getClass == E.runtimeClass) Raise.raise(nfex.asInstanceOf[E])
+        if (E.runtimeClass.isInstance(nfex)) Raise.raise(nfex.asInstanceOf[E])
         else throw nfex
       case ex => throw ex
     }

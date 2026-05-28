@@ -85,6 +85,6 @@ object Request {
       *   The header value if present, None otherwise
       */
     def header(name: String): Option[String] =
-      req.headers.get(name.toLowerCase)
+      req.headers.get(name.toLowerCase(java.util.Locale.ROOT))
   }
 }

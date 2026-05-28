@@ -53,6 +53,7 @@ export default defineConfig({
 					collapsed: true,
 					items: [
 						{ label: 'Testing with RaiseSpec', slug: 'testing/raise-spec' },
+						{ label: 'Testing HTTP with StubHttpServer', slug: 'testing/stub-http-server' },
 					],
 				},
 				{

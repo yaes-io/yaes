@@ -85,7 +85,7 @@ object HttpParser {
       }
 
       // HTTP/1.1 header names are case-insensitive (RFC 7230 Section 3.2)
-      headers(name.toLowerCase) = value
+      headers(name.toLowerCase(java.util.Locale.ROOT)) = value
     }
 
     headers.toMap
