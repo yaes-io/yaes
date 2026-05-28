@@ -76,61 +76,61 @@ The library is available on Maven Central. To use it, add the following dependen
 **For effects only** (Raise, Async, Sync, etc.):
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-core" % "0.19.0"
+libraryDependencies += "in.rcard.yaes" %% "yaes-core" % "0.20.0"
 ```
 
 **For effects + data structures** (Flow, Channel, and reactive streams):
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-data" % "0.19.0"
+libraryDependencies += "in.rcard.yaes" %% "yaes-data" % "0.20.0"
 ```
 
 **For Cats integration** (includes all effects and data structures):
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-cats" % "0.19.0"
+libraryDependencies += "in.rcard.yaes" %% "yaes-cats" % "0.20.0"
 ```
 
 **For SLF4J logging integration** (delegates `Log` effect to any SLF4J backend):
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-slf4j" % "0.19.0"
+libraryDependencies += "in.rcard.yaes" %% "yaes-slf4j" % "0.20.0"
 ```
 
 **For HTTP core abstractions** (shared HTTP types and DSL):
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-core" % "0.19.0"
+libraryDependencies += "in.rcard.yaes" %% "yaes-http-core" % "0.20.0"
 ```
 
 **For HTTP Server based on λÆS effects**:
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-server" % "0.19.0"
+libraryDependencies += "in.rcard.yaes" %% "yaes-http-server" % "0.20.0"
 ```
 
 **For HTTP Client based on λÆS effects**:
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-client" % "0.19.0"
+libraryDependencies += "in.rcard.yaes" %% "yaes-http-client" % "0.20.0"
 ```
 
 **For Circe JSON integration** (HTTP + Circe codecs):
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-circe" % "0.19.0"
+libraryDependencies += "in.rcard.yaes" %% "yaes-http-circe" % "0.20.0"
 ```
 
 **For jsoniter-scala JSON integration** (HTTP + jsoniter codecs):
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-jsoniter" % "0.19.0"
+libraryDependencies += "in.rcard.yaes" %% "yaes-http-jsoniter" % "0.20.0"
 ```
 
 **For ScalaTest integration** (test helpers for λÆS effects):
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-core-test-scalatest" % "0.19.0" % Test
+libraryDependencies += "in.rcard.yaes" %% "yaes-core-test-scalatest" % "0.20.0" % Test
 ```
 
 The library is only available for Scala 3 and is currently in an experimental stage. The API is subject to change.
