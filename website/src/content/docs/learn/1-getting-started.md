@@ -19,12 +19,16 @@ The library is available on Maven Central. Add the following dependencies to you
 
 ```scala
 libraryDependencies ++= Seq(
-  "in.rcard.yaes" %% "yaes-core"        % "0.20.0",
-  "in.rcard.yaes" %% "yaes-data"        % "0.20.0", // Optional: Flow and data structures
-  "in.rcard.yaes" %% "yaes-cats"        % "0.20.0", // Optional: Cats Effect integration
-  "in.rcard.yaes" %% "yaes-slf4j"       % "0.20.0", // Optional: SLF4J logging backend
-  "in.rcard.yaes" %% "yaes-http-server" % "0.20.0", // Optional: HTTP server
-  "in.rcard.yaes" %% "yaes-http-circe"  % "0.20.0"  // Optional: Circe JSON for HTTP
+  "in.rcard.yaes" %% "yaes-core"                  % "0.20.0",
+  "in.rcard.yaes" %% "yaes-data"                  % "0.20.0", // Optional: Flow and data structures
+  "in.rcard.yaes" %% "yaes-cats"                  % "0.20.0", // Optional: Cats Effect integration
+  "in.rcard.yaes" %% "yaes-slf4j"                 % "0.20.0", // Optional: SLF4J logging backend
+  "in.rcard.yaes" %% "yaes-http-server"           % "0.20.0", // Optional: HTTP server
+  "in.rcard.yaes" %% "yaes-http-client"           % "0.20.0", // Optional: HTTP client
+  "in.rcard.yaes" %% "yaes-http-circe"            % "0.20.0", // Optional: Circe JSON for HTTP
+  "in.rcard.yaes" %% "yaes-http-jsoniter"         % "0.20.0", // Optional: Jsoniter JSON for HTTP
+  "in.rcard.yaes" %% "yaes-core-test-scalatest"   % "0.20.0" % Test, // Optional: ScalaTest helpers for core effects
+  "in.rcard.yaes" %% "yaes-http-test-scalatest"   % "0.20.0" % Test  // Optional: ScalaTest helpers for HTTP
 )
 ```
 
@@ -37,7 +41,11 @@ The library is only available for **Scala 3** and is currently in an experimenta
 - **yaes-cats**: Cats Effect 3 integration for bidirectional interop
 - **yaes-slf4j**: SLF4J logging backend for the Log effect
 - **yaes-http-server**: HTTP server built on λÆS effects and virtual threads
-- **yaes-http-circe**: Circe JSON integration for the HTTP server
+- **yaes-http-client**: HTTP client built on λÆS effects and virtual threads
+- **yaes-http-circe**: Circe JSON integration for the HTTP modules
+- **yaes-http-jsoniter**: Jsoniter-scala JSON integration for the HTTP modules
+- **yaes-core-test-scalatest**: ScalaTest utilities for testing core effects
+- **yaes-http-test-scalatest**: ScalaTest utilities for testing HTTP handlers
 
 ## Your First Effect
 
