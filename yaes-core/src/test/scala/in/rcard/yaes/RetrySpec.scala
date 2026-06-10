@@ -68,14 +68,14 @@ class RetrySpec extends AnyFlatSpec with Matchers {
   }
 
   it should "only retry errors of the specified type" in {
-    sealed trait AppError
-    case class HttpError(msg: String)       extends AppError
-    case class ValidationError(msg: String) extends AppError
+    sealed trait WebAppError
+    case class HttpError(msg: String)       extends WebAppError
+    case class ValidationError(msg: String) extends WebAppError
 
     var httpAttempts = 0
     val result = Async.run {
-      Raise.either[AppError, Int] {
-        Retry[AppError](Schedule.fixed(10.millis).attempts(5)) {
+      Raise.either[WebAppError, Int] {
+        Retry[WebAppError](Schedule.fixed(10.millis).attempts(5)) {
           httpAttempts += 1
           if httpAttempts < 3 then Raise.raise(HttpError("timeout"))
           httpAttempts
