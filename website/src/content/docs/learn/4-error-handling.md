@@ -1,12 +1,12 @@
 ---
 title: Error Handling
-description: Learn typed error handling with the Raise effect and resilient retry strategies with the Retry handler.
+description: Learn typed error handling with the Raise effect and resilient retry and circuit-breaker strategies with the Retry and CircuitBreaker handlers.
 sidebar:
   label: "4. Error Handling"
   order: 4
 ---
 
-λÆS approaches error handling functionally: errors are typed, explicit in function signatures, and handled without throwing exceptions. This step covers the `Raise` effect for typed errors and the `Retry` handler for resilient retry strategies.
+λÆS approaches error handling functionally: errors are typed, explicit in function signatures, and handled without throwing exceptions. This step covers the `Raise` effect for typed errors, the `Retry` handler for resilient retry strategies, and the `CircuitBreaker` handler for protecting downstream calls.
 
 ---
 
@@ -525,3 +525,92 @@ def connectWithRetry()(using Raise[AppError], Async): Unit =
 ```
 
 Without the predicate, `retryable` defaults to `_ => true` — all errors of type `E` are retried, preserving the original behavior.
+
+---
+
+## CircuitBreaker Handler
+
+The `CircuitBreaker` handler protects a downstream call by cycling through three states based on consecutive typed `Raise[E]` failures.
+
+:::note
+`CircuitBreaker` is not an effect — it is a stateful orchestrator. The protected block just runs, succeeds, or fails; it never calls `CircuitBreaker` directly.
+:::
+
+### States
+
+| State | Behavior |
+|-------|----------|
+| **Closed** | Block executes normally. Consecutive failures matching `isFailure` increment a counter. |
+| **Open** | Calls fast-fail immediately via `Raise[CircuitBreaker.Open]`; the block is never executed. |
+| **Half-Open** | One probe is allowed after `resetTimeout` elapses. Success → Closed; failure → Open (timer reset). |
+
+The timeout check is **lazy**: the circuit transitions Open → Half-Open on the next incoming call after `resetTimeout` elapses, not at a precise wall-clock moment.
+
+### Configuration
+
+```scala
+import in.rcard.yaes.*
+import scala.concurrent.duration.*
+
+// Trip after 3 consecutive failures; wait 5 seconds before probing
+val config = CircuitBreaker.Config.consecutive[DbError](3, 5.seconds)
+
+// Restrict counting to specific subtypes
+val selective = CircuitBreaker.Config.consecutive[AppError](3, 5.seconds)
+  .failingWhen(_.isInstanceOf[ConnectionError])
+```
+
+### Basic Usage
+
+```scala
+import in.rcard.yaes.*
+import scala.concurrent.duration.*
+
+case class DbError(msg: String)
+
+def findUser(id: Int)(using Raise[DbError]): String =
+  Raise.raise(DbError("connection timeout"))
+
+given CircuitBreaker[DbError] =
+  CircuitBreaker.make(CircuitBreaker.Config.consecutive(3, 5.seconds))
+
+val result: Either[CircuitBreaker.Open, Either[DbError, String]] = Clock.run {
+  Raise.either[CircuitBreaker.Open, Either[DbError, String]] {
+    Raise.either[DbError, String] {
+      CircuitBreaker.protect[DbError] {
+        findUser(42)
+      }
+    }
+  }
+}
+// After 3 consecutive failures the circuit opens.
+// Subsequent calls return Left(CircuitBreaker.Open(resetAt)) without executing the block.
+```
+
+### Selective Failure Counting
+
+Pass `.failingWhen` to control which errors increment the failure counter. Non-matching errors are still re-raised via `Raise[E]` but do not affect circuit state:
+
+```scala
+sealed trait AppError
+case class ConnectionError(host: String) extends AppError
+case class AuthError(msg: String)        extends AppError
+
+given CircuitBreaker[AppError] = CircuitBreaker.make(
+  CircuitBreaker.Config.consecutive[AppError](3, 5.seconds)
+    .failingWhen(_.isInstanceOf[ConnectionError])
+)
+
+val result: Either[CircuitBreaker.Open, Either[AppError, String]] = Clock.run {
+  Raise.either[CircuitBreaker.Open, Either[AppError, String]] {
+    Raise.either[AppError, String] {
+      CircuitBreaker.protect[AppError] {
+        connect()
+      }
+    }
+  }
+}
+// ConnectionErrors trip the circuit; AuthErrors propagate immediately without counting
+```
+
+Using the full union type `E` with a `failingWhen` predicate also prevents a subtle contravariance bypass: because `Raise[-E]` is contravariant, errors from a block that captures an outer `Raise[E | F]` could bypass the circuit breaker's internal boundary. Widening `E` and discriminating via the predicate ensures all errors flow through the same boundary.
