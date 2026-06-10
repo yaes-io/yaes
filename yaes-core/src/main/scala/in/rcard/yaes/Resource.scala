@@ -1,7 +1,6 @@
 package in.rcard.yaes
 
 import scala.collection.mutable
-import java.io.Closeable
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.Queue
 import java.util.Deque
@@ -20,7 +19,7 @@ type Resource = Resource.Unsafe
   *   - Automatic resource cleanup in reverse order of acquisition (LIFO)
   *   - Exception safety - resources are cleaned up even if exceptions occur
   *   - Support for any type of resource with custom release functions
-  *   - Built-in support for `Closeable` resources
+  *   - Built-in support for `AutoCloseable` resources
   *   - Support for simple cleanup actions via finalizers
   *
   * Example Usage:
@@ -101,19 +100,19 @@ object Resource {
     res.install(acquire)(release)
   }
 
-  /** Acquires a `Closeable` resource and ensures it is automatically closed.
+  /** Acquires an `AutoCloseable` resource and ensures it is automatically closed.
     *
-    * This is a convenience method for resources that implement the `Closeable` interface.
+    * This is a convenience method for resources that implement the `AutoCloseable` interface.
     * The resource will be automatically closed when the resource scope ends.
     *
     * Example:
     * {{{
     * import java.io.{FileInputStream, BufferedReader, InputStreamReader}
-    * 
+    *
     * Resource.run {
     *   val inputStream = Resource.acquire(new FileInputStream("data.txt"))
     *   val reader = Resource.acquire(new BufferedReader(new InputStreamReader(inputStream)))
-    *   
+    *
     *   // Read file contents safely
     *   val content = reader.lines().toArray.mkString("\n")
     *   processContent(content)
@@ -122,15 +121,15 @@ object Resource {
     * }}}
     *
     * @param acquire
-    *   The acquisition function that returns the Closeable resource
+    *   The acquisition function that returns the AutoCloseable resource
     * @param res
     *   The Resource effect provided through context parameters
     * @return
-    *   The acquired Closeable resource
+    *   The acquired AutoCloseable resource
     * @tparam A
-    *   The type of the Closeable resource
+    *   The type of the AutoCloseable resource
     */
-  inline def acquire[A <: Closeable](inline acquire: => A)(using res: Resource): A = {
+  inline def acquire[A <: AutoCloseable](inline acquire: => A)(using res: Resource): A = {
     res.install(acquire)(c => c.close())
   }
 

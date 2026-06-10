@@ -281,8 +281,11 @@ object Retry {
       *   retry), preserving the original behavior for callers that do not pass this argument
       * @param block
       *   the computation to retry
+      * @tparam A
+      *   the result type of the computation
       * @return
-      *   the result of the first successful attempt
+      *   the result of the first successful attempt, or raises `E` if all attempts are exhausted or
+      *   a non-retryable error is encountered
       */
     def apply[A](schedule: Schedule, retryable: E => Boolean = (_: E) => true)(
         block: Raise[E] ?=> A

@@ -451,7 +451,7 @@ This is essential for managing files, database connections, network connections,
 
 ### Auto-Closeable Resources
 
-For resources implementing `java.io.Closeable`, use `Resource.acquire`:
+For resources implementing `java.lang.AutoCloseable`, use `Resource.acquire`:
 
 ```scala
 import in.rcard.yaes.Resource.*
@@ -604,7 +604,7 @@ def downloadAndProcess(url: String, outputFile: String)(using Resource): Unit = 
 
 | Method | Description |
 |--------|-------------|
-| `Resource.acquire(r)` | Acquire a `Closeable` resource; auto-close on scope exit |
+| `Resource.acquire(r)` | Acquire an `AutoCloseable` resource; auto-close on scope exit |
 | `Resource.install(r)(cleanup)` | Acquire any resource with a custom cleanup function |
 | `Resource.ensuring(block)` | Register a cleanup action to run on scope exit |
 | `Resource.run { ... }` | Execute a block and release all acquired resources |

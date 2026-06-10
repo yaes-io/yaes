@@ -6,6 +6,10 @@ import scala.concurrent.duration.*
 
 class RetrySpec extends AnyFlatSpec with Matchers {
 
+  sealed trait AppError
+  case class RetryableError(msg: String) extends AppError
+  case class FatalError(msg: String)     extends AppError
+
   "Retry" should "succeed immediately if the block succeeds on first try" in {
     val result = Async.run {
       Raise.either[String, Int] {
@@ -64,14 +68,14 @@ class RetrySpec extends AnyFlatSpec with Matchers {
   }
 
   it should "only retry errors of the specified type" in {
-    sealed trait AppError
-    case class HttpError(msg: String)       extends AppError
-    case class ValidationError(msg: String) extends AppError
+    sealed trait WebAppError
+    case class HttpError(msg: String)       extends WebAppError
+    case class ValidationError(msg: String) extends WebAppError
 
     var httpAttempts = 0
     val result = Async.run {
-      Raise.either[AppError, Int] {
-        Retry[AppError](Schedule.fixed(10.millis).attempts(5)) {
+      Raise.either[WebAppError, Int] {
+        Retry[WebAppError](Schedule.fixed(10.millis).attempts(5)) {
           httpAttempts += 1
           if httpAttempts < 3 then Raise.raise(HttpError("timeout"))
           httpAttempts
@@ -175,14 +179,16 @@ class RetrySpec extends AnyFlatSpec with Matchers {
   }
 
   it should "retry only retryable subtypes of a wide union error type" in {
-    sealed trait AppError
-    case class RetryableError(msg: String) extends AppError
-    case class FatalError(msg: String)     extends AppError
-
     var attempts = 0
     val result = Async.run {
       Raise.either[AppError, Int] {
-        Retry[AppError](Schedule.fixed(10.millis).attempts(5), _.isInstanceOf[RetryableError]) {
+        Retry[AppError](
+          Schedule.fixed(10.millis).attempts(5),
+          retryable = {
+            case _: RetryableError => true
+            case _                => false
+          }
+        ) {
           attempts += 1
           if attempts < 3 then Raise.raise(RetryableError("retry"))
           attempts
@@ -194,14 +200,16 @@ class RetrySpec extends AnyFlatSpec with Matchers {
   }
 
   it should "re-raise non-retryable subtypes immediately in a wide union error context" in {
-    sealed trait AppError
-    case class RetryableError(msg: String) extends AppError
-    case class FatalError(msg: String)     extends AppError
-
     var attempts = 0
     val result = Async.run {
       Raise.either[AppError, Int] {
-        Retry[AppError](Schedule.fixed(10.millis).attempts(5), _.isInstanceOf[RetryableError]) {
+        Retry[AppError](
+          Schedule.fixed(10.millis).attempts(5),
+          retryable = {
+            case _: RetryableError => true
+            case _                => false
+          }
+        ) {
           attempts += 1
           Raise.raise(FatalError("fatal"))
           42
@@ -213,10 +221,6 @@ class RetrySpec extends AnyFlatSpec with Matchers {
   }
 
   it should "accept a pattern-match literal as the retryable predicate" in {
-    sealed trait AppError
-    case class RetryableError(msg: String) extends AppError
-    case class FatalError(msg: String)     extends AppError
-
     var attempts = 0
     val result = Async.run {
       Raise.either[AppError, Int] {

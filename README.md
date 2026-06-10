@@ -843,7 +843,7 @@ def copyFile(source: String, target: String)(using Resource): Unit = {
 
 The `Resource` effect provides several methods for resource management:
 
-- `Resource.acquire`: For resources that implement `Closeable`, automatically calling `close()` when the scope ends
+- `Resource.acquire`: For resources that implement `AutoCloseable`, automatically calling `close()` when the scope ends
 - `Resource.install`: For custom resource management with explicit acquisition and release functions
 - `Resource.ensuring`: For registering cleanup actions that don't involve specific resources
 

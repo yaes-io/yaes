@@ -310,6 +310,30 @@ class ResourceSpec extends AnyFlatSpec with Matchers {
 
   }
 
+  class AutoCloseableTestResource(val results: ListBuffer[String]) extends AutoCloseable {
+
+    results += "Acquired"
+
+    def use(): Unit = {
+      results += "Used"
+    }
+
+    override def close(): Unit = {
+      results += "Closed"
+    }
+
+  }
+
+  class FailingOnAcquireAutoCloseableResource(val results: ListBuffer[String]) extends AutoCloseable {
+
+    throw new RuntimeException("Error during acquiring")
+
+    override def close(): Unit = {
+      results += "Closed"
+    }
+
+  }
+
   "acquire" should "acquire and release a Closeable resource" in {
     val results = ListBuffer[String]()
     Resource.run {
@@ -340,6 +364,44 @@ class ResourceSpec extends AnyFlatSpec with Matchers {
     val actualException = intercept[RuntimeException] {
       Resource.run {
         Resource.acquire(new FailingOnAcquireResource(results))
+      }
+    }
+
+    actualException shouldBe a[RuntimeException]
+    actualException.getMessage shouldEqual "Error during acquiring"
+    results shouldEqual List()
+  }
+
+  it should "acquire and release an AutoCloseable resource" in {
+    val results = ListBuffer[String]()
+    Resource.run {
+      val resource = Resource.acquire(new AutoCloseableTestResource(results))
+      resource.use()
+    }
+
+    results shouldEqual List("Acquired", "Used", "Closed")
+  }
+
+  it should "release an AutoCloseable resource even if an error occurs during its usage" in {
+    val results         = ListBuffer[String]()
+    val actualException = intercept[RuntimeException] {
+      Resource.run {
+        val resource = Resource.acquire(new AutoCloseableTestResource(results))
+        resource.use()
+        throw new RuntimeException("An error occurred during resource usage")
+      }
+    }
+
+    actualException shouldBe a[RuntimeException]
+    actualException.getMessage shouldEqual "An error occurred during resource usage"
+    results shouldEqual List("Acquired", "Used", "Closed")
+  }
+
+  it should "not release an AutoCloseable resource if an error occurs during its acquisition" in {
+    val results         = ListBuffer[String]()
+    val actualException = intercept[RuntimeException] {
+      Resource.run {
+        Resource.acquire(new FailingOnAcquireAutoCloseableResource(results))
       }
     }
 
