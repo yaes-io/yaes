@@ -250,11 +250,39 @@ object Retry {
     */
   class RetryPartiallyApplied[E] {
 
-    /** @param retryable
-      *   predicate that decides whether an error should trigger a retry; defaults to always retry.
-      *   Use this to widen `E` to a union type and discriminate which variants are retryable,
-      *   avoiding the contravariance bypass where a block captures an outer `Raise[E | F]` instead
-      *   of the narrower internal boundary.
+    /** Retries `block` on typed errors of type `E` according to `schedule`, filtering by
+      * `retryable`.
+      *
+      * Only errors for which `retryable` returns `true` trigger a retry. Errors where it returns
+      * `false` are re-raised immediately without consuming a retry attempt.
+      *
+      * Pass the full union type as `E` and discriminate via `retryable` to avoid the contravariance
+      * bypass: because `Raise[-E]` is contravariant, a block that requires `Raise[E | F]` from an
+      * outer scope will capture that outer handler instead of `Retry`'s internal boundary, causing
+      * errors to escape unretried.
+      *
+      * Example:
+      * {{{
+      * Retry[AppError](
+      *   Schedule.exponential(100.millis).attempts(5),
+      *   retryable = {
+      *     case _: ConnectionError => true
+      *     case _: AuthError       => false
+      *   }
+      * ) {
+      *   connect()
+      * }
+      * }}}
+      *
+      * @param schedule
+      *   the retry policy
+      * @param retryable
+      *   predicate deciding whether an error triggers a retry; defaults to `_ => true` (always
+      *   retry), preserving the original behavior for callers that do not pass this argument
+      * @param block
+      *   the computation to retry
+      * @return
+      *   the result of the first successful attempt
       */
     def apply[A](schedule: Schedule, retryable: E => Boolean = (_: E) => true)(
         block: Raise[E] ?=> A

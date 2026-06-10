@@ -1482,7 +1482,7 @@ val result: Either[AppError, String] = Async.run {
 
 This also fixes a subtle contravariance bypass: because `Raise[-E]` is contravariant, a block that captures an outer `Raise[E | F]` may bypass `Retry`'s internal boundary. Widening `E` to the full union type and using `retryable` to discriminate ensures all errors flow through the same boundary.
 
-The default is `retryable = _ => true` — all errors are retried, preserving existing behavior.
+The default is `retryable = _ => true`: all errors are retried, preserving existing behavior.
 
 ## Communication Primitives
 

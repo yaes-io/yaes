@@ -211,4 +211,30 @@ class RetrySpec extends AnyFlatSpec with Matchers {
     result shouldBe Left(FatalError("fatal"))
     attempts shouldBe 1
   }
+
+  it should "accept a pattern-match literal as the retryable predicate" in {
+    sealed trait AppError
+    case class RetryableError(msg: String) extends AppError
+    case class FatalError(msg: String)     extends AppError
+
+    var attempts = 0
+    val result = Async.run {
+      Raise.either[AppError, Int] {
+        Retry[AppError](
+          Schedule.fixed(10.millis).attempts(5),
+          retryable = {
+            case _: RetryableError => true
+            case _: FatalError     => false
+          }
+        ) {
+          attempts += 1
+          if attempts < 3 then Raise.raise(RetryableError("transient"))
+          else Raise.raise(FatalError("permanent"))
+          42
+        }
+      }
+    }
+    result shouldBe Left(FatalError("permanent"))
+    attempts shouldBe 3
+  }
 }
