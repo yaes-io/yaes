@@ -1456,6 +1456,34 @@ val result: Either[DbError, String] = Async.run {
 
 If the block succeeds on any attempt, its value is returned immediately. If all attempts are exhausted, the last error is re-raised via the outer `Raise[E]`. Only errors of the specified type `E` trigger retries — other error types propagate immediately.
 
+#### Selective Retry with a Predicate
+
+Pass a `retryable` predicate to control which errors trigger a retry. Errors where the predicate returns `false` are re-raised immediately:
+
+```scala 3
+sealed trait AppError
+case class ConnectionError(host: String) extends AppError
+case class AuthError(msg: String)        extends AppError
+
+val result: Either[AppError, String] = Async.run {
+  Raise.either {
+    Retry[AppError](
+      Schedule.exponential(100.millis).attempts(5),
+      retryable = {
+        case _: ConnectionError => true   // transient — retry
+        case _: AuthError       => false  // permanent — re-raise immediately
+      }
+    ) {
+      connect()
+    }
+  }
+}
+```
+
+This also fixes a subtle contravariance bypass: because `Raise[-E]` is contravariant, a block that captures an outer `Raise[E | F]` may bypass `Retry`'s internal boundary. Widening `E` to the full union type and using `retryable` to discriminate ensures all errors flow through the same boundary.
+
+The default is `retryable = _ => true`: all errors are retried, preserving existing behavior.
+
 ## Communication Primitives
 
 Beyond effects, λÆS provides communication primitives for coordinating between asynchronous computations.

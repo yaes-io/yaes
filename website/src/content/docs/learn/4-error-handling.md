@@ -499,3 +499,29 @@ val result: Either[String, Either[Int, Int]] = Async.run {
 }
 // result is Left("fatal error") — no retries occurred
 ```
+
+### Selective Retry with a Predicate
+
+The optional `retryable` parameter lets you decide per-error whether to retry. Errors where the predicate returns `false` are re-raised immediately without consuming a retry attempt.
+
+This is also the solution to a subtle contravariance issue: because `Raise[-E]` is contravariant, `Raise[E | F] <: Raise[E]`. When the retried block requires a wider `Raise[E | F]` from an outer scope, Scala may resolve that outer `Raise` instead of the boundary installed by `Retry`, causing errors to escape unretried. Widening `E` to the full union type and using `retryable` to discriminate avoids this:
+
+```scala
+sealed trait AppError
+case class ConnectionError(host: String) extends AppError
+case class AuthError(msg: String)        extends AppError
+
+def connectWithRetry()(using Raise[AppError], Async): Unit =
+  Retry[AppError](
+    Schedule.exponential(100.millis).attempts(5),
+    retryable = {
+      case _: ConnectionError => true   // transient — retry
+      case _: AuthError       => false  // permanent — re-raise immediately
+    }
+  ) {
+    // block uses the single Raise[AppError] — no outer capture
+    connect()
+  }
+```
+
+Without the predicate, `retryable` defaults to `_ => true` — all errors of type `E` are retried, preserving the original behavior.
