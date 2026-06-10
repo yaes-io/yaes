@@ -6,6 +6,10 @@ import scala.concurrent.duration.*
 
 class RetrySpec extends AnyFlatSpec with Matchers {
 
+  sealed trait AppError
+  case class RetryableError(msg: String) extends AppError
+  case class FatalError(msg: String)     extends AppError
+
   "Retry" should "succeed immediately if the block succeeds on first try" in {
     val result = Async.run {
       Raise.either[String, Int] {
@@ -175,14 +179,10 @@ class RetrySpec extends AnyFlatSpec with Matchers {
   }
 
   it should "retry only retryable subtypes of a wide union error type" in {
-    sealed trait AppError
-    case class RetryableError(msg: String) extends AppError
-    case class FatalError(msg: String)     extends AppError
-
     var attempts = 0
     val result = Async.run {
       Raise.either[AppError, Int] {
-        Retry[AppError](Schedule.fixed(10.millis).attempts(5), _.isInstanceOf[RetryableError]) {
+        Retry[AppError](Schedule.fixed(10.millis).attempts(5), { case _: RetryableError => true; case _ => false }) {
           attempts += 1
           if attempts < 3 then Raise.raise(RetryableError("retry"))
           attempts
@@ -194,14 +194,10 @@ class RetrySpec extends AnyFlatSpec with Matchers {
   }
 
   it should "re-raise non-retryable subtypes immediately in a wide union error context" in {
-    sealed trait AppError
-    case class RetryableError(msg: String) extends AppError
-    case class FatalError(msg: String)     extends AppError
-
     var attempts = 0
     val result = Async.run {
       Raise.either[AppError, Int] {
-        Retry[AppError](Schedule.fixed(10.millis).attempts(5), _.isInstanceOf[RetryableError]) {
+        Retry[AppError](Schedule.fixed(10.millis).attempts(5), { case _: RetryableError => true; case _ => false }) {
           attempts += 1
           Raise.raise(FatalError("fatal"))
           42
@@ -213,10 +209,6 @@ class RetrySpec extends AnyFlatSpec with Matchers {
   }
 
   it should "accept a pattern-match literal as the retryable predicate" in {
-    sealed trait AppError
-    case class RetryableError(msg: String) extends AppError
-    case class FatalError(msg: String)     extends AppError
-
     var attempts = 0
     val result = Async.run {
       Raise.either[AppError, Int] {

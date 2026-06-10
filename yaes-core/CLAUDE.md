@@ -68,7 +68,7 @@ When writing documentation or code snippets that use infix types, always include
 
 **Resource Management (Resource Effect):**
 - Guarantees cleanup in LIFO order (Last In, First Out)
-- Three acquisition methods: `acquire` (for `Closeable`), `install` (custom acquisition/release), `ensuring` (cleanup actions)
+- Three acquisition methods: `acquire` (for `AutoCloseable`), `install` (custom acquisition/release), `ensuring` (cleanup actions)
 - Cleanup occurs even on exceptions
 
 **Shutdown Coordination (Shutdown Effect):**
