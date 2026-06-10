@@ -182,7 +182,13 @@ class RetrySpec extends AnyFlatSpec with Matchers {
     var attempts = 0
     val result = Async.run {
       Raise.either[AppError, Int] {
-        Retry[AppError](Schedule.fixed(10.millis).attempts(5), { case _: RetryableError => true; case _ => false }) {
+        Retry[AppError](
+          Schedule.fixed(10.millis).attempts(5),
+          retryable = {
+            case _: RetryableError => true
+            case _                => false
+          }
+        ) {
           attempts += 1
           if attempts < 3 then Raise.raise(RetryableError("retry"))
           attempts
