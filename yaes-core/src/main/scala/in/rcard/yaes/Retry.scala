@@ -250,7 +250,13 @@ object Retry {
     */
   class RetryPartiallyApplied[E] {
 
-    def apply[A](schedule: Schedule)(
+    /** @param retryable
+      *   predicate that decides whether an error should trigger a retry; defaults to always retry.
+      *   Use this to widen `E` to a union type and discriminate which variants are retryable,
+      *   avoiding the contravariance bypass where a block captures an outer `Raise[E | F]` instead
+      *   of the narrower internal boundary.
+      */
+    def apply[A](schedule: Schedule, retryable: E => Boolean = (_: E) => true)(
         block: Raise[E] ?=> A
     )(using Async, Raise[E]): A = {
 
@@ -258,13 +264,16 @@ object Retry {
       def loop(attempt: Int): A = {
         val result = Raise.fold(block)(
           onError = { error =>
-            val nextAttempt = attempt + 1
-            schedule.delay(nextAttempt) match {
-              case Some(d) =>
-                Async.delay(d)
-                None
-              case None =>
-                Some(Left(error))
+            if !retryable(error) then Some(Left(error))
+            else {
+              val nextAttempt = attempt + 1
+              schedule.delay(nextAttempt) match {
+                case Some(d) =>
+                  Async.delay(d)
+                  None
+                case None =>
+                  Some(Left(error))
+              }
             }
           }
         )(onSuccess = value => Some(Right(value)))

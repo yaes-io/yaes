@@ -157,4 +157,58 @@ class RetrySpec extends AnyFlatSpec with Matchers {
     result shouldBe Right(3)
     attempts shouldBe 3
   }
+
+  it should "re-raise immediately without retrying when retryable returns false" in {
+    var attempts = 0
+    val result = Async.run {
+      Raise.either[String, Int] {
+        Retry[String](Schedule.fixed(10.millis).attempts(5), _ == "retry this") {
+          attempts += 1
+          if attempts < 3 then Raise.raise("retry this")
+          else Raise.raise("stop here")
+          42
+        }
+      }
+    }
+    result shouldBe Left("stop here")
+    attempts shouldBe 3
+  }
+
+  it should "retry only retryable subtypes of a wide union error type" in {
+    sealed trait AppError
+    case class RetryableError(msg: String) extends AppError
+    case class FatalError(msg: String)     extends AppError
+
+    var attempts = 0
+    val result = Async.run {
+      Raise.either[AppError, Int] {
+        Retry[AppError](Schedule.fixed(10.millis).attempts(5), _.isInstanceOf[RetryableError]) {
+          attempts += 1
+          if attempts < 3 then Raise.raise(RetryableError("retry"))
+          attempts
+        }
+      }
+    }
+    result shouldBe Right(3)
+    attempts shouldBe 3
+  }
+
+  it should "re-raise non-retryable subtypes immediately in a wide union error context" in {
+    sealed trait AppError
+    case class RetryableError(msg: String) extends AppError
+    case class FatalError(msg: String)     extends AppError
+
+    var attempts = 0
+    val result = Async.run {
+      Raise.either[AppError, Int] {
+        Retry[AppError](Schedule.fixed(10.millis).attempts(5), _.isInstanceOf[RetryableError]) {
+          attempts += 1
+          Raise.raise(FatalError("fatal"))
+          42
+        }
+      }
+    }
+    result shouldBe Left(FatalError("fatal"))
+    attempts shouldBe 1
+  }
 }
