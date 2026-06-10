@@ -324,11 +324,13 @@ class ResourceSpec extends AnyFlatSpec with Matchers {
 
   }
 
-  class FailingOnAcquireAutoCloseableResource extends AutoCloseable {
+  class FailingOnAcquireAutoCloseableResource(val results: ListBuffer[String]) extends AutoCloseable {
 
     throw new RuntimeException("Error during acquiring")
 
-    override def close(): Unit = {}
+    override def close(): Unit = {
+      results += "Closed"
+    }
 
   }
 
@@ -396,14 +398,16 @@ class ResourceSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "not release an AutoCloseable resource if an error occurs during its acquisition" in {
+    val results         = ListBuffer[String]()
     val actualException = intercept[RuntimeException] {
       Resource.run {
-        Resource.acquire(new FailingOnAcquireAutoCloseableResource)
+        Resource.acquire(new FailingOnAcquireAutoCloseableResource(results))
       }
     }
 
     actualException shouldBe a[RuntimeException]
     actualException.getMessage shouldEqual "Error during acquiring"
+    results shouldEqual List()
   }
 
   "ensuring" should "execute a finalizer after the resource usage" in {
