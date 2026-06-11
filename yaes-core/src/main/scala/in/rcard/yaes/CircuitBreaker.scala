@@ -50,7 +50,7 @@ class CircuitBreaker[E] private (
 
 object CircuitBreaker:
 
-  /** Raised via `Raise[CircuitBreaker.Open]` when the circuit is in the Open state.
+  /** Raised via `Raise[CircuitBreaker.Open]` when the circuit is Open (or Half-Open with a probe in flight).
     *
     * @param resetAt
     *   wall-clock time at which the circuit may attempt a Half-Open probe
