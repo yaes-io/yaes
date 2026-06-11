@@ -308,7 +308,7 @@ class CircuitBreakerSpec extends AnyFlatSpec with Matchers {
     blockExecuted shouldBe false
   }
 
-  it should "count failures when error is raised with widened union type" in {
+  it should "count failures when subtype error is raised without explicit widening (contravariance bypass proof)" in {
     val fakeClock = new FakeClock()
     given Clock = fakeClock
     val config = CircuitBreaker.Config.consecutive[AppError](2, 5.seconds)
@@ -321,7 +321,7 @@ class CircuitBreakerSpec extends AnyFlatSpec with Matchers {
         Raise.either[AppError, Unit] {
           CircuitBreaker.protect[AppError] {
             attempts += 1
-            Raise.raise(ConnectionError("fail"): AppError)
+            Raise.raise(ConnectionError("fail"))
           }
         }
       }
@@ -371,5 +371,52 @@ class CircuitBreakerSpec extends AnyFlatSpec with Matchers {
       }
     }
     result should matchPattern { case Left(_: CircuitBreaker.Open) => }
+  }
+
+  it should "allow only one probe when multiple threads reach Half-Open simultaneously" in {
+    val fakeClock = new FakeClock()
+    given Clock = fakeClock
+    val cb = CircuitBreaker.make[String](CircuitBreaker.Config.consecutive(2, 5.seconds))
+    given CircuitBreaker[String] = cb
+    val numThreads = 10
+    val executor   = Executors.newFixedThreadPool(numThreads)
+    val startLatch = new CountDownLatch(1)
+
+    // trip the circuit
+    for _ <- 1 to 2 do
+      Raise.either[CircuitBreaker.Open, Either[String, Unit]] {
+        Raise.either[String, Unit] {
+          CircuitBreaker.protect[String] { Raise.raise("fail") }
+        }
+      }
+
+    fakeClock.advance(6.seconds)
+
+    import java.util.concurrent.atomic.AtomicInteger
+    val probeCount = new AtomicInteger(0)
+
+    val tasks = (1 to numThreads).map { _ =>
+      new Runnable {
+        def run(): Unit = {
+          startLatch.await()
+          Raise.either[CircuitBreaker.Open, Either[String, Unit]] {
+            Raise.either[String, Unit] {
+              CircuitBreaker.protect[String] {
+                probeCount.incrementAndGet()
+                Raise.raise("probe-fail")  // failing probe keeps circuit Open, so only CAS winner runs
+              }
+            }
+          }
+          ()
+        }
+      }
+    }
+
+    tasks.foreach(executor.submit)
+    startLatch.countDown()
+    executor.shutdown()
+    executor.awaitTermination(10, TimeUnit.SECONDS)
+
+    probeCount.get() shouldBe 1
   }
 }

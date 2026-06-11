@@ -84,15 +84,16 @@ object CircuitBreaker:
     * @tparam E
     *   the error type being tracked
     */
-  final case class Config[E](
+  final case class Config[E] private(
       failureThreshold: Int,
       resetTimeout: FiniteDuration,
       isFailure: E => Boolean
   ):
     /** Returns a copy of this config with the given failure predicate.
       *
-      * Pass the full union type as `E` and discriminate via this predicate to avoid the
-      * contravariance bypass described in ADR 0003.
+      * Pass the full union type as `E` and discriminate via this predicate to avoid
+      * contravariance capture: without it, errors raised inside the block can bypass the
+      * circuit breaker via an outer `Raise` resolved from the enclosing scope.
       *
       * @param predicate
       *   function returning `true` for errors that should increment the failure counter
@@ -178,7 +179,7 @@ object CircuitBreaker:
     * @tparam E
     *   the error type to track; must match the `CircuitBreaker[E]` in scope
     * @return
-    *   a partially applied object; call `.apply(block)` or use as `CircuitBreaker.protect[E] { block }`
+    *   a builder that accepts the protected block and runs it through the circuit breaker
     */
   def protect[E]: ProtectPartiallyApplied[E] = new ProtectPartiallyApplied[E]
 
@@ -214,16 +215,19 @@ object CircuitBreaker:
     ): A =
       val currentState = cb.stateRef.get()
       currentState match
-        case CBState.Closed(_) | CBState.HalfOpen =>
+        case CBState.Closed(_) =>
           runBlock(cb, block)
+        case CBState.HalfOpen =>
+          raiseOpen.raise(CircuitBreaker.Open(clock.now))
         case open @ CBState.Open(trippedAt) =>
           val nowNanos     = clock.nowMonotonic.toNanos
           val trippedNanos = trippedAt.toNanos
           val timeoutNanos = cb.config.resetTimeout.toNanos
           if nowNanos - trippedNanos >= timeoutNanos then
-            // Use `open` (the actual stored reference) so AtomicReference.compareAndSet succeeds
-            cb.stateRef.compareAndSet(open, CBState.HalfOpen)
-            runBlock(cb, block)
+            if cb.stateRef.compareAndSet(open, CBState.HalfOpen) then
+              runBlock(cb, block)
+            else
+              raiseOpen.raise(CircuitBreaker.Open(clock.now))
           else
             val remainingNanos = (timeoutNanos - (nowNanos - trippedNanos)) max 0L
             raiseOpen.raise(CircuitBreaker.Open(clock.now.plusNanos(remainingNanos)))
