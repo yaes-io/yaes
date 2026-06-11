@@ -1495,7 +1495,7 @@ The `CircuitBreaker` handler protects a downstream call by cycling through three
 
 | State | Behavior |
 |-------|----------|
-| **Closed** | Block executes normally. Consecutive failures increment a counter. |
+| **Closed** | Block executes normally. Consecutive failures matching `isFailure` increment a counter. |
 | **Open** | Calls fast-fail immediately via `Raise[CircuitBreaker.Open]`; the block is never executed. |
 | **Half-Open** | One probe is allowed after `resetTimeout` elapses. Success → Closed; failure → Open (timer reset). |
 
