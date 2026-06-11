@@ -221,7 +221,10 @@ object CircuitBreaker:
           val timeoutNanos = cb.config.resetTimeout.toNanos
           if nowNanos - trippedNanos >= timeoutNanos then
             if cb.stateRef.compareAndSet(open, CBState.HalfOpen) then runBlock(cb, block)
-            else raiseOpen.raise(CircuitBreaker.Open(clock.now))
+            else
+              cb.stateRef.get() match
+                case CBState.Closed(_) => runBlock(cb, block)
+                case _                 => raiseOpen.raise(CircuitBreaker.Open(clock.now))
           else
             val remainingNanos = (timeoutNanos - (nowNanos - trippedNanos)) max 0L
             raiseOpen.raise(CircuitBreaker.Open(clock.now.plusNanos(remainingNanos)))
