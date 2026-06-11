@@ -9,8 +9,8 @@ private enum CBState:
   case Open(trippedAt: Duration)
   case HalfOpen
 
-/** A circuit breaker that protects a downstream call by cycling through Closed, Open, and
-  * Half-Open states based on consecutive `Raise[E]` failures.
+/** A circuit breaker that protects a downstream call by cycling through Closed, Open, and Half-Open
+  * states based on consecutive `Raise[E]` failures.
   *
   * `CircuitBreaker` is not an effect — it is a stateful orchestrator. The protected block just
   * runs, succeeds, or fails; it never calls `CircuitBreaker` directly.
@@ -84,16 +84,16 @@ object CircuitBreaker:
     * @tparam E
     *   the error type being tracked
     */
-  final case class Config[E] private(
+  final case class Config[E] private (
       failureThreshold: Int,
       resetTimeout: FiniteDuration,
       isFailure: E => Boolean
   ):
     /** Returns a copy of this config with the given failure predicate.
       *
-      * Pass the full union type as `E` and discriminate via this predicate to avoid
-      * contravariance capture: without it, errors raised inside the block can bypass the
-      * circuit breaker via an outer `Raise` resolved from the enclosing scope.
+      * Pass the full union type as `E` and discriminate via this predicate to avoid contravariance
+      * capture: without it, errors raised inside the block can bypass the circuit breaker via an
+      * outer `Raise` resolved from the enclosing scope.
       *
       * @param predicate
       *   function returning `true` for errors that should increment the failure counter
@@ -129,8 +129,8 @@ object CircuitBreaker:
       val safeTimeout   = if resetTimeout > Duration.Zero then resetTimeout else Duration.Zero
       Config(safeThreshold, safeTimeout, _ => true)
 
-  /** Creates a new [[CircuitBreaker]] instance in the Closed state, backed by an
-    * `AtomicReference` for thread-safe state transitions.
+  /** Creates a new [[CircuitBreaker]] instance in the Closed state, backed by an `AtomicReference`
+    * for thread-safe state transitions.
     *
     * Example:
     * {{{
@@ -153,8 +153,8 @@ object CircuitBreaker:
     * Behavior by state:
     *   - **Closed**: executes the block; failures increment the counter; at `failureThreshold`
     *     consecutive failures the circuit opens.
-    *   - **Open**: fast-fails via `Raise[CircuitBreaker.Open]` without executing the block.
-    *     After `resetTimeout` elapses the next call transitions to Half-Open.
+    *   - **Open**: fast-fails via `Raise[CircuitBreaker.Open]` without executing the block. After
+    *     `resetTimeout` elapses the next call transitions to Half-Open.
     *   - **Half-Open**: runs a probe; success closes the circuit, failure re-opens it.
     *
     * Only errors for which `Config.isFailure` returns `true` increment the counter. Non-matching
@@ -224,10 +224,8 @@ object CircuitBreaker:
           val trippedNanos = trippedAt.toNanos
           val timeoutNanos = cb.config.resetTimeout.toNanos
           if nowNanos - trippedNanos >= timeoutNanos then
-            if cb.stateRef.compareAndSet(open, CBState.HalfOpen) then
-              runBlock(cb, block)
-            else
-              raiseOpen.raise(CircuitBreaker.Open(clock.now))
+            if cb.stateRef.compareAndSet(open, CBState.HalfOpen) then runBlock(cb, block)
+            else raiseOpen.raise(CircuitBreaker.Open(clock.now))
           else
             val remainingNanos = (timeoutNanos - (nowNanos - trippedNanos)) max 0L
             raiseOpen.raise(CircuitBreaker.Open(clock.now.plusNanos(remainingNanos)))
@@ -236,25 +234,22 @@ object CircuitBreaker:
         clock: Clock,
         raise: Raise[E],
         raiseOpen: Raise[CircuitBreaker.Open]
-    ): A =
-      val outcome = Raise.fold[E, A, Either[E, A]](block)(
-        onError = error =>
-          if cb.config.isFailure(error) then
-            cb.stateRef.updateAndGet:
-              case CBState.Closed(failures) =>
-                val next = failures + 1
-                if next >= cb.config.failureThreshold then CBState.Open(clock.nowMonotonic)
-                else CBState.Closed(next)
-              case CBState.HalfOpen           => CBState.Open(clock.nowMonotonic)
-              case open @ CBState.Open(_)     => open
-          Left(error)
-      )(onSuccess = value =>
-        cb.stateRef.updateAndGet:
-          case CBState.Closed(_)          => CBState.Closed(0)
-          case CBState.HalfOpen           => CBState.Closed(0)
-          case open @ CBState.Open(_)     => open
-        Right(value)
-      )
-      outcome match
-        case Right(value) => value
-        case Left(error)  => raise.raise(error)
+    ): A = {
+      val outcome = Raise.recover(block) { error =>
+        if cb.config.isFailure(error) then
+          cb.stateRef.updateAndGet:
+            case CBState.Closed(failures) =>
+              val next = failures + 1
+              if next >= cb.config.failureThreshold then CBState.Open(clock.nowMonotonic)
+              else CBState.Closed(next)
+            case CBState.HalfOpen       => CBState.Open(clock.nowMonotonic)
+            case open @ CBState.Open(_) => open
+        Raise.raise(error)
+      }
+
+      cb.stateRef.updateAndGet:
+        case CBState.Closed(_)      => CBState.Closed(0)
+        case CBState.HalfOpen       => CBState.Closed(0)
+        case open @ CBState.Open(_) => open
+      outcome
+    }
