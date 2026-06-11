@@ -183,6 +183,48 @@ object CircuitBreaker:
     */
   def protect[E]: ProtectPartiallyApplied[E] = new ProtectPartiallyApplied[E]
 
+  /** Convenience handler that runs `block` through the circuit breaker and wraps both error
+    * channels into a single `Either`.
+    *
+    * Equivalent to nesting `Raise.either[CircuitBreaker.Open, ...]` and `Raise.either[E, ...]`
+    * around `CircuitBreaker.protect[E]` by hand.
+    *
+    * Example:
+    * {{{
+    * given CircuitBreaker[DbError] =
+    *   CircuitBreaker.make(CircuitBreaker.Config.consecutive(3, 5.seconds))
+    *
+    * val result: Either[CircuitBreaker.Open, Either[DbError, String]] = Clock.run {
+    *   CircuitBreaker.run[DbError, String] {
+    *     findUser(42)
+    *   }
+    * }
+    * }}}
+    *
+    * @tparam E
+    *   the error type being tracked
+    * @tparam A
+    *   the result type of the block
+    * @param block
+    *   the computation to protect
+    * @param cb
+    *   the circuit breaker instance (resolved from implicit scope)
+    * @param clock
+    *   provides wall-clock and monotonic time
+    * @return
+    *   `Left(Open(...))` if the circuit was open; `Right(Left(e))` if the block raised `E`;
+    *   `Right(Right(value))` if the block succeeded
+    */
+  def run[E, A](block: Raise[E] ?=> A)(using
+      cb: CircuitBreaker[E],
+      clock: Clock
+  ): Either[CircuitBreaker.Open, Either[E, A]] =
+    Raise.either[CircuitBreaker.Open, Either[E, A]] {
+      Raise.either[E, A] {
+        CircuitBreaker.protect[E](block)
+      }
+    }
+
   /** Partially applied form of `protect` that pins the error type `E` before the block.
     *
     * @tparam E

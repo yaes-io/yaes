@@ -419,4 +419,39 @@ class CircuitBreakerSpec extends AnyFlatSpec with Matchers {
 
     probeCount.get() shouldBe 1
   }
+
+  "CircuitBreaker.run" should "return Right(Right(value)) when block succeeds" in {
+    val cb = CircuitBreaker.make[String](CircuitBreaker.Config.consecutive(3, 5.seconds))
+    given CircuitBreaker[String] = cb
+    val result = Clock.run {
+      CircuitBreaker.run[String, Int] {
+        42
+      }
+    }
+    result shouldBe Right(Right(42))
+  }
+
+  it should "return Right(Left(error)) when block raises domain error" in {
+    val cb = CircuitBreaker.make[String](CircuitBreaker.Config.consecutive(3, 5.seconds))
+    given CircuitBreaker[String] = cb
+    val result = Clock.run {
+      CircuitBreaker.run[String, Int] {
+        Raise.raise("boom")
+      }
+    }
+    result shouldBe Right(Left("boom"))
+  }
+
+  it should "return Left(Open) when circuit is open after threshold failures" in {
+    val fakeClock = new FakeClock()
+    given Clock             = fakeClock
+    val cb                  = CircuitBreaker.make[String](CircuitBreaker.Config.consecutive(2, 5.seconds))
+    given CircuitBreaker[String] = cb
+
+    for _ <- 1 to 2 do
+      CircuitBreaker.run[String, Unit] { Raise.raise("fail") }
+
+    val result = CircuitBreaker.run[String, Unit] { () }
+    result should matchPattern { case Left(_: CircuitBreaker.Open) => }
+  }
 }
