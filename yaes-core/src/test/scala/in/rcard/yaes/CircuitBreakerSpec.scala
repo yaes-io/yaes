@@ -373,6 +373,39 @@ class CircuitBreakerSpec extends AnyFlatSpec with Matchers {
     result should matchPattern { case Left(_: CircuitBreaker.Open) => }
   }
 
+  it should "close circuit when Half-Open probe raises a non-matching error" in {
+    val fakeClock = new FakeClock()
+    given Clock = fakeClock
+    val config = CircuitBreaker.Config.consecutive[AppError](2, 5.seconds)
+      .failingWhen(_.isInstanceOf[ConnectionError])
+    val cb = CircuitBreaker.make[AppError](config)
+    given CircuitBreaker[AppError] = cb
+
+    for _ <- 1 to 2 do
+      Raise.either[CircuitBreaker.Open, Either[AppError, Unit]] {
+        Raise.either[AppError, Unit] {
+          CircuitBreaker.protect[AppError] { Raise.raise(ConnectionError("timeout")) }
+        }
+      }
+
+    fakeClock.advance(6.seconds)
+
+    // Probe raises a non-matching error — should not be counted as a CB failure
+    Raise.either[CircuitBreaker.Open, Either[AppError, Unit]] {
+      Raise.either[AppError, Unit] {
+        CircuitBreaker.protect[AppError] { Raise.raise(AuthError("not a CB failure")) }
+      }
+    }
+
+    // Circuit should be Closed now — next call executes normally
+    val result = Raise.either[CircuitBreaker.Open, Either[AppError, Int]] {
+      Raise.either[AppError, Int] {
+        CircuitBreaker.protect[AppError] { 42 }
+      }
+    }
+    result shouldBe Right(Right(42))
+  }
+
   it should "allow only one probe when multiple threads reach Half-Open simultaneously" in {
     val fakeClock = new FakeClock()
     given Clock = fakeClock

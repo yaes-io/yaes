@@ -246,6 +246,10 @@ object CircuitBreaker:
               else CBState.Closed(next)
             case CBState.HalfOpen       => CBState.Open(clock.nowMonotonic)
             case open @ CBState.Open(_) => open
+        else
+          cb.stateRef.updateAndGet:
+            case CBState.HalfOpen => CBState.Closed(0)
+            case other            => other
         Raise.raise(error)
       }
 
