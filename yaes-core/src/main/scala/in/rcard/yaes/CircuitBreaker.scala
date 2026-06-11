@@ -50,7 +50,7 @@ class CircuitBreaker[E] private (
 
 object CircuitBreaker:
 
-  /** Raised via `Raise[CircuitBreaker.Open]` when the circuit is in the Open state.
+  /** Raised via `Raise[CircuitBreaker.Open]` when the circuit is Open (or Half-Open with a probe in flight).
     *
     * @param resetAt
     *   wall-clock time at which the circuit may attempt a Half-Open probe
@@ -153,7 +153,7 @@ object CircuitBreaker:
     *     consecutive failures the circuit opens.
     *   - **Open**: fast-fails via `Raise[CircuitBreaker.Open]` without executing the block. After
     *     `resetTimeout` elapses the next call transitions to Half-Open.
-    *   - **Half-Open**: runs a probe; success closes the circuit, failure re-opens it.
+  *   - **Half-Open**: allows a single probe; concurrent calls fast-fail via `Raise[CircuitBreaker.Open]`; success closes the circuit, failure re-opens it.
     *
     * Only errors for which `Config.isFailure` returns `true` increment the counter. Non-matching
     * errors are re-raised immediately via `Raise[E]` without changing circuit state.
