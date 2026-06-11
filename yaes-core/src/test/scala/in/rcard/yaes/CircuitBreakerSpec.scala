@@ -363,8 +363,7 @@ class CircuitBreakerSpec extends AnyFlatSpec with Matchers {
     tasks.foreach(executor.submit)
     startLatch.countDown()
     executor.shutdown()
-    executor.awaitTermination(10, TimeUnit.SECONDS)
-
+    executor.awaitTermination(10, TimeUnit.SECONDS) shouldBe true
     val result = Raise.either[CircuitBreaker.Open, Either[String, Unit]] {
       Raise.either[String, Unit] {
         CircuitBreaker.protect[String] { () }
