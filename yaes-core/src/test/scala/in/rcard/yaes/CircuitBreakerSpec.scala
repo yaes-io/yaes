@@ -412,9 +412,8 @@ class CircuitBreakerSpec extends AnyFlatSpec with Matchers {
     }
 
     tasks.foreach(executor.submit)
-    startLatch.countDown()
     executor.shutdown()
-    executor.awaitTermination(10, TimeUnit.SECONDS)
+    executor.awaitTermination(10, TimeUnit.SECONDS) shouldBe true
 
     probeCount.get() shouldBe 1
   }
