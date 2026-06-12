@@ -161,6 +161,7 @@ The library provides a set of effects and handlers that can be used to define an
 The library also provides the following handlers that orchestrate existing effects:
 
 - [`Retry`](#the-retry-handler): Retries failing blocks according to composable schedule policies.
+- [`CircuitBreaker`](#the-circuitbreaker-handler): Guards downstream calls by cycling through Closed, Open, and Half-Open states.
 
 ### YaesApp: Common Entry Point
 
@@ -1483,6 +1484,89 @@ val result: Either[AppError, String] = Async.run {
 This also fixes a subtle contravariance bypass: because `Raise[-E]` is contravariant, a block that captures an outer `Raise[E | F]` may bypass `Retry`'s internal boundary. Widening `E` to the full union type and using `retryable` to discriminate ensures all errors flow through the same boundary.
 
 The default is `retryable = _ => true`: all errors are retried, preserving existing behavior.
+
+### The CircuitBreaker Handler
+
+The `CircuitBreaker` handler protects a downstream call by cycling through three states based on consecutive typed `Raise[E]` failures.
+
+> **Note:** `CircuitBreaker` is not an effect — it is a stateful orchestrator. The protected block just runs, succeeds, or fails; it never calls `CircuitBreaker` directly.
+
+#### States
+
+| State | Behavior |
+|-------|----------|
+| **Closed** | Block executes normally. Consecutive failures matching `isFailure` increment a counter. |
+| **Open** | Calls fast-fail immediately via `Raise[CircuitBreaker.Open]`; the block is never executed. |
+| **Half-Open** | One probe is allowed after `resetTimeout` elapses. Success → Closed; failure → Open (timer reset). |
+
+The timeout check is **lazy**: the circuit transitions Open → Half-Open on the next incoming call after `resetTimeout` elapses, not at a fixed wall-clock moment.
+
+#### Configuration
+
+```scala 3
+import in.rcard.yaes.*
+import scala.concurrent.duration.*
+
+// Basic: trip after 3 consecutive failures, reset timeout 5 seconds
+val config = CircuitBreaker.Config.consecutive[DbError](3, 5.seconds)
+
+// Selective: only count ConnectionErrors, not AuthErrors
+val selective = CircuitBreaker.Config.consecutive[AppError](3, 5.seconds)
+  .failingWhen(_.isInstanceOf[ConnectionError])
+```
+
+#### Using CircuitBreaker
+
+```scala 3
+import in.rcard.yaes.*
+import scala.concurrent.duration.*
+
+case class DbError(msg: String)
+
+def findUser(id: Int)(using Raise[DbError]): String =
+  Raise.raise(DbError("connection timeout"))
+
+given CircuitBreaker[DbError] =
+  CircuitBreaker.make(CircuitBreaker.Config.consecutive(3, 5.seconds))
+
+val result: Either[CircuitBreaker.Open, Either[DbError, String]] = Clock.run {
+  Raise.either[CircuitBreaker.Open, Either[DbError, String]] {
+    Raise.either[DbError, String] {
+      CircuitBreaker.protect[DbError] {
+        findUser(42)
+      }
+    }
+  }
+}
+// After 3 consecutive failures the circuit opens.
+// Subsequent calls return Left(CircuitBreaker.Open(resetAt)) immediately.
+```
+
+#### Selective Failure Counting with a Predicate
+
+Pass a `failingWhen` predicate to control which errors increment the failure counter. Non-matching errors are still re-raised via `Raise[E]` but do not trip the circuit:
+
+```scala 3
+sealed trait AppError
+case class ConnectionError(host: String) extends AppError
+case class AuthError(msg: String)        extends AppError
+
+val result: Either[CircuitBreaker.Open, Either[AppError, String]] = Clock.run {
+  Raise.either[CircuitBreaker.Open, Either[AppError, String]] {
+    Raise.either[AppError, String] {
+      given CircuitBreaker[AppError] = CircuitBreaker.make(
+        CircuitBreaker.Config.consecutive[AppError](3, 5.seconds)
+          .failingWhen(_.isInstanceOf[ConnectionError])
+      )
+      CircuitBreaker.protect[AppError] {
+        connect()
+      }
+    }
+  }
+}
+```
+
+This also prevents the contravariance bypass: because `Raise[-E]` is contravariant, errors from a block that captures an outer `Raise[E | F]` could bypass the circuit breaker's internal boundary. Widening `E` to the full union type and using `failingWhen` to discriminate ensures all errors flow through the same boundary.
 
 ## Communication Primitives
 
