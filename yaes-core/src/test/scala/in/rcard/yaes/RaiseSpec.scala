@@ -730,6 +730,74 @@ class RaiseSpec extends AsyncFlatSpec with Matchers {
     result.left.map(_.toSet) should be(Left(Set("error2", "error4")))
   }
 
+  "Raise.tapError" should "invoke callback when error is raised" in {
+    var capturedError: Option[String] = None
+
+    val result: String | Int = Raise.run {
+      Raise.tapError[String, Int] {
+        Raise.raise("TestError")
+      } { error =>
+        capturedError = Some(error)
+      }
+    }
+
+    capturedError shouldBe Some("TestError")
+    result shouldBe "TestError"
+  }
+
+  it should "re-raise the error to the outer Raise context after callback" in {
+    val result: Either[String, Int] = Raise.either {
+      Raise.tapError[String, Int] {
+        Raise.raise("SomeError")
+      } { _ => () }
+    }
+
+    result shouldBe Left("SomeError")
+  }
+
+  it should "NOT invoke callback on success and return result unchanged" in {
+    var callbackInvoked = false
+
+    val result: Either[String, Int] = Raise.either {
+      Raise.tapError[String, Int] {
+        42
+      } { _ =>
+        callbackInvoked = true
+      }
+    }
+
+    callbackInvoked shouldBe false
+    result shouldBe Right(42)
+  }
+
+  it should "propagate exceptions thrown inside the callback" in {
+    assertThrows[RuntimeException] {
+      Raise.either[String, Int] {
+        Raise.tapError[String, Int] {
+          Raise.raise("Error")
+        } { _ =>
+          throw new RuntimeException("Callback failed")
+        }
+      }
+    }
+  }
+
+  it should "work with custom error types" in {
+    case class CustomError(code: Int, message: String)
+    var capturedError: Option[CustomError] = None
+
+    val result: Either[CustomError, Int] = Raise.either {
+      Raise.tapError[CustomError, Int] {
+        Raise.raise(CustomError(404, "Not Found"))
+      } { error =>
+        capturedError = Some(error)
+      }
+    }
+
+    capturedError shouldBe Some(CustomError(404, "Not Found"))
+    result shouldBe Left(CustomError(404, "Not Found"))
+  }
+
   private def int(value: Int): Raise[String] ?=> Int = {
     if value >= 2 then Raise.raise(value.toString)
     else value

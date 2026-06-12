@@ -309,6 +309,40 @@ object Raise {
     fold(block)(onError = { e => onError(e); () })(onSuccess = identity)
   }
 
+  /** Observes a raised error via a side-effecting callback, then re-raises it to the outer
+    * [[Raise]] context. If the block succeeds, the callback is not invoked and the result is
+    * returned unchanged.
+    *
+    * Contrast with [[onError]], which consumes the error (block returns `Unit`, no outer
+    * `Raise[E]` required). `tapError` is the "tap on error" pattern analogous to Arrow's
+    * `tapError` / ZIO's `tapError`.
+    *
+    * Example:
+    * {{{
+    * val result: Either[String, Int] = Raise.either {
+    *   Raise.tapError[String, Int] {
+    *     Raise.raise("Oops!")
+    *   } { error =>
+    *     println(s"Observed error: $error")
+    *   }
+    * }
+    * // result will be Left("Oops!"), and the callback was called with "Oops!"
+    * }}}
+    *
+    * @param block
+    *   the computation that may raise an error
+    * @param callback
+    *   side-effecting function invoked with the error if one is raised
+    * @return
+    *   the result of the block if no error is raised
+    * @tparam E
+    *   the type of error that can be raised
+    * @tparam A
+    *   the type of the result of the block
+    */
+  inline def tapError[E, A](block: Raise[E] ?=> A)(callback: E => Unit)(using Raise[E]): A =
+    recover(block) { e => callback(e); Raise.raise(e) }
+
   /** Ensures that a condition is true and raises an error if it is not.
     *
     * Example:
