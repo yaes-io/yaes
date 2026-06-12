@@ -237,7 +237,7 @@ object CircuitBreaker:
         raise: Raise[E],
         raiseOpen: Raise[CircuitBreaker.Open]
     ): A = {
-      val outcome = Raise.recover(block) { error =>
+      val outcome = Raise.tapError(block) { error =>
         if cb.config.isFailure(error) then
           cb.stateRef.updateAndGet:
             case CBState.Closed(failures) =>
@@ -250,7 +250,6 @@ object CircuitBreaker:
           cb.stateRef.updateAndGet:
             case CBState.HalfOpen => CBState.Closed(0)
             case other            => other
-        Raise.raise(error)
       }
 
       cb.stateRef.updateAndGet:
