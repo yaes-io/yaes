@@ -589,7 +589,7 @@ val result: Either[CircuitBreaker.Open, Either[DbError, String]] = Clock.run {
 
 ### Selective Failure Counting
 
-Pass `.failingWhen` to control which errors increment the failure counter. Non-matching errors are still re-raised via `Raise[E]` but do not affect circuit state:
+Pass `.failingWhen` to control which errors increment the failure counter. Non-matching errors are still re-raised via `Raise[E]` but do not increment the counter:
 
 ```scala
 sealed trait AppError
