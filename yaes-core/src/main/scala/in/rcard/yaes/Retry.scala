@@ -250,7 +250,44 @@ object Retry {
     */
   class RetryPartiallyApplied[E] {
 
-    def apply[A](schedule: Schedule)(
+    /** Retries `block` on typed errors of type `E` according to `schedule`, filtering by
+      * `retryable`.
+      *
+      * Only errors for which `retryable` returns `true` trigger a retry. Errors where it returns
+      * `false` are re-raised immediately without consuming a retry attempt.
+      *
+      * Pass the full union type as `E` and discriminate via `retryable` to avoid the contravariance
+      * bypass: because `Raise[-E]` is contravariant, a block that requires `Raise[E | F]` from an
+      * outer scope will capture that outer handler instead of `Retry`'s internal boundary, causing
+      * errors to escape unretried.
+      *
+      * Example:
+      * {{{
+      * Retry[AppError](
+      *   Schedule.exponential(100.millis).attempts(5),
+      *   retryable = {
+      *     case _: ConnectionError => true
+      *     case _: AuthError       => false
+      *   }
+      * ) {
+      *   connect()
+      * }
+      * }}}
+      *
+      * @param schedule
+      *   the retry policy
+      * @param retryable
+      *   predicate deciding whether an error triggers a retry; defaults to `_ => true` (always
+      *   retry), preserving the original behavior for callers that do not pass this argument
+      * @param block
+      *   the computation to retry
+      * @tparam A
+      *   the result type of the computation
+      * @return
+      *   the result of the first successful attempt, or raises `E` if all attempts are exhausted or
+      *   a non-retryable error is encountered
+      */
+    def apply[A](schedule: Schedule, retryable: E => Boolean = (_: E) => true)(
         block: Raise[E] ?=> A
     )(using Async, Raise[E]): A = {
 
@@ -258,13 +295,16 @@ object Retry {
       def loop(attempt: Int): A = {
         val result = Raise.fold(block)(
           onError = { error =>
-            val nextAttempt = attempt + 1
-            schedule.delay(nextAttempt) match {
-              case Some(d) =>
-                Async.delay(d)
-                None
-              case None =>
-                Some(Left(error))
+            if !retryable(error) then Some(Left(error))
+            else {
+              val nextAttempt = attempt + 1
+              schedule.delay(nextAttempt) match {
+                case Some(d) =>
+                  Async.delay(d)
+                  None
+                case None =>
+                  Some(Left(error))
+              }
             }
           }
         )(onSuccess = value => Some(Right(value)))

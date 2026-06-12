@@ -76,61 +76,61 @@ The library is available on Maven Central. To use it, add the following dependen
 **For effects only** (Raise, Async, Sync, etc.):
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-core" % "0.20.0"
+libraryDependencies += "in.rcard.yaes" %% "yaes-core" % "0.21.0"
 ```
 
 **For effects + data structures** (Flow, Channel, and reactive streams):
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-data" % "0.20.0"
+libraryDependencies += "in.rcard.yaes" %% "yaes-data" % "0.21.0"
 ```
 
 **For Cats integration** (includes all effects and data structures):
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-cats" % "0.20.0"
+libraryDependencies += "in.rcard.yaes" %% "yaes-cats" % "0.21.0"
 ```
 
 **For SLF4J logging integration** (delegates `Log` effect to any SLF4J backend):
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-slf4j" % "0.20.0"
+libraryDependencies += "in.rcard.yaes" %% "yaes-slf4j" % "0.21.0"
 ```
 
 **For HTTP core abstractions** (shared HTTP types and DSL):
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-core" % "0.20.0"
+libraryDependencies += "in.rcard.yaes" %% "yaes-http-core" % "0.21.0"
 ```
 
 **For HTTP Server based on λÆS effects**:
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-server" % "0.20.0"
+libraryDependencies += "in.rcard.yaes" %% "yaes-http-server" % "0.21.0"
 ```
 
 **For HTTP Client based on λÆS effects**:
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-client" % "0.20.0"
+libraryDependencies += "in.rcard.yaes" %% "yaes-http-client" % "0.21.0"
 ```
 
 **For Circe JSON integration** (HTTP + Circe codecs):
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-circe" % "0.20.0"
+libraryDependencies += "in.rcard.yaes" %% "yaes-http-circe" % "0.21.0"
 ```
 
 **For jsoniter-scala JSON integration** (HTTP + jsoniter codecs):
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-jsoniter" % "0.20.0"
+libraryDependencies += "in.rcard.yaes" %% "yaes-http-jsoniter" % "0.21.0"
 ```
 
 **For ScalaTest integration** (test helpers for λÆS effects):
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-core-test-scalatest" % "0.20.0" % Test
+libraryDependencies += "in.rcard.yaes" %% "yaes-core-test-scalatest" % "0.21.0" % Test
 ```
 
 The library is only available for Scala 3 and is currently in an experimental stage. The API is subject to change.
@@ -161,6 +161,7 @@ The library provides a set of effects and handlers that can be used to define an
 The library also provides the following handlers that orchestrate existing effects:
 
 - [`Retry`](#the-retry-handler): Retries failing blocks according to composable schedule policies.
+- [`CircuitBreaker`](#the-circuitbreaker-handler): Guards downstream calls by cycling through Closed, Open, and Half-Open states.
 
 ### YaesApp: Common Entry Point
 
@@ -552,6 +553,32 @@ val divisionByZeroResult: Int | Null = Raise.nullable {
 // divisionByZeroResult will be null
 ```
 
+#### Observing Errors with `tapError`
+
+The `tapError` combinator observes a raised error via a side-effecting callback and then re-raises it to the outer `Raise[E]` context. If the block succeeds, the callback is not invoked and the result is returned unchanged.
+
+This is the "tap on error" pattern, analogous to Arrow's `tapError` and ZIO's `tapError`. It is useful for logging or metrics without changing the error flow. Contrast with `onError`, which consumes the error (the block must return `Unit` and no outer `Raise[E]` is required).
+
+```scala 3
+import in.rcard.yaes.Raise.*
+
+def fetchUser(id: Int)(using Raise[String]): String =
+  if (id <= 0) Raise.raise("Invalid user id")
+  else s"User-$id"
+
+val result: Either[String, String] = Raise.either {
+  Raise.tapError[String, String] {
+    fetchUser(-1)
+  } { error =>
+    println(s"Logging error: $error")
+  }
+}
+// Prints "Logging error: Invalid user id"
+// result will be Left("Invalid user id")
+```
+
+If the callback itself throws an exception, that exception propagates to the caller.
+
 #### Error Mapping with `MapError`
 
 The `Raise` effect provides a powerful `MapError` strategy that allows you to automatically map errors from one type to another using a `given` instance. This is particularly useful when you need to transform errors in a compositional way across different layers of your application.
@@ -843,7 +870,7 @@ def copyFile(source: String, target: String)(using Resource): Unit = {
 
 The `Resource` effect provides several methods for resource management:
 
-- `Resource.acquire`: For resources that implement `Closeable`, automatically calling `close()` when the scope ends
+- `Resource.acquire`: For resources that implement `AutoCloseable`, automatically calling `close()` when the scope ends
 - `Resource.install`: For custom resource management with explicit acquisition and release functions
 - `Resource.ensuring`: For registering cleanup actions that don't involve specific resources
 
@@ -1455,6 +1482,117 @@ val result: Either[DbError, String] = Async.run {
 ```
 
 If the block succeeds on any attempt, its value is returned immediately. If all attempts are exhausted, the last error is re-raised via the outer `Raise[E]`. Only errors of the specified type `E` trigger retries — other error types propagate immediately.
+
+#### Selective Retry with a Predicate
+
+Pass a `retryable` predicate to control which errors trigger a retry. Errors where the predicate returns `false` are re-raised immediately:
+
+```scala 3
+sealed trait AppError
+case class ConnectionError(host: String) extends AppError
+case class AuthError(msg: String)        extends AppError
+
+val result: Either[AppError, String] = Async.run {
+  Raise.either {
+    Retry[AppError](
+      Schedule.exponential(100.millis).attempts(5),
+      retryable = {
+        case _: ConnectionError => true   // transient — retry
+        case _: AuthError       => false  // permanent — re-raise immediately
+      }
+    ) {
+      connect()
+    }
+  }
+}
+```
+
+This also fixes a subtle contravariance bypass: because `Raise[-E]` is contravariant, a block that captures an outer `Raise[E | F]` may bypass `Retry`'s internal boundary. Widening `E` to the full union type and using `retryable` to discriminate ensures all errors flow through the same boundary.
+
+The default is `retryable = _ => true`: all errors are retried, preserving existing behavior.
+
+### The CircuitBreaker Handler
+
+The `CircuitBreaker` handler protects a downstream call by cycling through three states based on consecutive typed `Raise[E]` failures.
+
+> **Note:** `CircuitBreaker` is not an effect — it is a stateful orchestrator. The protected block just runs, succeeds, or fails; it never calls `CircuitBreaker` directly.
+
+#### States
+
+| State | Behavior |
+|-------|----------|
+| **Closed** | Block executes normally. Consecutive failures matching `isFailure` increment a counter. |
+| **Open** | Calls fast-fail immediately via `Raise[CircuitBreaker.Open]`; the block is never executed. |
+| **Half-Open** | One probe is allowed after `resetTimeout` elapses. Success → Closed; failure → Open (timer reset). |
+
+The timeout check is **lazy**: the circuit transitions Open → Half-Open on the next incoming call after `resetTimeout` elapses, not at a fixed wall-clock moment.
+
+#### Configuration
+
+```scala 3
+import in.rcard.yaes.*
+import scala.concurrent.duration.*
+
+// Basic: trip after 3 consecutive failures, reset timeout 5 seconds
+val config = CircuitBreaker.Config.consecutive[DbError](3, 5.seconds)
+
+// Selective: only count ConnectionErrors, not AuthErrors
+val selective = CircuitBreaker.Config.consecutive[AppError](3, 5.seconds)
+  .failingWhen(_.isInstanceOf[ConnectionError])
+```
+
+#### Using CircuitBreaker
+
+```scala 3
+import in.rcard.yaes.*
+import scala.concurrent.duration.*
+
+case class DbError(msg: String)
+
+def findUser(id: Int)(using Raise[DbError]): String =
+  Raise.raise(DbError("connection timeout"))
+
+given CircuitBreaker[DbError] =
+  CircuitBreaker.make(CircuitBreaker.Config.consecutive(3, 5.seconds))
+
+val result: Either[CircuitBreaker.Open, Either[DbError, String]] = Clock.run {
+  Raise.either[CircuitBreaker.Open, Either[DbError, String]] {
+    Raise.either[DbError, String] {
+      CircuitBreaker.protect[DbError] {
+        findUser(42)
+      }
+    }
+  }
+}
+// After 3 consecutive failures the circuit opens.
+// Subsequent calls return Left(CircuitBreaker.Open(resetAt)) immediately.
+```
+
+#### Selective Failure Counting with a Predicate
+
+Pass a `failingWhen` predicate to control which errors increment the failure counter. Non-matching errors are still re-raised via `Raise[E]` but do not trip the circuit:
+
+```scala 3
+sealed trait AppError
+case class ConnectionError(host: String) extends AppError
+case class AuthError(msg: String)        extends AppError
+
+val result: Either[CircuitBreaker.Open, Either[AppError, String]] = Clock.run {
+  Raise.either[CircuitBreaker.Open, Either[AppError, String]] {
+    Raise.either[AppError, String] {
+      given CircuitBreaker[AppError] = CircuitBreaker.make(
+        CircuitBreaker.Config.consecutive[AppError](3, 5.seconds)
+          .failingWhen(_.isInstanceOf[ConnectionError])
+      )
+      CircuitBreaker.protect[AppError] {
+        connect()
+      }
+    }
+  }
+}
+```
+
+This also prevents the contravariance bypass: because `Raise[-E]` is contravariant, errors from a block that captures an outer `Raise[E | F]` could bypass the circuit breaker's internal boundary. Widening `E` to the full union type and using `failingWhen` to discriminate ensures all errors flow through the same boundary.
 
 ## Communication Primitives
 

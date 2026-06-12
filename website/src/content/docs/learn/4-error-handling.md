@@ -1,12 +1,12 @@
 ---
 title: Error Handling
-description: Learn typed error handling with the Raise effect and resilient retry strategies with the Retry handler.
+description: Learn typed error handling with the Raise effect and resilient retry and circuit-breaker strategies with the Retry and CircuitBreaker handlers.
 sidebar:
   label: "4. Error Handling"
   order: 4
 ---
 
-λÆS approaches error handling functionally: errors are typed, explicit in function signatures, and handled without throwing exceptions. This step covers the `Raise` effect for typed errors and the `Retry` handler for resilient retry strategies.
+λÆS approaches error handling functionally: errors are typed, explicit in function signatures, and handled without throwing exceptions. This step covers the `Raise` effect for typed errors, the `Retry` handler for resilient retry strategies, and the `CircuitBreaker` handler for protecting downstream calls.
 
 ---
 
@@ -237,6 +237,32 @@ def divide(a: Int, b: Int)(using Raise[DivisionByZero]): Int =
     a / b
   } { _ => DivisionByZero }
 ```
+
+**Observing Errors with `tapError`:**
+
+`tapError` lets you observe a raised error via a side-effecting callback and then re-raises it unchanged to the outer `Raise[E]` context. The callback is not invoked on success.
+
+This is the "tap on error" pattern: useful for logging or monitoring without altering the error flow. Contrast with `onError`, which consumes the error (block must return `Unit`, no outer `Raise[E]` required).
+
+```scala
+import in.rcard.yaes.Raise.*
+
+def riskyOperation(value: Int)(using Raise[String]): Int =
+  if (value < 0) Raise.raise("Negative value not allowed")
+  else value * 2
+
+val result: Either[String, Int] = Raise.either {
+  Raise.tapError[String, Int] {
+    riskyOperation(-5)
+  } { error =>
+    println(s"Observed error: $error")  // side effect
+  }
+}
+// Prints "Observed error: Negative value not allowed"
+// result will be Left("Negative value not allowed")
+```
+
+If the callback itself throws an exception, that exception propagates to the caller.
 
 ### Handlers
 
@@ -499,3 +525,118 @@ val result: Either[String, Either[Int, Int]] = Async.run {
 }
 // result is Left("fatal error") — no retries occurred
 ```
+
+### Selective Retry with a Predicate
+
+The optional `retryable` parameter lets you decide per-error whether to retry. Errors where the predicate returns `false` are re-raised immediately without consuming a retry attempt.
+
+This is also the solution to a subtle contravariance issue: because `Raise[-E]` is contravariant, `Raise[E | F] <: Raise[E]`. When the retried block requires a wider `Raise[E | F]` from an outer scope, Scala may resolve that outer `Raise` instead of the boundary installed by `Retry`, causing errors to escape unretried. Widening `E` to the full union type and using `retryable` to discriminate avoids this:
+
+```scala
+sealed trait AppError
+case class ConnectionError(host: String) extends AppError
+case class AuthError(msg: String)        extends AppError
+
+def connectWithRetry()(using Raise[AppError], Async): Unit =
+  Retry[AppError](
+    Schedule.exponential(100.millis).attempts(5),
+    retryable = {
+      case _: ConnectionError => true   // transient — retry
+      case _: AuthError       => false  // permanent — re-raise immediately
+    }
+  ) {
+    // block uses the single Raise[AppError] — no outer capture
+    connect()
+  }
+```
+
+Without the predicate, `retryable` defaults to `_ => true` — all errors of type `E` are retried, preserving the original behavior.
+
+---
+
+## CircuitBreaker Handler
+
+The `CircuitBreaker` handler protects a downstream call by cycling through three states based on consecutive typed `Raise[E]` failures.
+
+:::note
+`CircuitBreaker` is not an effect — it is a stateful orchestrator. The protected block just runs, succeeds, or fails; it never calls `CircuitBreaker` directly.
+:::
+
+### States
+
+| State | Behavior |
+|-------|----------|
+| **Closed** | Block executes normally. Consecutive failures matching `isFailure` increment a counter. |
+| **Open** | Calls fast-fail immediately via `Raise[CircuitBreaker.Open]`; the block is never executed. |
+| **Half-Open** | One probe is allowed after `resetTimeout` elapses. Success → Closed; failure → Open (timer reset). |
+
+The timeout check is **lazy**: the circuit transitions Open → Half-Open on the next incoming call after `resetTimeout` elapses, not at a precise wall-clock moment.
+
+### Configuration
+
+```scala
+import in.rcard.yaes.*
+import scala.concurrent.duration.*
+
+// Trip after 3 consecutive failures; wait 5 seconds before probing
+val config = CircuitBreaker.Config.consecutive[DbError](3, 5.seconds)
+
+// Restrict counting to specific subtypes
+val selective = CircuitBreaker.Config.consecutive[AppError](3, 5.seconds)
+  .failingWhen(_.isInstanceOf[ConnectionError])
+```
+
+### Basic Usage
+
+```scala
+import in.rcard.yaes.*
+import scala.concurrent.duration.*
+
+case class DbError(msg: String)
+
+def findUser(id: Int)(using Raise[DbError]): String =
+  Raise.raise(DbError("connection timeout"))
+
+given CircuitBreaker[DbError] =
+  CircuitBreaker.make(CircuitBreaker.Config.consecutive(3, 5.seconds))
+
+val result: Either[CircuitBreaker.Open, Either[DbError, String]] = Clock.run {
+  Raise.either[CircuitBreaker.Open, Either[DbError, String]] {
+    Raise.either[DbError, String] {
+      CircuitBreaker.protect[DbError] {
+        findUser(42)
+      }
+    }
+  }
+}
+// After 3 consecutive failures the circuit opens.
+// Subsequent calls return Left(CircuitBreaker.Open(resetAt)) without executing the block.
+```
+
+### Selective Failure Counting
+
+Pass `.failingWhen` to control which errors increment the failure counter. Non-matching errors are still re-raised via `Raise[E]` but do not increment the counter:
+
+```scala
+sealed trait AppError
+case class ConnectionError(host: String) extends AppError
+case class AuthError(msg: String)        extends AppError
+
+given CircuitBreaker[AppError] = CircuitBreaker.make(
+  CircuitBreaker.Config.consecutive[AppError](3, 5.seconds)
+    .failingWhen(_.isInstanceOf[ConnectionError])
+)
+
+val result: Either[CircuitBreaker.Open, Either[AppError, String]] = Clock.run {
+  Raise.either[CircuitBreaker.Open, Either[AppError, String]] {
+    Raise.either[AppError, String] {
+      CircuitBreaker.protect[AppError] {
+        connect()
+      }
+    }
+  }
+}
+// ConnectionErrors trip the circuit; AuthErrors propagate immediately without counting
+```
+
+Using the full union type `E` with a `failingWhen` predicate also prevents a subtle contravariance bypass: because `Raise[-E]` is contravariant, errors from a block that captures an outer `Raise[E | F]` could bypass the circuit breaker's internal boundary. Widening `E` and discriminating via the predicate ensures all errors flow through the same boundary.
