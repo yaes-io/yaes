@@ -156,8 +156,8 @@ object CircuitBreaker:
   *   - **Half-Open**: allows a single probe; concurrent calls fast-fail via `Raise[CircuitBreaker.Open]`; success closes the circuit, failure re-opens it.
     *
     * Only errors for which `Config.isFailure` returns `true` increment the counter. Non-matching
-    * errors are re-raised immediately via `Raise[E]` without changing circuit state.
-    *
+    * errors are re-raised immediately via `Raise[E]` without incrementing the counter; when raised
+    * during a Half-Open probe they close the circuit.
     * Example:
     * {{{
     * given CircuitBreaker[DbError] =
