@@ -13,7 +13,7 @@ sidebar:
 Add the dependency to your `build.sbt`:
 
 ```scala
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-test-scalatest" % "0.20.0" % Test
+libraryDependencies += "in.rcard.yaes" %% "yaes-http-test-scalatest" % "0.21.0" % Test
 ```
 
 This module depends only on ScalaTest — no λÆS runtime dependency is pulled in transitively.
