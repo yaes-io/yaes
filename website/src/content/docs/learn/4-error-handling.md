@@ -238,6 +238,32 @@ def divide(a: Int, b: Int)(using Raise[DivisionByZero]): Int =
   } { _ => DivisionByZero }
 ```
 
+**Observing Errors with `tapError`:**
+
+`tapError` lets you observe a raised error via a side-effecting callback and then re-raises it unchanged to the outer `Raise[E]` context. The callback is not invoked on success.
+
+This is the "tap on error" pattern: useful for logging or monitoring without altering the error flow. Contrast with `onError`, which consumes the error (block must return `Unit`, no outer `Raise[E]` required).
+
+```scala
+import in.rcard.yaes.Raise.*
+
+def riskyOperation(value: Int)(using Raise[String]): Int =
+  if (value < 0) Raise.raise("Negative value not allowed")
+  else value * 2
+
+val result: Either[String, Int] = Raise.either {
+  Raise.tapError[String, Int] {
+    riskyOperation(-5)
+  } { error =>
+    println(s"Observed error: $error")  // side effect
+  }
+}
+// Prints "Observed error: Negative value not allowed"
+// result will be Left("Negative value not allowed")
+```
+
+If the callback itself throws an exception, that exception propagates to the caller.
+
 ### Handlers
 
 **Union Type Handler:**

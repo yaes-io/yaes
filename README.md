@@ -553,6 +553,32 @@ val divisionByZeroResult: Int | Null = Raise.nullable {
 // divisionByZeroResult will be null
 ```
 
+#### Observing Errors with `tapError`
+
+The `tapError` combinator observes a raised error via a side-effecting callback and then re-raises it to the outer `Raise[E]` context. If the block succeeds, the callback is not invoked and the result is returned unchanged.
+
+This is the "tap on error" pattern, analogous to Arrow's `tapError` and ZIO's `tapError`. It is useful for logging or metrics without changing the error flow. Contrast with `onError`, which consumes the error (the block must return `Unit` and no outer `Raise[E]` is required).
+
+```scala 3
+import in.rcard.yaes.Raise.*
+
+def fetchUser(id: Int)(using Raise[String]): String =
+  if (id <= 0) Raise.raise("Invalid user id")
+  else s"User-$id"
+
+val result: Either[String, String] = Raise.either {
+  Raise.tapError[String, String] {
+    fetchUser(-1)
+  } { error =>
+    println(s"Logging error: $error")
+  }
+}
+// Prints "Logging error: Invalid user id"
+// result will be Left("Invalid user id")
+```
+
+If the callback itself throws an exception, that exception propagates to the caller.
+
 #### Error Mapping with `MapError`
 
 The `Raise` effect provides a powerful `MapError` strategy that allows you to automatically map errors from one type to another using a `given` instance. This is particularly useful when you need to transform errors in a compositional way across different layers of your application.
