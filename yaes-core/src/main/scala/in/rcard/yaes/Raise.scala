@@ -317,6 +317,8 @@ object Raise {
     * `Raise[E]` required). `tapError` is the "tap on error" pattern analogous to Arrow's
     * `tapError` / ZIO's `tapError`.
     *
+    * If the callback itself throws an exception, that exception will propagate to the caller.
+    *
     * Example:
     * {{{
     * val result: Either[String, Int] = Raise.either {
