@@ -458,11 +458,6 @@ def main(): Unit = {
             )
           },
 
-          GET(p"/users" ? queryParam[String]("expand")) { query ?=> req =>
-            val expand = query.get("expand")
-            Response.ok("asd")
-          },
-
           // Search with query parameter
           GET(p"/search" ? queryParam[String]("q")) { req =>
             val query = Query.queryParam("q")
@@ -475,7 +470,7 @@ def main(): Unit = {
             Response.withStatus(201, """{"id": 123, "name": "New User"}""",
               extraHeaders = Map(
                 "content-type" -> "application/json",
-                "location" -> "/users/123"
+                "location"     -> "/users/123"
               )
             )
           }
