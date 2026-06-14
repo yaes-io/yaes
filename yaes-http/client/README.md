@@ -362,7 +362,7 @@ A missing `PathParamStringifier` instance is a **compile error** — the interpo
 The `Uri` opaque type validates URI syntax at construction time via the `Raise` effect:
 
 ```scala
-Raise.run[Uri.InvalidUri] {
+Raise.run {
   val valid = Uri("https://example.com/api")     // succeeds
   val invalid = Uri("not a valid uri :::")        // raises InvalidUri
 }
@@ -385,7 +385,7 @@ result match
 Use `uri / segment` to append a single path segment to an existing `Uri`. The segment is URL-encoded via the same `PathParamStringifier` typeclass used by the `uri"..."` interpolator. Query strings and fragments are preserved.
 
 ```scala
-Raise.run[Uri.InvalidUri] {
+Raise.run {
   val base   = Uri("https://api.example.com/users")
   val userId = 42
 
@@ -397,7 +397,7 @@ Raise.run[Uri.InvalidUri] {
 Operators chain naturally:
 
 ```scala
-Raise.run[Uri.InvalidUri] {
+Raise.run {
   val uri = Uri("https://api.example.com") / "users" / 42 / "orders"
   // => https://api.example.com/users/42/orders
 }
@@ -406,7 +406,7 @@ Raise.run[Uri.InvalidUri] {
 Query strings and fragments survive the append:
 
 ```scala
-Raise.run[Uri.InvalidUri] {
+Raise.run {
   val base = Uri("https://api.example.com/users?active=true")
   val uri  = base / 42
   // => https://api.example.com/users/42?active=true
@@ -431,7 +431,7 @@ import io.circe.{Encoder, Decoder}
 
 case class User(id: Int, name: String) derives Encoder.AsObject, Decoder
 
-Raise.run[Uri.InvalidUri] {
+Raise.run {
   val uri = Uri("https://api.example.com/users")
   val request = HttpRequest.post(uri, User(1, "Alice"))
   // Content-Type: application/json set automatically
@@ -446,14 +446,14 @@ import in.rcard.yaes.http.client.*
 import in.rcard.yaes.http.core.DecodingError
 import scala.concurrent.duration.*
 
-Raise.run[ConnectionError] {
+Raise.run {
   Resource.run {
     val client = YaesClient.make(YaesClientConfig(
       connectTimeout = Some(10.seconds),
       followRedirects = RedirectPolicy.Normal
     ))
 
-    Raise.run[Uri.InvalidUri] {
+    Raise.run {
       val uri = Uri("https://httpbin.org/get")
       val request = HttpRequest.get(uri)
         .header("Accept", "application/json")
