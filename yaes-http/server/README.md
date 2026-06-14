@@ -425,11 +425,14 @@ Note: JSON libraries (circe, upickle, zio-json, etc.) are not included. Choose y
 
 ```scala
 import in.rcard.yaes.http.server.*
+import in.rcard.yaes.http.server.params.query.*
 import in.rcard.yaes.*
+import in.rcard.yaes.Log.clock
 import scala.concurrent.duration.*
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object MyServer extends App {
+@main
+def main(): Unit = {
   val userId = param[Int]("userId")
 
   Sync.runBlocking(Duration.Inf) {
@@ -455,9 +458,14 @@ object MyServer extends App {
             )
           },
 
+          GET(p"/users" ? queryParam[String]("expand")) { query ?=> req =>
+            val expand = query.get("expand")
+            Response.ok("asd")
+          },
+
           // Search with query parameter
           GET(p"/search" ? queryParam[String]("q")) { req =>
-            val query = req.queryParam("q").get
+            val query = Query.queryParam("q")
             Response.ok(s"Searching for: $query")
           },
 
@@ -467,7 +475,7 @@ object MyServer extends App {
             Response.withStatus(201, """{"id": 123, "name": "New User"}""",
               extraHeaders = Map(
                 "content-type" -> "application/json",
-                "location"     -> "/users/123"
+                "location" -> "/users/123"
               )
             )
           }
