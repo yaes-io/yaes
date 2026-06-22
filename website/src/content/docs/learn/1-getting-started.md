@@ -78,6 +78,6 @@ val result: String = Raise.run {
 
 ## Next Steps
 
-- Read [Core Concepts](/yaes/learn/2-core-concepts/) to understand the mental model behind λÆS
-- Explore [Basic Effects](/yaes/learn/3-basic-effects/) to learn about Sync, Random, I/O, and Clock effects
-- Jump to [Error Handling](/yaes/learn/4-error-handling/) once you are comfortable with the basics
+- Read [Core Concepts](/learn/2-core-concepts/) to understand the mental model behind λÆS
+- Explore [Basic Effects](/learn/3-basic-effects/) to learn about Sync, Random, I/O, and Clock effects
+- Jump to [Error Handling](/learn/4-error-handling/) once you are comfortable with the basics

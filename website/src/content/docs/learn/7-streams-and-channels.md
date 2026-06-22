@@ -1863,4 +1863,4 @@ Log.run() {
 
 ## What's Next
 
-You now have the tools to work with reactive data streams and concurrent communication in λÆS. Proceed to [Step 8: Building Applications](/yaes/learn/8-building-applications/) to see how all these pieces — effects, error handling, concurrency, state, and streams — come together in complete applications.
+You now have the tools to work with reactive data streams and concurrent communication in λÆS. Proceed to [Step 8: Building Applications](/learn/8-building-applications/) to see how all these pieces — effects, error handling, concurrency, state, and streams — come together in complete applications.

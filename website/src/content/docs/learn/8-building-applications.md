@@ -571,6 +571,6 @@ println(s"Total alerts generated: ${alerts.length}")
 
 You've completed the λÆS learning path! Here are good places to go next:
 
-- **[HTTP Module](/yaes/http/server/)** — Build HTTP servers and clients with λÆS
-- **[Integrations](/yaes/integrations/cats-effect/)** — Use λÆS alongside Cats Effect or SLF4J
-- **[Community](/yaes/community/contributing/)** — Contribute to the project
+- **[HTTP Module](/http/server/)** — Build HTTP servers and clients with λÆS
+- **[Integrations](/integrations/cats-effect/)** — Use λÆS alongside Cats Effect or SLF4J
+- **[Community](/community/contributing/)** — Contribute to the project

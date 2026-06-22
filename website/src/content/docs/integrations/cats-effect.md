@@ -134,7 +134,7 @@ val result2 = YaesSync.run {
 }
 ```
 
-**Note:** The conversion requires handling `Raise[Throwable]` using [Raise combinators](/yaes/learn/4-error-handling/) like `either`, `fold`, `recover`, etc.
+**Note:** The conversion requires handling `Raise[Throwable]` using [Raise combinators](/learn/4-error-handling/) like `either`, `fold`, `recover`, etc.
 
 ### Timeout Support
 
@@ -193,7 +193,7 @@ val result3 = catsIO.unsafeRunSync()  // counter = 3
 
 ### Error Handling
 
-Errors are preserved across conversions and can be handled using [Raise](/yaes/learn/4-error-handling/) combinators:
+Errors are preserved across conversions and can be handled using [Raise](/learn/4-error-handling/) combinators:
 
 ```scala
 import io.yaes.interop.catseffect

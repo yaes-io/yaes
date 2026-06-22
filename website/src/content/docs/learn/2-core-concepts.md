@@ -152,4 +152,4 @@ You can handle effects one at a time or all at once. Effects that are not yet ha
 **Retry**
 - `Retry` — retry failing blocks with configurable schedules
 
-Continue to [Basic Effects](/yaes/learn/3-basic-effects/) to see these in action.
+Continue to [Basic Effects](/learn/3-basic-effects/) to see these in action.

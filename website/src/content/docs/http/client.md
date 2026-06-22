@@ -519,7 +519,7 @@ Raise.run[Uri.InvalidUri] {
 }
 ```
 
-> See [JSON with Circe](/yaes/http/circe/) for full documentation on JSON body codecs.
+> See [JSON with Circe](/http/circe/) for full documentation on JSON body codecs.
 
 ---
 

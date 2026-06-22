@@ -4,8 +4,7 @@ import starlight from '@astrojs/starlight';
 
 // https://astro.build/config
 export default defineConfig({
-	site: 'https://yaes-io.github.io',
-	base: '/yaes',
+	site: 'https://www.yaes.io',
 	integrations: [
 		starlight({
 			title: 'λÆS — Yet Another Effect System',

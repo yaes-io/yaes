@@ -439,7 +439,7 @@ POST(p"/users") { req =>
 }
 ```
 
-> **Note:** JSON codec libraries (circe, upickle, zio-json, etc.) are not included. Choose your preferred library and implement `BodyEncoder` and/or `BodyDecoder` as needed. See [JSON with Circe](/yaes/http/circe/) for a ready-made integration.
+> **Note:** JSON codec libraries (circe, upickle, zio-json, etc.) are not included. Choose your preferred library and implement `BodyEncoder` and/or `BodyDecoder` as needed. See [JSON with Circe](/http/circe/) for a ready-made integration.
 
 ---
 
@@ -563,7 +563,7 @@ Sync.runBlocking(Duration.Inf) {
 }.get
 ```
 
-> See [Step 5: Concurrency](/yaes/learn/5-concurrency/) for more details on shutdown coordination.
+> See [Step 5: Concurrency](/learn/5-concurrency/) for more details on shutdown coordination.
 
 ### Shutdown Behavior
 
@@ -753,7 +753,7 @@ Sync.runBlocking(Duration.Inf) {
 }.get
 ```
 
-> See [SLF4J Logging](/yaes/integrations/slf4j-logging/) for details on log levels, formatting, and custom loggers.
+> See [SLF4J Logging](/integrations/slf4j-logging/) for details on log levels, formatting, and custom loggers.
 
 ### Logged Events
 
