@@ -1,15 +1,15 @@
 ![Made for Scala 3](https://img.shields.io/badge/Scala%203-%23de3423.svg?logo=scala&logoColor=white)
-![GitHub Workflow Status (with branch)](https://img.shields.io/github/actions/workflow/status/rcardin/yaes/scala.yml?branch=main)
-![Maven Central](https://img.shields.io/maven-central/v/in.rcard.yaes/yaes-core_3)
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/rcardin/yaes)
-[![javadoc](https://javadoc.io/badge2/in.rcard.yaes/yaes-core_3/javadoc.svg)](https://javadoc.io/doc/in.rcard.yaes/yaes-core_3)
+![GitHub Workflow Status (with branch)](https://img.shields.io/github/actions/workflow/status/yaes-io/yaes/scala.yml?branch=main)
+![Maven Central](https://img.shields.io/maven-central/v/io.yaes/yaes-core_3)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/yaes-io/yaes)
+[![javadoc](https://javadoc.io/badge2/io.yaes/yaes-core_3/javadoc.svg)](https://javadoc.io/doc/io.yaes/yaes-core_3)
 
 # Yet Another Effect System (λÆS)
 <img align="right" src="./logo.svg" width="230" alt="logo" />
 
 λÆS is an experimental effect system in Scala inspired by the ideas behind Algebraic Effects. Using Scala 3 [context parameters](https://docs.scala-lang.org/scala3/reference/contextual/using-clauses.html) and [context functions](https://docs.scala-lang.org/scala3/reference/contextual/context-functions.html), it provides a way to define and handle effects in a modular and composable manner.
 
-You can visit the dedicated [website](https://rcardin.github.io/yaes/) 🌐.
+You can visit the dedicated [website](https://yaes-io.github.io/yaes/) 🌐.
 
 Here is the talk I gave at the **Scalar 2025** about the main concepts behind the library:
 <br clear="both" />
@@ -27,8 +27,8 @@ Available modules are:
 What's new in λÆS when compared to other effect systems? Well, λÆS embraces direct style — no monads, no for-comprehensions, just plain Scala:
 
 ```scala 3
-import in.rcard.yaes.Random.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Random.*
+import io.yaes.Raise.*
 
 def drunkFlip(using Random, Raise[String]): String = {
   val caught = Random.nextBoolean
@@ -47,8 +47,8 @@ Calling the above `drunkFlip` function will not execute the effects. Instead, it
 An Effect System provides all the tools to manage and execute Effectful computations in a deferred manner. In λÆS, such tools are called *Handlers*.
 
 ```scala 3
-import in.rcard.yaes.Random.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Random.*
+import io.yaes.Raise.*
 
 val result: String = Raise.run { 
   Random.run { 
@@ -60,7 +60,7 @@ val result: String = Raise.run {
 In the above code, we are running the `drunkFlip` function with the `Random` and `Raise` effects. The `Raise.run` and `Random.run` functions are defined using *Handlers* that will execute the deferred effects. The approach reminds the one defined in the Algebraic Effects and Handlers theory. The example shows how to handle the `Raise` and `Random` effects one at a time. However, we're free to handle only one effect at a time:
 
 ```scala 3
-import in.rcard.yaes.Random.*
+import io.yaes.Random.*
 
 val result: Raise[String] ?=> String = Random.run { 
   drunkFlip
@@ -76,61 +76,61 @@ The library is available on Maven Central. To use it, add the following dependen
 **For effects only** (Raise, Async, Sync, etc.):
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-core" % "0.21.0"
+libraryDependencies += "io.yaes" %% "yaes-core" % "0.21.0"
 ```
 
 **For effects + data structures** (Flow, Channel, and reactive streams):
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-data" % "0.21.0"
+libraryDependencies += "io.yaes" %% "yaes-data" % "0.21.0"
 ```
 
 **For Cats integration** (includes all effects and data structures):
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-cats" % "0.21.0"
+libraryDependencies += "io.yaes" %% "yaes-cats" % "0.21.0"
 ```
 
 **For SLF4J logging integration** (delegates `Log` effect to any SLF4J backend):
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-slf4j" % "0.21.0"
+libraryDependencies += "io.yaes" %% "yaes-slf4j" % "0.21.0"
 ```
 
 **For HTTP core abstractions** (shared HTTP types and DSL):
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-core" % "0.21.0"
+libraryDependencies += "io.yaes" %% "yaes-http-core" % "0.21.0"
 ```
 
 **For HTTP Server based on λÆS effects**:
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-server" % "0.21.0"
+libraryDependencies += "io.yaes" %% "yaes-http-server" % "0.21.0"
 ```
 
 **For HTTP Client based on λÆS effects**:
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-client" % "0.21.0"
+libraryDependencies += "io.yaes" %% "yaes-http-client" % "0.21.0"
 ```
 
 **For Circe JSON integration** (HTTP + Circe codecs):
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-circe" % "0.21.0"
+libraryDependencies += "io.yaes" %% "yaes-http-circe" % "0.21.0"
 ```
 
 **For jsoniter-scala JSON integration** (HTTP + jsoniter codecs):
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-jsoniter" % "0.21.0"
+libraryDependencies += "io.yaes" %% "yaes-http-jsoniter" % "0.21.0"
 ```
 
 **For ScalaTest integration** (test helpers for λÆS effects):
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-core-test-scalatest" % "0.21.0" % Test
+libraryDependencies += "io.yaes" %% "yaes-core-test-scalatest" % "0.21.0" % Test
 ```
 
 The library is only available for Scala 3 and is currently in an experimental stage. The API is subject to change.
@@ -170,7 +170,7 @@ For building complete applications, λÆS provides `YaesApp`, a trait that simpl
 **Quick Example:**
 
 ```scala 3
-import in.rcard.yaes.*
+import io.yaes.*
 
 object MyApp extends YaesApp {
   override def run {
@@ -199,7 +199,7 @@ For more details, see the [YaesApp documentation](docs/yaes-app.md).
 The `Sync` effect allows for running side-effecting operations:
 
 ```scala 3
-import in.rcard.yaes.Sync.*
+import io.yaes.Sync.*
 
 case class User(name: String)
 
@@ -215,7 +215,7 @@ To run the effectful computation, we can use the provided handlers.
 The first handler doesn't block the current thread:
 
 ```scala 3
-import in.rcard.yaes.Sync.*
+import io.yaes.Sync.*
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -228,7 +228,7 @@ val result: Future[Long] = Sync.run {
 The library also provides a blocking handler that will block the current thread until the effectful computation is finished:
 
 ```scala 3
-import in.rcard.yaes.Sync.*
+import io.yaes.Sync.*
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.DurationInt
@@ -252,7 +252,7 @@ The default implementation of the `Async` effect is based Java Structured Concur
 The most important operation of the `Async` effect is the `fork` operation:
 
 ```scala 3
-import in.rcard.yaes.Async.*
+import io.yaes.Async.*
 
 def findUserByName(name: String): Option[User] = Some(User(name))
 val fb: Async ?=> Fiber[Option[User]] = Async.fork { findUserByName("John") }
@@ -261,8 +261,8 @@ val fb: Async ?=> Fiber[Option[User]] = Async.fork { findUserByName("John") }
 The `fb` variable represent a fiber (lightweight thread) that is executing the `findUserByName` function. The `fork` operation returns a `Fiber` object that can be used to manage the execution of the asynchronous computation. In details, we can wait for the value of the computation using the `value` operation:
 
 ```scala 3
-import in.rcard.yaes.Async.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Async.*
+import io.yaes.Raise.*
 
 val maybeUser: (Async, Raise[Cancelled]) ?=> Option[User] = fb.value
 ```
@@ -278,7 +278,7 @@ As for the `Sync` effect, forking a new fiber or joining it doesn't execute the 
 Again, we can run the effectful computation using the provided handlers:
 
 ```scala 3
-import in.rcard.yaes.Async.*
+import io.yaes.Async.*
 
 val maybeUser: Raise[Cancelled] ?=> Option[User] = Async.run {
     val fb: Async ?=> Fiber[Option[User]] = Async.fork { findUserByName("John") }
@@ -295,7 +295,7 @@ The `Async` effect is transparent to possible exceptions thrown by the effectful
 The `Async` effect implements **structured concurrency**. The `Async.run` handler creates a new structured concurrency scope where all the fibers are executed. The `Async.run` will wait for all the fibers to finish before returning the result of the effectful computation both if the fibers are joined or not.
 
 ```scala 3
-import in.rcard.yaes.Async.*
+import io.yaes.Async.*
 
 def updateUser(user: User): Unit                = ???
 def updateClicks(user: User, clicks: Int): Unit = ???
@@ -316,7 +316,7 @@ The `Async.run` function will wait for both the `updateUser` and `updateClicks` 
 Another important feature of strutctured concurrency is the *cancellation* of the fibers. Canceling a fiber is possible by calling the `cancel` method on the `Fiber` instance. The following code snippet shows how:
 
 ```scala 3
-import in.rcard.yaes.Async.*
+import io.yaes.Async.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
 val actualQueue = Async.run {
@@ -340,7 +340,7 @@ Cancellation is collaborative. In the above example, the fiber `cancellable` is 
 Cancelling a fiber follows the relationship between parent and child jobs. If a parent's fiber is canceled, all the children's fibers are canceled as well:
 
 ```scala 3
-import in.rcard.yaes.Async.*
+import io.yaes.Async.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
 val actualQueue = Async.run {
@@ -383,7 +383,7 @@ Using the `Async.fork` DSL is quite low-level. The library provides a set of str
 When you need to apply the same operation to every element of a collection in parallel, use `Async.parTraverse`. It forks one fiber per element, waits for all to finish, and returns the results **in the same order as the input**. If any computation fails, the remaining fibers are automatically cancelled (fail-fast):
 
 ```scala 3
-import in.rcard.yaes.Async.*
+import io.yaes.Async.*
 
 case class UserProfile(id: Int, name: String)
 def fetchUserProfile(id: Int)(using Async): UserProfile = ???
@@ -396,8 +396,8 @@ val profiles: Seq[UserProfile] = Async.run {
 `parTraverse` also composes seamlessly with other effects such as `Raise`:
 
 ```scala 3
-import in.rcard.yaes.Async.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Async.*
+import io.yaes.Raise.*
 
 def validateAndFetch(id: Int)(using Async, Raise[String]): UserProfile =
   if (id <= 0) Raise.raise(s"Invalid id: $id")
@@ -417,8 +417,8 @@ For long-running applications and daemon processes, the `Async.withGracefulShutd
 When shutdown is initiated (either via JVM signals like SIGTERM/SIGINT or programmatically), the handler gives your main task a deadline to complete cleanup operations. If the deadline expires, remaining fibers are cooperatively cancelled and `Async.ShutdownTimedOut` is raised. This prevents hanging shutdowns while allowing in-flight work to complete gracefully.
 
 ```scala
-import in.rcard.yaes.{Async, Shutdown, Raise}
-import in.rcard.yaes.Async.{Deadline, ShutdownTimedOut}
+import io.yaes.{Async, Shutdown, Raise}
+import io.yaes.Async.{Deadline, ShutdownTimedOut}
 import scala.concurrent.duration.*
 
 val result: Either[ShutdownTimedOut, Unit] = Shutdown.run {
@@ -437,7 +437,7 @@ val result: Either[ShutdownTimedOut, Unit] = Shutdown.run {
 }
 ```
 
-For complete documentation including lifecycle details, deadline configuration, and practical examples, see [Async Effect - Graceful Shutdown](https://rcardin.github.io/yaes/effects/async.html#graceful-shutdown-with-async).
+For complete documentation including lifecycle details, deadline configuration, and practical examples, see [Async Effect - Graceful Shutdown](https://yaes-io.github.io/yaes/effects/async.html#graceful-shutdown-with-async).
 
 ### The `Raise` Effect
 
@@ -446,7 +446,7 @@ The `Raise[E]` type describes the possibility that a function can raise an error
 Let's see an example:
 
 ```scala 3
-import in.rcard.yaes.Raise.*
+import io.yaes.Raise.*
 
 def divide(a: Int, b: Int)(using Raise[ArithmeticException]): Int =
   if (b == 0) Raise.raise(new ArithmeticException("Division by zero"))
@@ -456,7 +456,7 @@ def divide(a: Int, b: Int)(using Raise[ArithmeticException]): Int =
 In the above example, the `divide` function can raise an `ArithmeticException` if the second parameter is zero. In the example, we used an exception as the error type. However, we can use any type as the error type: 
 
 ```scala 3
-import in.rcard.yaes.Raise.*
+import io.yaes.Raise.*
 
 object DivisionByZero
 type DivisionByZero = DivisionByZero.type
@@ -469,7 +469,7 @@ def divide(a: Int, b: Int)(using Raise[DivisionByZero]): Int =
 For more concise syntax, you can use the `raises` infix type:
 
 ```scala 3
-import in.rcard.yaes.{Raise, raises}
+import io.yaes.{Raise, raises}
 
 // Using the raises infix type
 def divide(a: Int, b: Int): Int raises DivisionByZero =
@@ -485,7 +485,7 @@ def divideExplicit(a: Int, b: Int)(using Raise[DivisionByZero]): Int =
 The effect offers some functions to lift an program into an effectful computation that uses the `Raise[E]` effect. For example, we can rewrite the above example using the `ensure` utility function:
 
 ```scala 3
-import in.rcard.yaes.Raise.*
+import io.yaes.Raise.*
 
 def divide(a: Int, b: Int)(using Raise[DivisionByZero]): Int =
   Raise.ensure(b != 0) { DivisionByZero }
@@ -495,7 +495,7 @@ def divide(a: Int, b: Int)(using Raise[DivisionByZero]): Int =
 If we know that a function can throw an exception, we can catch it and trasform it into an error of type `E` with the `catching` function:
 
 ```scala 3
-import in.rcard.yaes.Raise.*
+import io.yaes.Raise.*
 
 def divide(a: Int, b: Int)(using Raise[DivisionByZero]): Int =
   Raise.catching[ArithmeticException] {
@@ -506,7 +506,7 @@ def divide(a: Int, b: Int)(using Raise[DivisionByZero]): Int =
 The effect defines many handlers to deal with the raised errors. For example, we can execute the effectful computation and handle the raised error as a union type:
 
 ```scala 3
-import in.rcard.yaes.Raise.*
+import io.yaes.Raise.*
 
 val divisionByZeroResult: Int | DivisionByZero = Raise.run {
     divide(10, 0)
@@ -516,7 +516,7 @@ val divisionByZeroResult: Int | DivisionByZero = Raise.run {
 Alternatively, we can handle the raised error transforming it into an `Either` type:
 
 ```scala 3
-import in.rcard.yaes.Raise.*
+import io.yaes.Raise.*
 
 val divisionByZeroResult: Either[DivisionByZero, Int] = Raise.either {
   divide(10, 0)
@@ -526,7 +526,7 @@ val divisionByZeroResult: Either[DivisionByZero, Int] = Raise.either {
 If we're not interested in propagating the exact reason of error, we can use the `option` handler. The `option` handler requires the block to raise `None` explicitly:
 
 ```scala 3
-import in.rcard.yaes.Raise.*
+import io.yaes.Raise.*
 
 def safeDivide(x: Int, y: Int)(using Raise[None.type]): Int =
   if (y == 0) then Raise.raise(None)
@@ -541,7 +541,7 @@ val divisionByZeroResult: Option[Int] = Raise.option {
 We can even ignore the raised error returning a `Null` value. The `nullable` handler requires the block to raise `null` explicitly:
 
 ```scala 3
-import in.rcard.yaes.Raise.*
+import io.yaes.Raise.*
 
 def safeDivide(x: Int, y: Int)(using Raise[Null]): Int =
   if (y == 0) then Raise.raise(null)
@@ -560,7 +560,7 @@ The `tapError` combinator observes a raised error via a side-effecting callback 
 This is the "tap on error" pattern, analogous to Arrow's `tapError` and ZIO's `tapError`. It is useful for logging or metrics without changing the error flow. Contrast with `onError`, which consumes the error (the block must return `Unit` and no outer `Raise[E]` is required).
 
 ```scala 3
-import in.rcard.yaes.Raise.*
+import io.yaes.Raise.*
 
 def fetchUser(id: Int)(using Raise[String]): String =
   if (id <= 0) Raise.raise("Invalid user id")
@@ -584,7 +584,7 @@ If the callback itself throws an exception, that exception propagates to the cal
 The `Raise` effect provides a powerful `MapError` strategy that allows you to automatically map errors from one type to another using a `given` instance. This is particularly useful when you need to transform errors in a compositional way across different layers of your application.
 
 ```scala 3
-import in.rcard.yaes.Raise.*
+import io.yaes.Raise.*
 
 // Define different error types for different layers
 sealed trait DatabaseError
@@ -626,7 +626,7 @@ The `MapError` strategy is particularly useful when working with layered archite
 The `Raise` effect allows you to accumulate multiple errors instead of short-circuiting on the first one using `accumulate` and `accumulating`:
 
 ```scala 3
-import in.rcard.yaes.Raise.*
+import io.yaes.Raise.*
 
 def validateName(name: String)(using Raise[String]): String =
   if (name.nonEmpty) name else Raise.raise("Name cannot be empty")
@@ -678,7 +678,7 @@ The `mapAccumulating` function allows you to transform collections while accumul
 **Simple Error Accumulation:**
 
 ```scala 3
-import in.rcard.yaes.Raise.*
+import io.yaes.Raise.*
 
 def validateNumber(n: Int)(using Raise[String]): Int =
   if (n > 0) n else Raise.raise(s"$n is not positive")
@@ -705,7 +705,7 @@ val successResult = Raise.either {
 For more complex error types, you can provide a custom error combination function:
 
 ```scala 3
-import in.rcard.yaes.Raise.*
+import io.yaes.Raise.*
 
 case class ValidationErrors(errors: List[String])
 
@@ -732,9 +732,9 @@ The `accumulate` function is polymorphic and can collect errors into different c
 **Using NonEmptyList** (requires `yaes-cats` module):
 
 ```scala 3
-import in.rcard.yaes.{Raise, RaiseNel}  // RaiseNel is an alias for Raise[NonEmptyList[E]]
-import in.rcard.yaes.Raise.accumulating
-import in.rcard.yaes.instances.accumulate.given  // Import collector instances
+import io.yaes.{Raise, RaiseNel}  // RaiseNel is an alias for Raise[NonEmptyList[E]]
+import io.yaes.Raise.accumulating
+import io.yaes.instances.accumulate.given  // Import collector instances
 import cats.data.NonEmptyList
 
 def validatePositive(n: Int)(using Raise[String]): Int =
@@ -761,7 +761,7 @@ val cleanerResult: RaiseNel[String] ?=> (Int, Int) =
 **Using NonEmptyChain** (requires `yaes-cats` module):
 
 ```scala 3
-import in.rcard.yaes.RaiseNec  // RaiseNec is an alias for Raise[NonEmptyChain[E]]
+import io.yaes.RaiseNec  // RaiseNec is an alias for Raise[NonEmptyChain[E]]
 import cats.data.NonEmptyChain
 
 val result: Either[NonEmptyChain[String], List[Int]] = Raise.either {
@@ -810,7 +810,7 @@ These aliases make function signatures cleaner and follow Cats library conventio
 The `traced` function adds debugging capabilities by capturing stack traces when errors occur:
 
 ```scala 3
-import in.rcard.yaes.Raise.*
+import io.yaes.Raise.*
 
 // Define custom tracing behavior
 given TraceWith[String] = trace => {
@@ -833,8 +833,8 @@ val result = Raise.either {
 You can also use the default tracing strategy:
 
 ```scala 3
-import in.rcard.yaes.Raise.*
-import in.rcard.yaes.Raise.given  // Import default tracing
+import io.yaes.Raise.*
+import io.yaes.Raise.given  // Import default tracing
 
 val result = Raise.either {
   traced {
@@ -851,7 +851,7 @@ val result = Raise.either {
 The `Resource` effect provides automatic resource management with guaranteed cleanup. It ensures that all acquired resources are properly released in LIFO (Last In, First Out) order, even when exceptions occur. This is particularly useful for managing files, database connections, network connections, and other resources that need explicit cleanup.
 
 ```scala 3
-import in.rcard.yaes.Resource.*
+import io.yaes.Resource.*
 import java.io.{FileInputStream, FileOutputStream}
 
 def copyFile(source: String, target: String)(using Resource): Unit = {
@@ -877,7 +877,7 @@ The `Resource` effect provides several methods for resource management:
 Here's an example using custom resource management:
 
 ```scala 3
-import in.rcard.yaes.Resource.*
+import io.yaes.Resource.*
 
 def processWithConnection()(using Resource): String = {
   val connection = Resource.install(openDatabaseConnection()) { conn =>
@@ -897,7 +897,7 @@ def processWithConnection()(using Resource): String = {
 To execute resource-managed code, use the `Resource.run` handler:
 
 ```scala 3
-import in.rcard.yaes.Resource.*
+import io.yaes.Resource.*
 
 val result = Resource.run {
   copyFile("source.txt", "target.txt")
@@ -917,7 +917,7 @@ The `Resource` effect guarantees that:
 The `Shutdown` effect provides graceful shutdown coordination for long-running applications. It automatically handles JVM shutdown signals (SIGTERM, SIGINT, Ctrl+C) and provides mechanisms to cleanly terminate concurrent operations while rejecting new work.
 
 ```scala 3
-import in.rcard.yaes.Shutdown.*
+import io.yaes.Shutdown.*
 
 def processWork()(using Shutdown): Unit = {
   while (!Shutdown.isShuttingDown()) {
@@ -938,8 +938,8 @@ The `Shutdown` effect provides three main operations:
 Here's an example using shutdown hooks:
 
 ```scala 3
-import in.rcard.yaes.Shutdown.*
-import in.rcard.yaes.Output.*
+import io.yaes.Shutdown.*
+import io.yaes.Output.*
 
 def serverWithHooks()(using Shutdown, Output): Unit = {
   Shutdown.onShutdown(() => {
@@ -956,8 +956,8 @@ def serverWithHooks()(using Shutdown, Output): Unit = {
 To run shutdown-aware code, use the `Shutdown.run` handler:
 
 ```scala 3
-import in.rcard.yaes.Shutdown.*
-import in.rcard.yaes.Output.*
+import io.yaes.Shutdown.*
+import io.yaes.Output.*
 
 Shutdown.run {
   Output.run {
@@ -980,8 +980,8 @@ The `Shutdown` effect is particularly useful when combined with the `Async` effe
 Every time we need to read input from the console, we can use the `Input` effect. The `Input` effect provides a set of operations to read input from the console. Since the project is still in an experimental stage, the only one developed operation is the `readLn` function that reads a line from the console:
 
 ```scala 3
-import in.rcard.yaes.Input.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Input.*
+import io.yaes.Raise.*
 import java.io.IOException
 
 val name: (Input, Raise[IOException]) ?=> String = Input.readLn()
@@ -992,8 +992,8 @@ The effect uses the Scala `scala.io.StdIn` object under the hood, which uses the
 To run the effectful computation, we can use the provided handlers, which returns the read line:
 
 ```scala 3
-import in.rcard.yaes.Input.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Input.*
+import io.yaes.Raise.*
 import java.io.IOException
 
 val result: Either[IOException, String] = Raise.either {
@@ -1010,7 +1010,7 @@ In the above example, we use `Raise.either` to handle any `IOException` that may
 The `Output` effect provides a set of operations to print output to the console. Is uses the `scala.Console` object under the hood.
 
 ```scala 3
-import in.rcard.yaes.Output.*
+import io.yaes.Output.*
 
 val program: Output ?=> Unit = Output.printLn("Hello, world!")
 ```
@@ -1020,7 +1020,7 @@ As we can see, outputting to the console doesn't raise any error. The behavior m
 To run the effectful computation, we can use the provided handlers:
 
 ```scala 3
-import in.rcard.yaes.Output.*
+import io.yaes.Output.*
 
 // Prints "Hello, world!" to the console
 Output.run {
@@ -1031,7 +1031,7 @@ Output.run {
 In a similar way, we can output to system err using the `printErr` function:
 
 ```scala 3
-import in.rcard.yaes.Output.*
+import io.yaes.Output.*
 
 val program: Output ?=> Unit = Output.printErr("Hello, world!")
 ```
@@ -1041,7 +1041,7 @@ val program: Output ?=> Unit = Output.printErr("Hello, world!")
 The `Random` effect provides a set of operations to generate random content. If we need to generate non-deterministic content, we can use it. Under the hood, the effect uses the `scala.util.Random` object. As we saw in the introduction, we can use the `Random` effect to define a function that generates a random boolean:
 
 ```scala 3
-import in.rcard.yaes.Random.*
+import io.yaes.Random.*
 
 def flipCoin(using Random): Boolean = Random.nextBoolean
 ```
@@ -1056,7 +1056,7 @@ The other random content we can generate is:
 As usual, we can run the effectful computation using the provided handlers:
 
 ```scala 3
-import in.rcard.yaes.Random.*
+import io.yaes.Random.*
 
 val result: Boolean = Random.run {
   flipCoin
@@ -1070,8 +1070,8 @@ The `Clock` effect provides a set of operations to manage time effectfully. It's
 Both functions use the `java.time` package under the hood.
 
 ```scala 3
-import in.rcard.yaes.Clock.*
-import in.rcard.yaes.Output.*
+import io.yaes.Clock.*
+import io.yaes.Output.*
 
 val program = Output.run {
   Clock.run {
@@ -1090,8 +1090,8 @@ The `System` effect provides a set of operations to manage system properties and
 Use the `System.env` function to read an environment variable and eventually use a default value if the variable is not set:
 
 ```scala 3
-import in.rcard.yaes.System.*
-import in.rcard.yaes.Raise.*
+import io.yaes.System.*
+import io.yaes.Raise.*
 
 val port: (System, Raise[NumberFormatException]) ?=> Option[Int] = System.env[Int]("PORT")
 val host: System ?=> String = System.env[String]("HOST", "localhost")
@@ -1100,8 +1100,8 @@ val host: System ?=> String = System.env[String]("HOST", "localhost")
 The same applies to system properties. Use the `System.property` function to read a system property and eventually use a default value if the property is not set:
 
 ```scala 3
-import in.rcard.yaes.System.*
-import in.rcard.yaes.Raise.*
+import io.yaes.System.*
+import io.yaes.Raise.*
 
 val port: (System, Raise[NumberFormatException]) ?=> Option[Int] = System.property[Int]("server.port")
 val host: System ?=> String = System.property[String]("server.host", "localhost")
@@ -1130,7 +1130,7 @@ The `State` effect manages a single piece of state of type `S` throughout a comp
 #### Basic Usage
 
 ```scala 3
-import in.rcard.yaes.State.*
+import io.yaes.State.*
 
 val (finalState, result) = State.run(0) {
   val current = State.get[Int]
@@ -1143,7 +1143,7 @@ val (finalState, result) = State.run(0) {
 #### Updating State
 
 ```scala 3
-import in.rcard.yaes.State.*
+import io.yaes.State.*
 
 val (finalState, result) = State.run(10) {
   val doubled = State.update[Int](_ * 2)
@@ -1156,7 +1156,7 @@ val (finalState, result) = State.run(10) {
 #### Using State Without Modification
 
 ```scala 3
-import in.rcard.yaes.State.*
+import io.yaes.State.*
 
 case class User(name: String, age: Int)
 
@@ -1169,8 +1169,8 @@ val (finalState, nameLength) = State.run(User("Alice", 30)) {
 #### Combining with Other Effects
 
 ```scala 3
-import in.rcard.yaes.State.*
-import in.rcard.yaes.Random.*
+import io.yaes.State.*
+import io.yaes.Random.*
 
 def randomWalk(steps: Int)(using State[Int], Random): Int = {
   if (steps <= 0) State.get[Int]
@@ -1204,7 +1204,7 @@ The `Writer[W]` effect enables pure, append-only value accumulation during compu
 #### Basic Usage
 
 ```scala 3
-import in.rcard.yaes.Writer.*
+import io.yaes.Writer.*
 
 val (log, result) = Writer.run[String, Int] {
   Writer.write("starting")
@@ -1217,7 +1217,7 @@ val (log, result) = Writer.run[String, Int] {
 For more concise syntax, you can use the `writes` infix type:
 
 ```scala 3
-import in.rcard.yaes.{Writer, writes}
+import io.yaes.{Writer, writes}
 
 def computation: Int writes String = {
   Writer.write("log entry")
@@ -1230,7 +1230,7 @@ def computation: Int writes String = {
 Use `writeAll` to append multiple values at once:
 
 ```scala 3
-import in.rcard.yaes.Writer.*
+import io.yaes.Writer.*
 
 val (log, _) = Writer.run[Int, Unit] {
   Writer.write(1)
@@ -1245,7 +1245,7 @@ val (log, _) = Writer.run[Int, Unit] {
 The `capture` operation records writes from a block, returning them alongside the block's result. Writes are also forwarded to the outer scope:
 
 ```scala 3
-import in.rcard.yaes.Writer.*
+import io.yaes.Writer.*
 
 val (outerLog, (innerLog, result)) = Writer.run[String, (Vector[String], Int)] {
   Writer.write("before")
@@ -1263,8 +1263,8 @@ val (outerLog, (innerLog, result)) = Writer.run[String, (Vector[String], Int)] {
 #### Combining with Other Effects
 
 ```scala 3
-import in.rcard.yaes.Writer.*
-import in.rcard.yaes.State.*
+import io.yaes.Writer.*
+import io.yaes.State.*
 
 val (state, (log, result)) = State.run(0) {
   Writer.run[String, Int] {
@@ -1292,7 +1292,7 @@ The environment value is immutable within a scope. The `local` operation creates
 #### Basic Usage
 
 ```scala 3
-import in.rcard.yaes.Reader
+import io.yaes.Reader
 
 case class Config(maxRetries: Int, timeout: Int)
 
@@ -1305,7 +1305,7 @@ val result = Reader.run(Config(3, 5000)) {
 For more concise syntax, you can use the `reads` infix type:
 
 ```scala 3
-import in.rcard.yaes.{Reader, reads}
+import io.yaes.{Reader, reads}
 
 def getRetries: Int reads Config =
   Reader.read[Config].maxRetries
@@ -1316,7 +1316,7 @@ def getRetries: Int reads Config =
 Use `local` to temporarily modify the environment value for a block:
 
 ```scala 3
-import in.rcard.yaes.Reader
+import io.yaes.Reader
 
 case class Config(maxRetries: Int, timeout: Int)
 
@@ -1334,7 +1334,7 @@ val result = Reader.run(Config(3, 5000)) {
 #### Combining with Other Effects
 
 ```scala 3
-import in.rcard.yaes.{Raise, Reader, raises, reads}
+import io.yaes.{Raise, Reader, raises, reads}
 
 case class Config(maxRetries: Int)
 
@@ -1368,10 +1368,10 @@ The `Log` effect provides the capability to log messages at different levels. Th
   - `ERROR`
   - `FATAL`
   
-We can log using a concrete implementation of the `in.rcard.yaes.Logger` interface. Each logger instance has a name. To create a logger, we can use the `Log.getLogger` method:
+We can log using a concrete implementation of the `io.yaes.Logger` interface. Each logger instance has a name. To create a logger, we can use the `Log.getLogger` method:
 
 ```scala 3
-import in.rcard.yaes.Log.*
+import io.yaes.Log.*
 
 val logger: Log ?=> Logger = Log.getLogger("TestLogger")
 ```
@@ -1385,7 +1385,7 @@ In `yaes-core`, the default logger implementation is the `ConsoleLogger`, which 
 To run the effectful computation, we can use the provided handlers. The `Log.run` method accepts a `level` parameter that controls the minimum severity of messages that will be emitted. The default level is `Log.Level.Debug`:
 
 ```scala 3
-import in.rcard.yaes.Log.*
+import io.yaes.Log.*
 
 val program = Log.run(Log.Level.Info) {
   val logger = Log.getLogger("TestLogger")
@@ -1409,8 +1409,8 @@ object Log {
 The `yaes-slf4j` module provides an alternative handler that delegates logging to any SLF4J-compatible backend (Logback, Log4j2, etc.). Simply replace `Log.run` with `Slf4jLog.run` — all existing application code remains unchanged:
 
 ```scala 3
-import in.rcard.yaes.Log
-import in.rcard.yaes.slf4j.Slf4jLog
+import io.yaes.Log
+import io.yaes.slf4j.Slf4jLog
 
 Slf4jLog.run {
   val logger = Log.getLogger("MyService")
@@ -1431,8 +1431,8 @@ The `Retry` handler re-executes a failing block according to a `Schedule` retry 
 A `Schedule` computes the delay for each retry attempt. Schedules compose via chaining. The `jitter` extension requires the `Random` effect in scope:
 
 ```scala 3
-import in.rcard.yaes.Async.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Async.*
+import io.yaes.Raise.*
 import scala.concurrent.duration.*
 
 // Fixed delay
@@ -1462,8 +1462,8 @@ val composed: Either[DbError, String] = Random.run {
 #### Using Retry
 
 ```scala 3
-import in.rcard.yaes.Async.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Async.*
+import io.yaes.Raise.*
 import scala.concurrent.duration.*
 
 case class DbError(msg: String)
@@ -1530,7 +1530,7 @@ The timeout check is **lazy**: the circuit transitions Open → Half-Open on the
 #### Configuration
 
 ```scala 3
-import in.rcard.yaes.*
+import io.yaes.*
 import scala.concurrent.duration.*
 
 // Basic: trip after 3 consecutive failures, reset timeout 5 seconds
@@ -1544,7 +1544,7 @@ val selective = CircuitBreaker.Config.consecutive[AppError](3, 5.seconds)
 #### Using CircuitBreaker
 
 ```scala 3
-import in.rcard.yaes.*
+import io.yaes.*
 import scala.concurrent.duration.*
 
 case class DbError(msg: String)
@@ -1615,9 +1615,9 @@ Channels support different buffer configurations that control how elements are b
 **Unbounded Channel**: A channel with unlimited buffer capacity that never suspends the sender.
 
 ```scala 3
-import in.rcard.yaes.Channel
-import in.rcard.yaes.Async.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Channel
+import io.yaes.Async.*
+import io.yaes.Raise.*
 
 val channel = Channel.unbounded[Int]()
 
@@ -1636,10 +1636,10 @@ Raise.run {
 **Bounded Channel**: A channel with a fixed buffer capacity. When the buffer is full, behavior depends on the overflow policy (default is to suspend the sender).
 
 ```scala 3
-import in.rcard.yaes.Channel
-import in.rcard.yaes.Channel.OverflowStrategy
-import in.rcard.yaes.Async.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Channel
+import io.yaes.Channel.OverflowStrategy
+import io.yaes.Async.*
+import io.yaes.Raise.*
 
 // Default: suspend when full
 val channel1 = Channel.bounded[Int](capacity = 2)
@@ -1668,10 +1668,10 @@ Raise.run {
 - `OverflowStrategy.DROP_LATEST`: The new element is discarded and the buffer remains unchanged
 
 ```scala 3
-import in.rcard.yaes.Channel
-import in.rcard.yaes.Channel.OverflowStrategy
-import in.rcard.yaes.Async.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Channel
+import io.yaes.Channel.OverflowStrategy
+import io.yaes.Async.*
+import io.yaes.Raise.*
 
 // Channel that never suspends, dropping old elements when full
 val channel = Channel.bounded[Int](capacity = 3, onOverflow = OverflowStrategy.DROP_OLDEST)
@@ -1691,9 +1691,9 @@ Raise.run {
 **Rendezvous Channel**: A channel with no buffer. The sender and receiver must meet (rendezvous): `send` suspends until another computation invokes `receive`, and vice versa.
 
 ```scala 3
-import in.rcard.yaes.Channel
-import in.rcard.yaes.Async.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Channel
+import io.yaes.Async.*
+import io.yaes.Raise.*
 
 val channel = Channel.rendezvous[String]()
 
@@ -1723,9 +1723,9 @@ Channels are composed of two interfaces:
 **Sending and Receiving**:
 
 ```scala 3
-import in.rcard.yaes.Channel
-import in.rcard.yaes.Async.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Channel
+import io.yaes.Async.*
+import io.yaes.Raise.*
 
 val channel = Channel.unbounded[Int]()
 
@@ -1754,9 +1754,9 @@ Raise.run {
 - **`cancel()`**: Immediately clears all buffered elements and marks the channel as cancelled
 
 ```scala 3
-import in.rcard.yaes.Channel
-import in.rcard.yaes.Async.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Channel
+import io.yaes.Async.*
+import io.yaes.Raise.*
 
 val channel = Channel.unbounded[Int]()
 
@@ -1780,10 +1780,10 @@ Raise.run {
 The `produce` and `produceWith` functions provide a convenient DSL for creating channels with producer coroutines:
 
 ```scala 3
-import in.rcard.yaes.Channel
-import in.rcard.yaes.Channel.Producer
-import in.rcard.yaes.Async.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Channel
+import io.yaes.Channel.Producer
+import io.yaes.Async.*
+import io.yaes.Raise.*
 
 Raise.run {
   Async.run {
@@ -1806,10 +1806,10 @@ Raise.run {
 You can also specify the channel type with `produceWith`:
 
 ```scala 3
-import in.rcard.yaes.Channel
-import in.rcard.yaes.Channel.Producer
-import in.rcard.yaes.Async.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Channel
+import io.yaes.Channel.Producer
+import io.yaes.Async.*
+import io.yaes.Raise.*
 
 Raise.run {
   Async.run {
@@ -1838,8 +1838,8 @@ The `channelFlow` and `channelFlowWith` functions provide a bridge between chann
 **Basic usage with `channelFlow`:**
 
 ```scala 3
-import in.rcard.yaes.Channel
-import in.rcard.yaes.Async.*
+import io.yaes.Channel
+import io.yaes.Async.*
 
 val flow = Channel.channelFlow[Int] {
   Channel.Producer.send(1)
@@ -1855,9 +1855,9 @@ flow.collect { value => result += value }
 **With custom channel type using `channelFlowWith`:**
 
 ```scala 3
-import in.rcard.yaes.Channel
-import in.rcard.yaes.Async.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Channel
+import io.yaes.Async.*
+import io.yaes.Raise.*
 
 val flow = Channel.channelFlowWith[Int](Channel.Type.Bounded(5)) {
   (1 to 100).foreach(Channel.Producer.send)
@@ -1871,9 +1871,9 @@ flow.collect { value => result += value }
 **Concurrent emission from multiple fibers:**
 
 ```scala 3
-import in.rcard.yaes.Channel
-import in.rcard.yaes.Async.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Channel
+import io.yaes.Async.*
+import io.yaes.Raise.*
 
 val flow = Channel.channelFlow[Int] {
   Async.fork {
@@ -1896,9 +1896,9 @@ flow.collect { value => result += value }
 **Merging multiple flows:**
 
 ```scala 3
-import in.rcard.yaes.{Channel, Flow}
-import in.rcard.yaes.Async.*
-import in.rcard.yaes.Raise.*
+import io.yaes.{Channel, Flow}
+import io.yaes.Async.*
+import io.yaes.Raise.*
 
 def merge[T](flow1: Flow[T], flow2: Flow[T]): Flow[T] =
   Channel.channelFlow[T] {
@@ -1942,8 +1942,8 @@ The `buffer` operator allows flow emissions to be buffered via a channel, enabli
 **Basic usage with unbounded buffer (default):**
 
 ```scala 3
-import in.rcard.yaes.{Channel, Flow}
-import in.rcard.yaes.Channel.buffer
+import io.yaes.{Channel, Flow}
+import io.yaes.Channel.buffer
 
 val flow = Flow(1, 2, 3, 4, 5)
 
@@ -1955,8 +1955,8 @@ flow.buffer().collect { value => result += value }
 **With bounded buffer for backpressure:**
 
 ```scala 3
-import in.rcard.yaes.{Channel, Flow}
-import in.rcard.yaes.Channel.buffer
+import io.yaes.{Channel, Flow}
+import io.yaes.Channel.buffer
 
 val flow = Flow(1, 2, 3, 4, 5)
 
@@ -1968,9 +1968,9 @@ flow.buffer(Channel.Type.Bounded(2)).collect { value => result += value }
 **With overflow strategies:**
 
 ```scala 3
-import in.rcard.yaes.{Channel, Flow}
-import in.rcard.yaes.Channel.{buffer, OverflowStrategy}
-import in.rcard.yaes.Async.*
+import io.yaes.{Channel, Flow}
+import io.yaes.Channel.{buffer, OverflowStrategy}
+import io.yaes.Async.*
 import scala.concurrent.duration.*
 
 // DROP_OLDEST: drops oldest buffered values when full
@@ -2013,9 +2013,9 @@ Key features:
 **Basic Usage:**
 
 ```scala 3
-import in.rcard.yaes.{Flow, FlowPublisher}
-import in.rcard.yaes.FlowPublisher.asPublisher
-import in.rcard.yaes.Async.*
+import io.yaes.{Flow, FlowPublisher}
+import io.yaes.FlowPublisher.asPublisher
+import io.yaes.Async.*
 import java.util.concurrent.Flow.{Subscriber, Subscription}
 
 val flow = Flow(1, 2, 3, 4, 5)
@@ -2048,8 +2048,8 @@ Async.run {
 **With Custom Buffer Configuration:**
 
 ```scala 3
-import in.rcard.yaes.{Flow, Channel}
-import in.rcard.yaes.FlowPublisher.asPublisher
+import io.yaes.{Flow, Channel}
+import io.yaes.FlowPublisher.asPublisher
 
 val flow = Flow(1 to 100: _*)
 
@@ -2061,7 +2061,7 @@ val publisher = flow.asPublisher(
 **Using Factory Methods:**
 
 ```scala 3
-import in.rcard.yaes.{Flow, FlowPublisher}
+import io.yaes.{Flow, FlowPublisher}
 
 // Default buffer capacity (16, SUSPEND)
 val publisher1 = FlowPublisher.fromFlow(flow)
@@ -2081,17 +2081,17 @@ Key features:
 - **Error propagation**: Flow errors are propagated to subscriber's `onError`
 - **Concurrent**: Uses fibers internally for producer and consumer coordination
 
-For comprehensive documentation including demand management, backpressure patterns, error handling, and best practices, see the [Reactive Streams Integration documentation](https://rcardin.github.io/yaes/data-structures.html#reactive-streams-integration).
+For comprehensive documentation including demand management, backpressure patterns, error handling, and best practices, see the [Reactive Streams Integration documentation](https://yaes-io.github.io/yaes/data-structures.html#reactive-streams-integration).
 
 #### Error Handling
 
 Channel operations can raise `ChannelClosed` errors. These must be handled using the `Raise` effect:
 
 ```scala 3
-import in.rcard.yaes.Channel
-import in.rcard.yaes.Channel.ChannelClosed
-import in.rcard.yaes.Async.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Channel
+import io.yaes.Channel.ChannelClosed
+import io.yaes.Async.*
+import io.yaes.Raise.*
 
 val result: ChannelClosed | String = Raise.run {
   Async.run {
@@ -2109,10 +2109,10 @@ val result: ChannelClosed | String = Raise.run {
 Channels are excellent for building data processing pipelines:
 
 ```scala 3
-import in.rcard.yaes.Channel
-import in.rcard.yaes.Channel.Producer
-import in.rcard.yaes.Async.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Channel
+import io.yaes.Channel.Producer
+import io.yaes.Async.*
+import io.yaes.Raise.*
 
 case class User(id: Int, name: String)
 

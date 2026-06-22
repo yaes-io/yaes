@@ -1,7 +1,7 @@
 inThisBuild(
   List(
-    organization := "in.rcard.yaes",
-    homepage     := Some(url("https://github.com/rcardin")),
+    organization := "io.yaes",
+    homepage     := Some(url("https://github.com/yaes-io/yaes")),
     // Alternatively License.Apache2 see https://github.com/sbt/librarymanagement/blob/develop/core/src/main/scala/sbt/librarymanagement/License.scala
     licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
     developers := List(
@@ -9,7 +9,7 @@ inThisBuild(
         "rcardin",
         "Riccardo Cardin",
         "riccardo DOT cardin AT gmail.com",
-        url("https://github.com/rcardin/yaes")
+        url("https://github.com/rcardin")
       )
     )
   )

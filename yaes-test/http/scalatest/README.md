@@ -8,7 +8,7 @@ in-process stub HTTP server backed by the JDK's built-in `com.sun.net.httpserver
 Add the following dependency to your `build.sbt`:
 
 ```scala
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-test-scalatest" % "<version>" % Test
+libraryDependencies += "io.yaes" %% "yaes-http-test-scalatest" % "<version>" % Test
 ```
 
 ## Usage
@@ -17,7 +17,7 @@ Mix `StubHttpServerSpec` into your ScalaTest suite. The server binds to an ephem
 construction, resets automatically before each test, and stops after the suite completes.
 
 ```scala
-import in.rcard.yaes.test.http.scalatest.{StubHttpServer, StubHttpServerSpec, StubResponse}
+import io.yaes.test.http.scalatest.{StubHttpServer, StubHttpServerSpec, StubResponse}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import java.net.URI

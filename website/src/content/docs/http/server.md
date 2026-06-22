@@ -28,10 +28,10 @@ A type-safe, effect-based HTTP/1.1 server built on YAES effects and Java virtual
 Add `yaes-http-server` to your project dependencies:
 
 ```scala
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-server" % "0.21.0"
+libraryDependencies += "io.yaes" %% "yaes-http-server" % "0.21.0"
 ```
 
-> Check [Maven Central](https://central.sonatype.com/artifact/in.rcard.yaes/yaes-http-server_3) for the latest version.
+> Check [Maven Central](https://central.sonatype.com/artifact/io.yaes/yaes-http-server_3) for the latest version.
 
 ---
 
@@ -40,9 +40,9 @@ libraryDependencies += "in.rcard.yaes" %% "yaes-http-server" % "0.21.0"
 Here's a minimal HTTP server with a single route:
 
 ```scala
-import in.rcard.yaes.*
-import in.rcard.yaes.Log.given
-import in.rcard.yaes.http.server.*
+import io.yaes.*
+import io.yaes.Log.given
+import io.yaes.http.server.*
 import scala.concurrent.duration.*
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -405,7 +405,7 @@ trait BodyDecoder[A] {
 **Example - JSON encoder/decoder using an external library:**
 
 ```scala
-import in.rcard.yaes.{Raise, raises}
+import io.yaes.{Raise, raises}
 import io.circe.{Decoder, Encoder}
 import io.circe.parser.decode
 import io.circe.syntax.*
@@ -439,7 +439,7 @@ POST(p"/users") { req =>
 }
 ```
 
-> **Note:** JSON codec libraries (circe, upickle, zio-json, etc.) are not included. Choose your preferred library and implement `BodyEncoder` and/or `BodyDecoder` as needed. See [JSON with Circe](/yaes/http/circe/) for a ready-made integration.
+> **Note:** JSON codec libraries (circe, upickle, zio-json, etc.) are not included. Choose your preferred library and implement `BodyEncoder` and/or `BodyDecoder` as needed. See [JSON with Circe](/http/circe/) for a ready-made integration.
 
 ---
 
@@ -563,7 +563,7 @@ Sync.runBlocking(Duration.Inf) {
 }.get
 ```
 
-> See [Step 5: Concurrency](/yaes/learn/5-concurrency/) for more details on shutdown coordination.
+> See [Step 5: Concurrency](/learn/5-concurrency/) for more details on shutdown coordination.
 
 ### Shutdown Behavior
 
@@ -753,7 +753,7 @@ Sync.runBlocking(Duration.Inf) {
 }.get
 ```
 
-> See [SLF4J Logging](/yaes/integrations/slf4j-logging/) for details on log levels, formatting, and custom loggers.
+> See [SLF4J Logging](/integrations/slf4j-logging/) for details on log levels, formatting, and custom loggers.
 
 ### Logged Events
 
@@ -836,8 +836,8 @@ Configure `maxBodySize` appropriately or use a dedicated file storage service (S
 Here's a production-ready HTTP server demonstrating all key features:
 
 ```scala
-import in.rcard.yaes.*
-import in.rcard.yaes.http.server.*
+import io.yaes.*
+import io.yaes.http.server.*
 import scala.concurrent.duration.*
 import scala.concurrent.ExecutionContext.Implicits.global
 

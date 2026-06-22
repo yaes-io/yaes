@@ -26,21 +26,21 @@ object EffectName {
 
 ### Infix Type Aliases Require Separate Imports
 
-The infix types `raises`, `reads`, and `writes` are defined at the **package level** in `in.rcard.yaes`, not inside their companion objects. Importing `Raise.*`, `Reader.*`, or `Writer.*` does **not** bring them into scope:
+The infix types `raises`, `reads`, and `writes` are defined at the **package level** in `io.yaes`, not inside their companion objects. Importing `Raise.*`, `Reader.*`, or `Writer.*` does **not** bring them into scope:
 
 ```scala
 // ✅ CORRECT — import the infix type separately
-import in.rcard.yaes.{Raise, raises}
+import io.yaes.{Raise, raises}
 
 def divide(a: Int, b: Int): Int raises DivisionByZero = ...
 
 // ❌ INCORRECT — Raise.* does not include the `raises` infix type
-import in.rcard.yaes.Raise.*
+import io.yaes.Raise.*
 
 def divide(a: Int, b: Int): Int raises DivisionByZero = ... // won't compile
 ```
 
-When writing documentation or code snippets that use infix types, always include the explicit import (e.g., `import in.rcard.yaes.{raises, reads}`) alongside the companion object import.
+When writing documentation or code snippets that use infix types, always include the explicit import (e.g., `import io.yaes.{raises, reads}`) alongside the companion object import.
 
 ### Key Implementation Details
 

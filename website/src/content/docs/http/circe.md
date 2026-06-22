@@ -27,7 +27,7 @@ JSON body encoder/decoder integration for the λÆS HTTP server using [Circe](ht
 Add `yaes-http-circe` to your project dependencies:
 
 ```scala
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-circe" % "0.21.0"
+libraryDependencies += "io.yaes" %% "yaes-http-circe" % "0.21.0"
 ```
 
 If you need Circe's automatic derivation features, also include `circe-generic`:
@@ -36,19 +36,19 @@ If you need Circe's automatic derivation features, also include `circe-generic`:
 libraryDependencies += "io.circe" %% "circe-generic" % "0.14.15"
 ```
 
-> Check [Maven Central](https://central.sonatype.com/artifact/in.rcard.yaes/yaes-http-circe_3) for the latest version.
+> Check [Maven Central](https://central.sonatype.com/artifact/io.yaes/yaes-http-circe_3) for the latest version.
 
 ---
 
 ## Quick Start
 
-Import the circe codecs with `import in.rcard.yaes.http.circe.given` and use typed request/response bodies in your routes:
+Import the circe codecs with `import io.yaes.http.circe.given` and use typed request/response bodies in your routes:
 
 ```scala
-import in.rcard.yaes.*
-import in.rcard.yaes.Log.given
-import in.rcard.yaes.http.server.*
-import in.rcard.yaes.http.circe.given
+import io.yaes.*
+import io.yaes.Log.given
+import io.yaes.http.server.*
+import io.yaes.http.circe.given
 import io.circe.{Encoder, Decoder}
 import scala.concurrent.duration.Duration
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -83,7 +83,7 @@ Sync.runBlocking(Duration.Inf) {
 }.get
 ```
 
-The key import is `in.rcard.yaes.http.circe.given` — this brings both `circeBodyEncoder` and `circeBodyDecoder` into scope, which automatically provide a `BodyEncoder[A]` for any type `A` with a Circe `Encoder[A]` and a `BodyDecoder[A]` for any type `A` with a Circe `Decoder[A]`.
+The key import is `io.yaes.http.circe.given` — this brings both `circeBodyEncoder` and `circeBodyDecoder` into scope, which automatically provide a `BodyEncoder[A]` for any type `A` with a Circe `Encoder[A]` and a `BodyDecoder[A]` for any type `A` with a Circe `Decoder[A]`.
 
 ---
 
@@ -183,10 +183,10 @@ Common failure scenarios:
 A full server with JSON endpoints using Circe:
 
 ```scala
-import in.rcard.yaes.*
-import in.rcard.yaes.Log.given
-import in.rcard.yaes.http.server.*
-import in.rcard.yaes.http.circe.given
+import io.yaes.*
+import io.yaes.Log.given
+import io.yaes.http.server.*
+import io.yaes.http.circe.given
 import io.circe.{Encoder, Decoder}
 import scala.concurrent.duration.Duration
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -233,7 +233,7 @@ Add the following to your `build.sbt`:
 
 ```scala
 libraryDependencies ++= Seq(
-  "in.rcard.yaes" %% "yaes-http-circe" % "0.21.0",
+  "io.yaes" %% "yaes-http-circe" % "0.21.0",
   "io.circe"      %% "circe-generic"   % "0.14.15"  // For derivation
 )
 ```

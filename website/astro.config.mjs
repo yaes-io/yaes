@@ -4,8 +4,7 @@ import starlight from '@astrojs/starlight';
 
 // https://astro.build/config
 export default defineConfig({
-	site: 'https://rcardin.github.io',
-	base: '/yaes',
+	site: 'https://www.yaes.io',
 	integrations: [
 		starlight({
 			title: 'λÆS — Yet Another Effect System',
@@ -14,7 +13,7 @@ export default defineConfig({
 			},
 			customCss: ['./src/styles/custom.css'],
 			social: [
-				{ icon: 'github', label: 'GitHub', href: 'https://github.com/rcardin/yaes' },
+				{ icon: 'github', label: 'GitHub', href: 'https://github.com/yaes-io/yaes' },
 			],
 			sidebar: [
 				{
@@ -60,8 +59,8 @@ export default defineConfig({
 					label: 'Community',
 					items: [
 						{ label: 'Contributing', slug: 'community/contributing' },
-						{ label: 'GitHub ↗', link: 'https://github.com/rcardin/yaes', attrs: { target: '_blank' } },
-						{ label: 'Maven Central ↗', link: 'https://central.sonatype.com/artifact/in.rcard.yaes/yaes-core_3', attrs: { target: '_blank' } },
+						{ label: 'GitHub ↗', link: 'https://github.com/yaes-io/yaes', attrs: { target: '_blank' } },
+						{ label: 'Maven Central ↗', link: 'https://central.sonatype.com/artifact/io.yaes/yaes-core_3', attrs: { target: '_blank' } },
 					],
 				},
 			],

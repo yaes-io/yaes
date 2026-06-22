@@ -27,7 +27,7 @@ JSON body encoder/decoder integration for the λÆS HTTP server using [jsoniter-
 Add `yaes-http-jsoniter` to your project dependencies:
 
 ```scala
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-jsoniter" % "0.21.0"
+libraryDependencies += "io.yaes" %% "yaes-http-jsoniter" % "0.21.0"
 ```
 
 To derive codecs via `JsonCodecMaker.make`, also add `jsoniter-scala-macros` as a provided dependency:
@@ -36,20 +36,20 @@ To derive codecs via `JsonCodecMaker.make`, also add `jsoniter-scala-macros` as 
 libraryDependencies += "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-macros" % "2.38.9" % Provided
 ```
 
-> Check [Maven Central](https://central.sonatype.com/artifact/in.rcard.yaes/yaes-http-jsoniter_3) for the latest version.
+> Check [Maven Central](https://central.sonatype.com/artifact/io.yaes/yaes-http-jsoniter_3) for the latest version.
 
 ---
 
 ## Quick Start
 
-Derive a `JsonValueCodec` for your types, import the jsoniter codecs with `import in.rcard.yaes.http.jsoniter.given`, and use typed request/response bodies in your routes:
+Derive a `JsonValueCodec` for your types, import the jsoniter codecs with `import io.yaes.http.jsoniter.given`, and use typed request/response bodies in your routes:
 
 ```scala
-import in.rcard.yaes.*
-import in.rcard.yaes.Log.given
-import in.rcard.yaes.http.server.*
-import in.rcard.yaes.http.core.DecodingError
-import in.rcard.yaes.http.jsoniter.given
+import io.yaes.*
+import io.yaes.Log.given
+import io.yaes.http.server.*
+import io.yaes.http.core.DecodingError
+import io.yaes.http.jsoniter.given
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import scala.concurrent.duration.Duration
@@ -86,7 +86,7 @@ Sync.runBlocking(Duration.Inf) {
 }.get
 ```
 
-The key import is `in.rcard.yaes.http.jsoniter.given` — this brings both `jsoniterBodyEncoder` and `jsoniterBodyDecoder` into scope, which automatically provide a `BodyEncoder[A]` and `BodyDecoder[A]` for any type `A` with a `JsonValueCodec[A]` in scope.
+The key import is `io.yaes.http.jsoniter.given` — this brings both `jsoniterBodyEncoder` and `jsoniterBodyDecoder` into scope, which automatically provide a `BodyEncoder[A]` and `BodyDecoder[A]` for any type `A` with a `JsonValueCodec[A]` in scope.
 
 ---
 
@@ -176,11 +176,11 @@ Common failure scenarios:
 A full server with JSON endpoints using jsoniter-scala:
 
 ```scala
-import in.rcard.yaes.*
-import in.rcard.yaes.Log.given
-import in.rcard.yaes.http.server.*
-import in.rcard.yaes.http.core.DecodingError
-import in.rcard.yaes.http.jsoniter.given
+import io.yaes.*
+import io.yaes.Log.given
+import io.yaes.http.server.*
+import io.yaes.http.core.DecodingError
+import io.yaes.http.jsoniter.given
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import scala.concurrent.duration.Duration
@@ -231,7 +231,7 @@ Add the following to your `build.sbt`:
 
 ```scala
 libraryDependencies ++= Seq(
-  "in.rcard.yaes"                              %% "yaes-http-jsoniter"     % "0.21.0",
+  "io.yaes"                              %% "yaes-http-jsoniter"     % "0.21.0",
   "com.github.plokhotnyuk.jsoniter-scala"      %% "jsoniter-scala-macros"  % "2.38.9" % Provided
 )
 ```

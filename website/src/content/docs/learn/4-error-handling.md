@@ -19,7 +19,7 @@ The `Raise[E]` effect describes the possibility that a function can raise an err
 **With Exception Types:**
 
 ```scala
-import in.rcard.yaes.Raise.*
+import io.yaes.Raise.*
 
 def divide(a: Int, b: Int)(using Raise[ArithmeticException]): Int =
   if (b == 0) Raise.raise(new ArithmeticException("Division by zero"))
@@ -29,7 +29,7 @@ def divide(a: Int, b: Int)(using Raise[ArithmeticException]): Int =
 **With Custom Error Types:**
 
 ```scala
-import in.rcard.yaes.Raise.*
+import io.yaes.Raise.*
 
 object DivisionByZero
 type DivisionByZero = DivisionByZero.type
@@ -44,8 +44,8 @@ def divide(a: Int, b: Int)(using Raise[DivisionByZero]): Int =
 For more concise syntax, use the `raises` infix type instead of `using Raise[E]`:
 
 ```scala
-import in.rcard.yaes.raises
-import in.rcard.yaes.Raise.*
+import io.yaes.raises
+import io.yaes.Raise.*
 
 def divide(a: Int, b: Int): Int raises DivisionByZero =
   if (b == 0) Raise.raise(DivisionByZero)
@@ -61,7 +61,7 @@ val result: Int | DivisionByZero = Raise.run {
 **Ensuring Conditions:**
 
 ```scala
-import in.rcard.yaes.Raise.*
+import io.yaes.Raise.*
 
 def divide(a: Int, b: Int)(using Raise[DivisionByZero]): Int = {
   Raise.ensure(b != 0) { DivisionByZero }
@@ -72,7 +72,7 @@ def divide(a: Int, b: Int)(using Raise[DivisionByZero]): Int = {
 **Ensuring Non-Null Values:**
 
 ```scala
-import in.rcard.yaes.Raise.*
+import io.yaes.Raise.*
 
 object NullError
 type NullError = NullError.type
@@ -91,7 +91,7 @@ val result = Raise.either { processName(null) }
 Use `accumulate` and `accumulating` to collect multiple errors instead of short-circuiting on the first one:
 
 ```scala
-import in.rcard.yaes.Raise.*
+import io.yaes.Raise.*
 
 def validateName(name: String)(using Raise[String]): String =
   if (name.nonEmpty) name else Raise.raise("Name cannot be empty")
@@ -131,7 +131,7 @@ val result = Raise.either {
 **`mapAccumulating` — Transform Collections While Collecting Errors:**
 
 ```scala
-import in.rcard.yaes.Raise.*
+import io.yaes.Raise.*
 
 def validateNumber(n: Int)(using Raise[String]): Int =
   if (n > 0) n else Raise.raise(s"$n is not positive")
@@ -147,7 +147,7 @@ val result = Raise.either {
 For complex error types, provide a custom error combination function:
 
 ```scala
-import in.rcard.yaes.Raise.*
+import io.yaes.Raise.*
 
 case class ValidationErrors(errors: List[String])
 
@@ -170,9 +170,9 @@ val result = Raise.either {
 **Polymorphic Error Accumulation** (requires `yaes-cats`):
 
 ```scala
-import in.rcard.yaes.{Raise, RaiseNel}
-import in.rcard.yaes.Raise.accumulating
-import in.rcard.yaes.instances.accumulate.given
+import io.yaes.{Raise, RaiseNel}
+import io.yaes.Raise.accumulating
+import io.yaes.instances.accumulate.given
 import cats.data.NonEmptyList
 
 def validatePositive(n: Int)(using Raise[String]): Int =
@@ -196,7 +196,7 @@ Available collector types:
 **Transforming Error Types:**
 
 ```scala
-import in.rcard.yaes.Raise.*
+import io.yaes.Raise.*
 
 sealed trait NetworkError
 case object ConnectionTimeout extends NetworkError
@@ -230,7 +230,7 @@ val result = Raise.either {
 Transform exceptions into typed errors:
 
 ```scala
-import in.rcard.yaes.Raise.*
+import io.yaes.Raise.*
 
 def divide(a: Int, b: Int)(using Raise[DivisionByZero]): Int =
   Raise.catching[ArithmeticException] {
@@ -245,7 +245,7 @@ def divide(a: Int, b: Int)(using Raise[DivisionByZero]): Int =
 This is the "tap on error" pattern: useful for logging or monitoring without altering the error flow. Contrast with `onError`, which consumes the error (block must return `Unit`, no outer `Raise[E]` required).
 
 ```scala
-import in.rcard.yaes.Raise.*
+import io.yaes.Raise.*
 
 def riskyOperation(value: Int)(using Raise[String]): Int =
   if (value < 0) Raise.raise("Negative value not allowed")
@@ -313,7 +313,7 @@ val result: Int | Null = Raise.nullable {
 The `traced` function adds tracing capabilities to error handling, capturing stack traces when errors occur:
 
 ```scala
-import in.rcard.yaes.Raise.*
+import io.yaes.Raise.*
 
 given TraceWith[String] = trace => {
   println(s"Error occurred: ${trace.original}")
@@ -335,8 +335,8 @@ val result = Raise.either {
 **Default Tracing:**
 
 ```scala
-import in.rcard.yaes.Raise.*
-import in.rcard.yaes.Raise.given  // Import default tracing
+import io.yaes.Raise.*
+import io.yaes.Raise.given  // Import default tracing
 
 val result = Raise.either {
   traced {
@@ -355,7 +355,7 @@ Tracing has performance implications since it creates full stack traces. Use it 
 Combine multiple error types in a single function:
 
 ```scala
-import in.rcard.yaes.Raise.*
+import io.yaes.Raise.*
 
 sealed trait ValidationError
 case object InvalidEmail extends ValidationError
@@ -390,8 +390,8 @@ The `Retry` handler re-executes a failing block according to a `Schedule` retry 
 ### Basic Usage
 
 ```scala
-import in.rcard.yaes.Async.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Async.*
+import io.yaes.Raise.*
 import scala.concurrent.duration.*
 
 case class DbError(msg: String)
@@ -480,9 +480,9 @@ val schedule = Random.run {
 **HTTP Client with Retry:**
 
 ```scala
-import in.rcard.yaes.Async.*
-import in.rcard.yaes.Raise.*
-import in.rcard.yaes.Random.*
+import io.yaes.Async.*
+import io.yaes.Raise.*
+import io.yaes.Random.*
 import scala.concurrent.duration.*
 
 sealed trait HttpError
@@ -575,7 +575,7 @@ The timeout check is **lazy**: the circuit transitions Open → Half-Open on the
 ### Configuration
 
 ```scala
-import in.rcard.yaes.*
+import io.yaes.*
 import scala.concurrent.duration.*
 
 // Trip after 3 consecutive failures; wait 5 seconds before probing
@@ -589,7 +589,7 @@ val selective = CircuitBreaker.Config.consecutive[AppError](3, 5.seconds)
 ### Basic Usage
 
 ```scala
-import in.rcard.yaes.*
+import io.yaes.*
 import scala.concurrent.duration.*
 
 case class DbError(msg: String)

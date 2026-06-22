@@ -30,10 +30,10 @@ An effect-based HTTP client built on YAES effects and Java's `java.net.http.Http
 Add `yaes-http-client` to your project dependencies:
 
 ```scala
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-client" % "0.21.0"
+libraryDependencies += "io.yaes" %% "yaes-http-client" % "0.21.0"
 ```
 
-> Check [Maven Central](https://central.sonatype.com/artifact/in.rcard.yaes/yaes-http-client_3) for the latest version.
+> Check [Maven Central](https://central.sonatype.com/artifact/io.yaes/yaes-http-client_3) for the latest version.
 
 ---
 
@@ -42,8 +42,8 @@ libraryDependencies += "in.rcard.yaes" %% "yaes-http-client" % "0.21.0"
 Here's a minimal HTTP client that sends a GET request and prints the response:
 
 ```scala
-import in.rcard.yaes.*
-import in.rcard.yaes.http.client.*
+import io.yaes.*
+import io.yaes.http.client.*
 import scala.concurrent.duration.*
 
 Sync.runBlocking(30.seconds) {
@@ -343,7 +343,7 @@ Many REST APIs return structured error payloads alongside non-2xx responses — 
 
 ```scala
 import io.circe.Decoder
-import in.rcard.yaes.http.circe.given
+import io.yaes.http.circe.given
 
 case class ValidationError(field: String, message: String) derives Decoder
 
@@ -371,8 +371,8 @@ val result: Either[DecodingError, User | ValidationError] =
 Use the `uri"..."` string interpolator to construct URIs with path parameters ergonomically. Each interpolated argument is URL-encoded automatically (spaces → `%20`, slashes → `%2F`, etc.) via the `PathParamStringifier[A]` typeclass. The literal parts of the URI template are validated at **compile time**. Since interpolations are URL-encoded and intended for path segments, the assembled URI is always well-formed when placeholders appear only in path positions — no `Raise` effect is needed at runtime.
 
 ```scala
-import in.rcard.yaes.*
-import in.rcard.yaes.http.client.*
+import io.yaes.*
+import io.yaes.http.client.*
 
 val userId: Int     = 42
 val orderId: String = "ord-99"
@@ -401,8 +401,8 @@ The interpolator correctly percent-encodes values that would otherwise break URI
 Provide a `given PathParamStringifier[A]` for your own types:
 
 ```scala
-import in.rcard.yaes.*
-import in.rcard.yaes.http.client.*
+import io.yaes.*
+import io.yaes.http.client.*
 
 case class ItemId(value: Int)
 
@@ -458,8 +458,8 @@ result match
 Use `uri / segment` to append a single path segment to an existing `Uri`. The segment is URL-encoded via the same `PathParamStringifier` typeclass used by the `uri"..."` interpolator. Query strings and fragments are preserved.
 
 ```scala
-import in.rcard.yaes.*
-import in.rcard.yaes.http.client.*
+import io.yaes.*
+import io.yaes.http.client.*
 
 Raise.run[Uri.InvalidUri] {
   val base   = Uri("https://api.example.com/users")
@@ -502,11 +502,11 @@ The client uses `BodyEncoder[A]` for encoding request bodies (in `post`, `put`, 
 For JSON support, add the `yaes-http-circe` module which provides automatic `BodyEncoder` and `BodyDecoder` instances for types with Circe `Encoder` and `Decoder` respectively:
 
 ```scala
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-circe" % "0.21.0"
+libraryDependencies += "io.yaes" %% "yaes-http-circe" % "0.21.0"
 ```
 
 ```scala
-import in.rcard.yaes.http.circe.given
+import io.yaes.http.circe.given
 import io.circe.{Encoder, Decoder}
 
 case class User(id: Int, name: String) derives Encoder.AsObject, Decoder
@@ -519,7 +519,7 @@ Raise.run[Uri.InvalidUri] {
 }
 ```
 
-> See [JSON with Circe](/yaes/http/circe/) for full documentation on JSON body codecs.
+> See [JSON with Circe](/http/circe/) for full documentation on JSON body codecs.
 
 ---
 
@@ -528,8 +528,8 @@ Raise.run[Uri.InvalidUri] {
 A full client example demonstrating configuration, request building, sending, and error handling:
 
 ```scala
-import in.rcard.yaes.*
-import in.rcard.yaes.http.client.*
+import io.yaes.*
+import io.yaes.http.client.*
 import scala.concurrent.duration.*
 
 Raise.run[ConnectionError] {
@@ -572,8 +572,8 @@ Raise.run[ConnectionError] {
 sbt "client/test"
 
 # Run a specific test suite
-sbt "client/testOnly in.rcard.yaes.http.client.HttpRequestSpec"
+sbt "client/testOnly io.yaes.http.client.HttpRequestSpec"
 
 # Run a specific test
-sbt "client/testOnly in.rcard.yaes.http.client.YaesClientSendSpec -- -z \"send GET\""
+sbt "client/testOnly io.yaes.http.client.YaesClientSendSpec -- -z \"send GET\""
 ```

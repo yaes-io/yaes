@@ -13,12 +13,12 @@ sidebar:
 Add the dependency to your `build.sbt`:
 
 ```scala
-libraryDependencies += "in.rcard.yaes" %% "yaes-core-test-scalatest" % "0.21.0" % Test
+libraryDependencies += "io.yaes" %% "yaes-core-test-scalatest" % "0.21.0" % Test
 ```
 
 `yaes-core` and ScalaTest are included transitively — no additional declarations needed.
 
-> Check [Maven Central](https://central.sonatype.com/artifact/in.rcard.yaes/yaes-core-test-scalatest_3) for the latest version.
+> Check [Maven Central](https://central.sonatype.com/artifact/io.yaes/yaes-core-test-scalatest_3) for the latest version.
 
 ---
 
@@ -27,8 +27,8 @@ libraryDependencies += "in.rcard.yaes" %% "yaes-core-test-scalatest" % "0.21.0" 
 Mix `RaiseSpec` into your spec class alongside your usual ScalaTest traits:
 
 ```scala
-import in.rcard.yaes.{Raise, raises}
-import in.rcard.yaes.test.scalatest.RaiseSpec
+import io.yaes.{Raise, raises}
+import io.yaes.test.scalatest.RaiseSpec
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

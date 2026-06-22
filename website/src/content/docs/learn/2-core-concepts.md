@@ -21,7 +21,7 @@ In λÆS, an **Effect** is a managed side effect. To understand what that means,
 In λÆS, types like `Random`, `Raise[E]`, `Async`, and `State[S]` are effect types. When a function declares `using Random`, it is saying: "I need access to randomness, and that requirement must be satisfied by a caller."
 
 ```scala
-import in.rcard.yaes.Random.*
+import io.yaes.Random.*
 
 // This function requires the Random effect
 def rollDie(using Random): Int =
@@ -46,8 +46,8 @@ The key insight: effects appear in the **type signature**. There are no hidden s
 Calling an effectful function does **not** immediately execute it. Instead, it returns a value representing a computation that can be run later. Execution only happens when a handler is applied.
 
 ```scala
-import in.rcard.yaes.Random.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Random.*
+import io.yaes.Raise.*
 
 def drunkFlip(using Random, Raise[String]): String = {
   val caught = Random.nextBoolean
@@ -83,7 +83,7 @@ A **handler** is the mechanism that executes an effect. Every effect type in λ�
 Handlers are applied by calling `EffectType.run { ... }`:
 
 ```scala
-import in.rcard.yaes.Output.*
+import io.yaes.Output.*
 
 val result: Unit = Output.run {
   Output.printLn("Hello, λÆS!")
@@ -93,8 +93,8 @@ val result: Unit = Output.run {
 Handlers can be **composed** — you wrap one inside another. The innermost handler runs first:
 
 ```scala
-import in.rcard.yaes.Random.*
-import in.rcard.yaes.Output.*
+import io.yaes.Random.*
+import io.yaes.Output.*
 
 val result: Unit = Output.run {
   Random.run {
@@ -111,9 +111,9 @@ The order of handler application can matter for effects that interact (e.g., `Ra
 Effects are declared as multiple `using` parameters and composed naturally:
 
 ```scala
-import in.rcard.yaes.Random.*
-import in.rcard.yaes.Output.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Random.*
+import io.yaes.Output.*
+import io.yaes.Raise.*
 
 def gameRound(using Random, Output, Raise[String]): Int = {
   val dice1 = Random.nextInt(6) + 1
@@ -152,4 +152,4 @@ You can handle effects one at a time or all at once. Effects that are not yet ha
 **Retry**
 - `Retry` — retry failing blocks with configurable schedules
 
-Continue to [Basic Effects](/yaes/learn/3-basic-effects/) to see these in action.
+Continue to [Basic Effects](/learn/3-basic-effects/) to see these in action.

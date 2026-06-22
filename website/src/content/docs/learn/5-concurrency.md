@@ -19,7 +19,7 @@ The `Async` effect enables asynchronous computations and structured concurrency 
 **Forking Fibers** — create lightweight threads (fibers) for concurrent execution:
 
 ```scala
-import in.rcard.yaes.Async.*
+import io.yaes.Async.*
 
 def findUserByName(name: String): Option[User] = Some(User(name))
 
@@ -31,7 +31,7 @@ val fiber: Async ?=> Fiber[Option[User]] = Async.fork {
 **Getting Values** — wait for a fiber's result:
 
 ```scala
-import in.rcard.yaes.Raise.*
+import io.yaes.Raise.*
 
 val maybeUser: (Async, Raise[Cancelled]) ?=> Option[User] = fiber.value
 ```
@@ -47,7 +47,7 @@ val result: Async ?=> Option[User] = fiber.join()
 The `Async.run` handler creates a structured scope where all fibers are managed. The scope waits for all forked fibers to complete before returning:
 
 ```scala
-import in.rcard.yaes.Async.*
+import io.yaes.Async.*
 
 def updateUser(user: User): Unit = ???
 def updateClicks(user: User, clicks: Int): Unit = ???
@@ -65,7 +65,7 @@ Async.run {
 Fibers can be cancelled cooperatively. Cancellation propagates via JVM interruption — fibers must reach an interruptible operation to be cancelled:
 
 ```scala
-import in.rcard.yaes.Async.*
+import io.yaes.Async.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
 val queue = Async.run {
@@ -94,7 +94,7 @@ val (result1, result2) = Async.par(computation1, computation2)
 **Parallel Traversal** — apply a function to every element of a collection in parallel, returning results in input order. If any computation fails, remaining fibers are automatically cancelled (fail-fast):
 
 ```scala
-import in.rcard.yaes.Async.*
+import io.yaes.Async.*
 
 case class UserProfile(id: Int, name: String)
 def fetchUserProfile(id: Int)(using Async): UserProfile = ???
@@ -107,7 +107,7 @@ val profiles: Seq[UserProfile] = Async.run {
 `parTraverse` composes with other effects like `Raise`:
 
 ```scala
-import in.rcard.yaes.Raise.*
+import io.yaes.Raise.*
 
 def validateAndFetch(id: Int)(using Async, Raise[String]): UserProfile =
   if (id <= 0) Raise.raise(s"Invalid id: $id")
@@ -158,7 +158,7 @@ The `Shutdown` effect automatically handles JVM shutdown signals (SIGTERM, SIGIN
 Check shutdown state to control work acceptance:
 
 ```scala
-import in.rcard.yaes.Shutdown.*
+import io.yaes.Shutdown.*
 
 def processWork()(using Shutdown): Unit = {
   while (!Shutdown.isShuttingDown()) {
@@ -177,7 +177,7 @@ Shutdown.run {
 **Manual Shutdown Trigger:**
 
 ```scala
-import in.rcard.yaes.Shutdown.*
+import io.yaes.Shutdown.*
 
 def healthMonitor()(using Shutdown): Unit = {
   val isHealthy = checkSystemHealth()
@@ -194,8 +194,8 @@ def healthMonitor()(using Shutdown): Unit = {
 Register callbacks that execute when shutdown is initiated:
 
 ```scala
-import in.rcard.yaes.Shutdown.*
-import in.rcard.yaes.Output.*
+import io.yaes.Shutdown.*
+import io.yaes.Output.*
 
 def serverWithHooks()(using Shutdown, Output): Unit = {
   Shutdown.onShutdown(() => {
@@ -273,8 +273,8 @@ Shutdown.run {
 Combine `Shutdown` with `Async` for daemon process coordination:
 
 ```scala
-import in.rcard.yaes.Shutdown.*
-import in.rcard.yaes.Async.*
+import io.yaes.Shutdown.*
+import io.yaes.Async.*
 import scala.concurrent.duration.*
 
 def daemonServer()(using Shutdown, Async): Unit = {
@@ -306,8 +306,8 @@ For production applications, the `Async.withGracefulShutdown` handler provides a
 The handler requires both `Shutdown` and `Raise[Async.ShutdownTimedOut]` contexts:
 
 ```scala
-import in.rcard.yaes.{Async, Shutdown, Raise}
-import in.rcard.yaes.Async.{Deadline, ShutdownTimedOut}
+import io.yaes.{Async, Shutdown, Raise}
+import io.yaes.Async.{Deadline, ShutdownTimedOut}
 import scala.concurrent.duration.*
 
 Shutdown.run {
@@ -340,8 +340,8 @@ Shutdown.run {
 **Timeout Enforcement Example:**
 
 ```scala
-import in.rcard.yaes.{Async, Shutdown, Output, Raise}
-import in.rcard.yaes.Async.{Deadline, ShutdownTimedOut}
+import io.yaes.{Async, Shutdown, Output, Raise}
+import io.yaes.Async.{Deadline, ShutdownTimedOut}
 import scala.concurrent.duration.*
 
 val result: Either[ShutdownTimedOut, Unit] = Shutdown.run {
@@ -378,8 +378,8 @@ val result: Either[ShutdownTimedOut, Unit] = Shutdown.run {
 **HTTP Server:**
 
 ```scala
-import in.rcard.yaes.Shutdown.*
-import in.rcard.yaes.Output.*
+import io.yaes.Shutdown.*
+import io.yaes.Output.*
 import java.util.concurrent.atomic.AtomicInteger
 
 def httpServer(port: Int)(using Shutdown, Output): Unit = {
@@ -429,7 +429,7 @@ This means your application automatically responds to:
 
 1. **Check state before accepting work**: Always check `isShuttingDown()` before starting new operations
 2. **Use hooks for notifications**: Register hooks to notify components about shutdown
-3. **Use Resource for cleanup**: Prefer the `Resource` effect (see [Step 6](/yaes/learn/6-state-and-resources/)) for resource cleanup over shutdown hooks
+3. **Use Resource for cleanup**: Prefer the `Resource` effect (see [Step 6](/learn/6-state-and-resources/)) for resource cleanup over shutdown hooks
 4. **Allow work to complete**: Don't abruptly terminate — let in-flight operations finish
 5. **Log shutdown progress**: Use hooks to log shutdown milestones for debugging
 6. **Choose appropriate deadlines**: Base the deadline on your longest normal operation and add a buffer for cleanup

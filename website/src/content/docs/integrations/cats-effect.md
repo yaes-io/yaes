@@ -30,7 +30,7 @@ This integration enables you to:
 Add the dependency to your `build.sbt`:
 
 ```scala
-libraryDependencies += "in.rcard.yaes" %% "yaes-cats" % "0.21.0"
+libraryDependencies += "io.yaes" %% "yaes-cats" % "0.21.0"
 ```
 
 ## Cats Effect Integration
@@ -42,8 +42,8 @@ libraryDependencies += "in.rcard.yaes" %% "yaes-cats" % "0.21.0"
 Convert λÆS programs to Cats Effect IO:
 
 ```scala
-import in.rcard.yaes.{Sync => YaesSync, Raise}
-import in.rcard.yaes.interop.catseffect
+import io.yaes.{Sync => YaesSync, Raise}
+import io.yaes.interop.catseffect
 import cats.effect.{IO => CatsIO}
 
 val yaesProgram: (YaesSync, Raise[Throwable]) ?=> Int = YaesSync {
@@ -60,9 +60,9 @@ val result = catsIO.unsafeRunSync()  // 42
 Convert Cats Effect IO to λÆS programs:
 
 ```scala
-import in.rcard.yaes.{Sync => YaesSync, Raise}
-import in.rcard.yaes.interop.catseffect
-import in.rcard.yaes.syntax.catseffect.given
+import io.yaes.{Sync => YaesSync, Raise}
+import io.yaes.interop.catseffect
+import io.yaes.syntax.catseffect.given
 import cats.effect.{IO => CatsIO}
 
 val catsProgram: CatsIO[String] = CatsIO.pure("Hello from Cats")
@@ -90,8 +90,8 @@ val result2 = YaesSync.run {
 - `catseffect.delaySync(yaesProgram)` - For CPU-bound computations only
 
 ```scala
-import in.rcard.yaes.interop.catseffect
-import in.rcard.yaes.{Sync => YaesSync, Raise}
+import io.yaes.interop.catseffect
+import io.yaes.{Sync => YaesSync, Raise}
 import cats.effect.{IO => CatsIO}
 
 val yaesProgram: (YaesSync, Raise[Throwable]) ?=> Int = YaesSync { 42 }
@@ -114,8 +114,8 @@ val catsIONonBlocking: CatsIO[Int] = catseffect.delaySync(yaesProgram)
 - `catsIO.value` - Extension method (requires syntax import)
 
 ```scala
-import in.rcard.yaes.interop.catseffect
-import in.rcard.yaes.syntax.catseffect.given
+import io.yaes.interop.catseffect
+import io.yaes.syntax.catseffect.given
 
 val catsIO: CatsIO[Int] = CatsIO.pure(42)
 
@@ -134,14 +134,14 @@ val result2 = YaesSync.run {
 }
 ```
 
-**Note:** The conversion requires handling `Raise[Throwable]` using [Raise combinators](/yaes/learn/4-error-handling/) like `either`, `fold`, `recover`, etc.
+**Note:** The conversion requires handling `Raise[Throwable]` using [Raise combinators](/learn/4-error-handling/) like `either`, `fold`, `recover`, etc.
 
 ### Timeout Support
 
 Prevent indefinite blocking when converting Cats Effect to λÆS:
 
 ```scala
-import in.rcard.yaes.interop.catseffect
+import io.yaes.interop.catseffect
 import scala.concurrent.duration._
 
 val slowCatsIO = CatsIO.sleep(10.seconds) *> CatsIO.pure(42)
@@ -158,7 +158,7 @@ val result1 = YaesSync.run {
 }
 
 // Using extension method with timeout
-import in.rcard.yaes.syntax.catseffect.given
+import io.yaes.syntax.catseffect.given
 
 val result2 = YaesSync.run {
   Raise.either {
@@ -174,7 +174,7 @@ If the computation doesn't complete within the timeout, a `java.util.concurrent.
 Effects are deferred until explicitly executed:
 
 ```scala
-import in.rcard.yaes.interop.catseffect
+import io.yaes.interop.catseffect
 
 var counter = 0
 
@@ -193,10 +193,10 @@ val result3 = catsIO.unsafeRunSync()  // counter = 3
 
 ### Error Handling
 
-Errors are preserved across conversions and can be handled using [Raise](/yaes/learn/4-error-handling/) combinators:
+Errors are preserved across conversions and can be handled using [Raise](/learn/4-error-handling/) combinators:
 
 ```scala
-import in.rcard.yaes.interop.catseffect
+import io.yaes.interop.catseffect
 
 // λÆS → Cats Effect
 val yaesError: (YaesSync, Raise[Throwable]) ?=> Int = YaesSync {
@@ -222,7 +222,7 @@ val result = YaesSync.run {
 Use Raise combinators for type-safe error handling:
 
 ```scala
-import in.rcard.yaes.interop.catseffect
+import io.yaes.interop.catseffect
 
 val catsIO = CatsIO.raiseError[Int](new RuntimeException("Oops"))
 
@@ -260,8 +260,8 @@ val result3 = YaesSync.run {
 Conversions can be composed and chained:
 
 ```scala
-import in.rcard.yaes.interop.catseffect
-import in.rcard.yaes.syntax.catseffect.given
+import io.yaes.interop.catseffect
+import io.yaes.syntax.catseffect.given
 
 val originalYaes: (YaesSync, Raise[Throwable]) ?=> Int = YaesSync { 21 }
 
@@ -280,7 +280,7 @@ val result = YaesSync.run {
 Extension methods enable fluent chaining:
 
 ```scala
-import in.rcard.yaes.syntax.catseffect.given
+import io.yaes.syntax.catseffect.given
 
 val result = YaesSync.run {
   Raise.either {
@@ -300,8 +300,8 @@ The `yaes-cats` module provides a `MonadError` instance for `Raise`, allowing yo
 
 ```scala
 import cats.syntax.all.*
-import in.rcard.yaes.{Raise, raises}
-import in.rcard.yaes.instances.raise.given
+import io.yaes.{Raise, raises}
+import io.yaes.instances.raise.given
 
 def computation1: Int raises String = Raise.raise("error")
 def computation2: Int raises String = 42
@@ -332,8 +332,8 @@ The `MonadError` instance enables seamless integration with Cats-based libraries
 
 ```scala
 import cats.implicits.*
-import in.rcard.yaes.raises
-import in.rcard.yaes.instances.raise.given
+import io.yaes.raises
+import io.yaes.instances.raise.given
 
 def validateAge(age: Int): Int raises String =
   if (age >= 0 && age <= 150) age
@@ -364,8 +364,8 @@ Convert between λÆS `Raise` and Cats `Validated` types for validation workflow
 Convert Raise computations to Cats Validated:
 
 ```scala
-import in.rcard.yaes.Raise
-import in.rcard.yaes.cats.validated
+import io.yaes.Raise
+import io.yaes.cats.validated
 import cats.data.Validated
 
 // Basic Validated
@@ -396,7 +396,7 @@ val resultNel: ValidatedNel[String, Int] = validated.validatedNel {
 Extract values from Validated or raise errors:
 
 ```scala
-import in.rcard.yaes.syntax.validated.given
+import io.yaes.syntax.validated.given
 import cats.data.Validated
 
 val validated: Validated[String, Int] = Validated.valid(42)
@@ -419,7 +419,7 @@ val errorResult = Raise.either {
 Combine Validated conversions with Raise for flexible validation:
 
 ```scala
-import in.rcard.yaes.cats.validated
+import io.yaes.cats.validated
 import cats.data.ValidatedNel
 import cats.implicits.*
 
@@ -462,8 +462,8 @@ Accumulate multiple errors using Cats `Semigroup` or `NonEmptyList`.
 Combine errors using any `Semigroup` instance:
 
 ```scala
-import in.rcard.yaes.{Raise, raises}
-import in.rcard.yaes.cats.accumulate
+import io.yaes.{Raise, raises}
+import io.yaes.cats.accumulate
 import cats.Semigroup
 
 case class MyError(errors: List[String])
@@ -490,7 +490,7 @@ Works with `NonEmptyList` too:
 
 ```scala
 import cats.data.NonEmptyList
-import in.rcard.yaes.raises
+import io.yaes.raises
 
 val nelResult: NonEmptyList[Int] raises MyError =
   accumulate.mapAccumulatingS(NonEmptyList.of(1, 2, 3, 4, 5)) { value =>
@@ -507,8 +507,8 @@ val nelResult: NonEmptyList[Int] raises MyError =
 Collect errors in a `NonEmptyList`:
 
 ```scala
-import in.rcard.yaes.{Raise, raises}
-import in.rcard.yaes.cats.accumulate
+import io.yaes.{Raise, raises}
+import io.yaes.cats.accumulate
 import cats.data.NonEmptyList
 
 val result: List[Int] raises NonEmptyList[String] =
@@ -542,8 +542,8 @@ val nelResult: NonEmptyList[Int] raises NonEmptyList[String] =
 Use fluent syntax for error combination:
 
 ```scala
-import in.rcard.yaes.raises
-import in.rcard.yaes.syntax.accumulate.given
+import io.yaes.raises
+import io.yaes.syntax.accumulate.given
 import cats.Semigroup
 import cats.data.NonEmptyList
 
@@ -566,7 +566,7 @@ val resultsNel: List[Int] raises NonEmptyList[String] = computations.combineErro
 Works with `NonEmptyList` of computations:
 
 ```scala
-import in.rcard.yaes.raises
+import io.yaes.raises
 
 val nelComputations: NonEmptyList[Int raises String] = NonEmptyList.of(
   if (condition1) 1 else Raise.raise("error1"),
@@ -584,9 +584,9 @@ The core `Raise.accumulate` function is polymorphic and can collect errors into 
 **Using NonEmptyList:**
 
 ```scala
-import in.rcard.yaes.{Raise, RaiseNel}  // RaiseNel = Raise[NonEmptyList[E]]
-import in.rcard.yaes.Raise.accumulating
-import in.rcard.yaes.instances.accumulate.given  // Import collector instances
+import io.yaes.{Raise, RaiseNel}  // RaiseNel = Raise[NonEmptyList[E]]
+import io.yaes.Raise.accumulating
+import io.yaes.instances.accumulate.given  // Import collector instances
 import cats.data.NonEmptyList
 
 def validatePositive(n: Int)(using Raise[String]): Int =
@@ -614,7 +614,7 @@ def validatePair(x: Int, y: Int): RaiseNel[String] ?=> (Int, Int) =
 **Using NonEmptyChain:**
 
 ```scala
-import in.rcard.yaes.RaiseNec  // RaiseNec = Raise[NonEmptyChain[E]]
+import io.yaes.RaiseNec  // RaiseNec = Raise[NonEmptyChain[E]]
 import cats.data.NonEmptyChain
 
 // Accumulate errors into NonEmptyChain
@@ -666,9 +666,9 @@ The type parameter `M[_]` specifies the error collection type. An `AccumulateCol
 ### Simple Value Conversion
 
 ```scala
-import in.rcard.yaes.{Sync => YaesSync, Raise}
-import in.rcard.yaes.interop.catseffect
-import in.rcard.yaes.syntax.catseffect.given
+import io.yaes.{Sync => YaesSync, Raise}
+import io.yaes.interop.catseffect
+import io.yaes.syntax.catseffect.given
 import cats.effect.{IO => CatsIO}
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -691,8 +691,8 @@ catsNumber.unsafeRunSync()  // 42
 ### Complex Computations
 
 ```scala
-import in.rcard.yaes.interop.catseffect
-import in.rcard.yaes.syntax.catseffect.given
+import io.yaes.interop.catseffect
+import io.yaes.syntax.catseffect.given
 
 var accumulator = 0
 
@@ -722,8 +722,8 @@ val either = Await.result(result, 5.seconds)
 ### Error Handling with Timeout
 
 ```scala
-import in.rcard.yaes.interop.catseffect
-import in.rcard.yaes.syntax.catseffect.given
+import io.yaes.interop.catseffect
+import io.yaes.syntax.catseffect.given
 import scala.concurrent.duration._
 
 val slowComputation = CatsIO.sleep(10.seconds) *> CatsIO.pure("Done")
@@ -760,27 +760,27 @@ The `yaes-cats` integration is organized into these modules:
 
 ```scala
 // Cats Effect conversions (object methods)
-import in.rcard.yaes.interop.catseffect
+import io.yaes.interop.catseffect
 
 // Cats Effect conversions (extension methods)
-import in.rcard.yaes.syntax.catseffect.given
+import io.yaes.syntax.catseffect.given
 
 // MonadError instance for Raise
-import in.rcard.yaes.instances.raise.given
+import io.yaes.instances.raise.given
 
 // Validated conversions
-import in.rcard.yaes.cats.validated
-import in.rcard.yaes.syntax.validated.given
+import io.yaes.cats.validated
+import io.yaes.syntax.validated.given
 
 // Error accumulation (utility functions)
-import in.rcard.yaes.cats.accumulate
-import in.rcard.yaes.syntax.accumulate.given
+import io.yaes.cats.accumulate
+import io.yaes.syntax.accumulate.given
 
 // Polymorphic accumulate collectors (NonEmptyList/NonEmptyChain)
-import in.rcard.yaes.instances.accumulate.given
+import io.yaes.instances.accumulate.given
 
 // All syntax extensions
-import in.rcard.yaes.syntax.all.given
+import io.yaes.syntax.all.given
 ```
 
 ## Best Practices
