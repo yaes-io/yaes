@@ -1,8 +1,8 @@
 ![Made for Scala 3](https://img.shields.io/badge/Scala%203-%23de3423.svg?logo=scala&logoColor=white)
 ![GitHub Workflow Status (with branch)](https://img.shields.io/github/actions/workflow/status/rcardin/yaes/scala.yml?branch=main)
-![Maven Central](https://img.shields.io/maven-central/v/in.rcard.yaes/yaes-core-test-scalatest_3)
+![Maven Central](https://img.shields.io/maven-central/v/io.yaes/yaes-core-test-scalatest_3)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/rcardin/yaes)
-[![javadoc](https://javadoc.io/badge2/in.rcard.yaes/yaes-core-test-scalatest_3/javadoc.svg)](https://javadoc.io/doc/in.rcard.yaes/yaes-core-test-scalatest_3)
+[![javadoc](https://javadoc.io/badge2/io.yaes/yaes-core-test-scalatest_3/javadoc.svg)](https://javadoc.io/doc/io.yaes/yaes-core-test-scalatest_3)
 <br/>
 
 # λÆS Test Utilities — ScalaTest
@@ -14,7 +14,7 @@ Test utilities for λÆS effect code using ScalaTest. Provides mixin traits that
 Add the dependency to your `build.sbt`:
 
 ```scala
-libraryDependencies += "in.rcard.yaes" %% "yaes-core-test-scalatest" % "0.21.0" % Test
+libraryDependencies += "io.yaes" %% "yaes-core-test-scalatest" % "0.21.0" % Test
 ```
 
 Both `yaes-core` and ScalaTest are transitive dependencies — no need to declare them separately.
@@ -26,8 +26,8 @@ Both `yaes-core` and ScalaTest are transitive dependencies — no need to declar
 Mix `RaiseSpec` into your ScalaTest spec class:
 
 ```scala
-import in.rcard.yaes.{Raise, raises}
-import in.rcard.yaes.test.scalatest.RaiseSpec
+import io.yaes.{Raise, raises}
+import io.yaes.test.scalatest.RaiseSpec
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -53,8 +53,8 @@ class MySpec extends AnyFlatSpec with Matchers with RaiseSpec {
 Mix `LogSpec` into your spec to suppress all logging output. A no-op `Log` given is provided automatically:
 
 ```scala
-import in.rcard.yaes.Log
-import in.rcard.yaes.test.scalatest.LogSpec
+import io.yaes.Log
+import io.yaes.test.scalatest.LogSpec
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -72,8 +72,8 @@ class MySpec extends AnyFlatSpec with Matchers with LogSpec {
 Mix `RandomSpec` to get a queue-based `RandomStub` with automatic reset between tests:
 
 ```scala
-import in.rcard.yaes.Random
-import in.rcard.yaes.test.scalatest.RandomSpec
+import io.yaes.Random
+import io.yaes.test.scalatest.RandomSpec
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -98,8 +98,8 @@ bypass the contextual `Sync` and always use their internal `JvmExecutor` — if 
 calls those methods, virtual threads may still be created.
 
 ```scala
-import in.rcard.yaes.Sync
-import in.rcard.yaes.test.scalatest.SyncSpec
+import io.yaes.Sync
+import io.yaes.test.scalatest.SyncSpec
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

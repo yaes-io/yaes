@@ -1,8 +1,8 @@
 ![Made for Scala 3](https://img.shields.io/badge/Scala%203-%23de3423.svg?logo=scala&logoColor=white)
 ![GitHub Workflow Status (with branch)](https://img.shields.io/github/actions/workflow/status/rcardin/yaes/scala.yml?branch=main)
-![Maven Central](https://img.shields.io/maven-central/v/in.rcard.yaes/yaes-http-circe_3)
+![Maven Central](https://img.shields.io/maven-central/v/io.yaes/yaes-http-circe_3)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/rcardin/yaes)
-[![javadoc](https://javadoc.io/badge2/in.rcard.yaes/yaes-http-circe_3/javadoc.svg)](https://javadoc.io/doc/in.rcard.yaes/yaes-http-circe_3)
+[![javadoc](https://javadoc.io/badge2/io.yaes/yaes-http-circe_3/javadoc.svg)](https://javadoc.io/doc/io.yaes/yaes-http-circe_3)
 <br/>
 
 # λÆS HTTP Circe
@@ -14,7 +14,7 @@ JSON body encoder/decoder integration for the λÆS HTTP server using [Circe](ht
 Add the dependency to your `build.sbt`:
 
 ```scala
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-circe" % "0.21.0"
+libraryDependencies += "io.yaes" %% "yaes-http-circe" % "0.21.0"
 ```
 
 This module depends on `yaes-http-server` and `circe-core`/`circe-parser` (included transitively). If you want to use Circe's automatic derivation features, also include `circe-generic`:
@@ -28,11 +28,11 @@ libraryDependencies += "io.circe" %% "circe-generic" % "0.14.15"
 Import the circe encoder/decoder instances and use typed request/response bodies in your routes:
 
 ```scala
-import in.rcard.yaes.*
-import in.rcard.yaes.Log.given
-import in.rcard.yaes.http.server.*
-import in.rcard.yaes.http.core.DecodingError
-import in.rcard.yaes.http.circe.given
+import io.yaes.*
+import io.yaes.Log.given
+import io.yaes.http.server.*
+import io.yaes.http.core.DecodingError
+import io.yaes.http.circe.given
 import io.circe.{Encoder, Decoder}
 
 case class User(name: String, age: Int) derives Encoder.AsObject, Decoder
@@ -70,7 +70,7 @@ given circeBodyEncoder[A](using Encoder[A]): BodyEncoder[A]
 given circeBodyDecoder[A](using Decoder[A]): BodyDecoder[A]
 ```
 
-Each instance is gated on a single Circe constraint, so you can bring only what you need into scope. Importing `in.rcard.yaes.http.circe.given` brings both into scope at once.
+Each instance is gated on a single Circe constraint, so you can bring only what you need into scope. Importing `io.yaes.http.circe.given` brings both into scope at once.
 
 - **`circeBodyEncoder`**: encodes values as compact JSON using `asJson.noSpaces` and sets the `Content-Type` header to `application/json`
 - **`circeBodyDecoder`**: decodes JSON bodies using Circe's parser, mapping parse failures (`ParsingFailure`) to `DecodingError.ParseError` and decoding/schema failures (`DecodingFailure`) to `DecodingError.ValidationErrors` carrying a `NonEmptyList[String]` of accumulated reasons; failures are raised as a single `DecodingError`

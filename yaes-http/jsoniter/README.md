@@ -1,8 +1,8 @@
 ![Made for Scala 3](https://img.shields.io/badge/Scala%203-%23de3423.svg?logo=scala&logoColor=white)
 ![GitHub Workflow Status (with branch)](https://img.shields.io/github/actions/workflow/status/rcardin/yaes/scala.yml?branch=main)
-![Maven Central](https://img.shields.io/maven-central/v/in.rcard.yaes/yaes-http-jsoniter_3)
+![Maven Central](https://img.shields.io/maven-central/v/io.yaes/yaes-http-jsoniter_3)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/rcardin/yaes)
-[![javadoc](https://javadoc.io/badge2/in.rcard.yaes/yaes-http-jsoniter_3/javadoc.svg)](https://javadoc.io/doc/in.rcard.yaes/yaes-http-jsoniter_3)
+[![javadoc](https://javadoc.io/badge2/io.yaes/yaes-http-jsoniter_3/javadoc.svg)](https://javadoc.io/doc/io.yaes/yaes-http-jsoniter_3)
 <br/>
 
 # λÆS HTTP jsoniter-scala
@@ -14,7 +14,7 @@ JSON body encoder/decoder integration for the λÆS HTTP server using [jsoniter-
 Add the dependency to your `build.sbt`:
 
 ```scala
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-jsoniter" % "0.21.0"
+libraryDependencies += "io.yaes" %% "yaes-http-jsoniter" % "0.21.0"
 ```
 
 This module depends on `yaes-http-core` and `jsoniter-scala-core` (included transitively). To derive codecs via `JsonCodecMaker.make`, also include `jsoniter-scala-macros` as a provided dependency:
@@ -28,11 +28,11 @@ libraryDependencies += "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scal
 Derive a `JsonValueCodec` for your types and import the jsoniter encoder/decoder instances:
 
 ```scala
-import in.rcard.yaes.*
-import in.rcard.yaes.Log.given
-import in.rcard.yaes.http.server.*
-import in.rcard.yaes.http.core.DecodingError
-import in.rcard.yaes.http.jsoniter.given
+import io.yaes.*
+import io.yaes.Log.given
+import io.yaes.http.server.*
+import io.yaes.http.core.DecodingError
+import io.yaes.http.jsoniter.given
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 
@@ -72,7 +72,7 @@ given jsoniterBodyEncoder[A](using JsonValueCodec[A]): BodyEncoder[A]
 given jsoniterBodyDecoder[A](using JsonValueCodec[A]): BodyDecoder[A]
 ```
 
-Importing `in.rcard.yaes.http.jsoniter.given` brings both into scope at once.
+Importing `io.yaes.http.jsoniter.given` brings both into scope at once.
 
 - **`jsoniterBodyEncoder`**: encodes values using `writeToString` (compact JSON) and sets the `Content-Type` header to `application/json`
 - **`jsoniterBodyDecoder`**: decodes JSON bodies using `readFromString`; any `JsonReaderException` (whether invalid syntax or missing/wrong fields) is mapped to `DecodingError.ParseError` and raised as a `List[DecodingError]`

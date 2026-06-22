@@ -61,7 +61,7 @@ export default defineConfig({
 					items: [
 						{ label: 'Contributing', slug: 'community/contributing' },
 						{ label: 'GitHub ↗', link: 'https://github.com/rcardin/yaes', attrs: { target: '_blank' } },
-						{ label: 'Maven Central ↗', link: 'https://central.sonatype.com/artifact/in.rcard.yaes/yaes-core_3', attrs: { target: '_blank' } },
+						{ label: 'Maven Central ↗', link: 'https://central.sonatype.com/artifact/io.yaes/yaes-core_3', attrs: { target: '_blank' } },
 					],
 				},
 			],

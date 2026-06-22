@@ -8,6 +8,10 @@ import _root_.cats.data.NonEmptyList as CatsNonEmptyList
   * This package provides type aliases for the Cats Effect integration.
   */
 
+/** Type alias for `cats.effect.IO[A]`, wrapping Cats Effect IO within the yaes effect system.
+  *
+  * @tparam A the type of the value produced by the IO computation
+  */
 type CatsIO[A] = _root_.cats.effect.IO[A]
 
 /** Type alias for `Raise[cats.data.NonEmptyList[E]]`.

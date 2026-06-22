@@ -1,8 +1,8 @@
 ![Made for Scala 3](https://img.shields.io/badge/Scala%203-%23de3423.svg?logo=scala&logoColor=white)
 ![GitHub Workflow Status (with branch)](https://img.shields.io/github/actions/workflow/status/rcardin/yaes/scala.yml?branch=main)
-![Maven Central](https://img.shields.io/maven-central/v/in.rcard.yaes/yaes-http-server_3)
+![Maven Central](https://img.shields.io/maven-central/v/io.yaes/yaes-http-server_3)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/rcardin/yaes)
-[![javadoc](https://javadoc.io/badge2/in.rcard.yaes/yaes-http-server_3/javadoc.svg)](https://javadoc.io/doc/in.rcard.yaes/yaes-http-server_3)
+[![javadoc](https://javadoc.io/badge2/io.yaes/yaes-http-server_3/javadoc.svg)](https://javadoc.io/doc/io.yaes/yaes-http-server_3)
 <br/>
 
 # λÆS HTTP Server
@@ -14,7 +14,7 @@ Type-safe HTTP/1.1 server built on YAES effects and virtual threads.
 Add the dependency to your `build.sbt`:
 
 ```scala
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-server" % "0.21.0"
+libraryDependencies += "io.yaes" %% "yaes-http-server" % "0.21.0"
 ```
 
 ## Overview
@@ -34,9 +34,9 @@ libraryDependencies += "in.rcard.yaes" %% "yaes-http-server" % "0.21.0"
 ## Quick Start
 
 ```scala
-import in.rcard.yaes.*
-import in.rcard.yaes.Log.given
-import in.rcard.yaes.http.server.*
+import io.yaes.*
+import io.yaes.Log.given
+import io.yaes.http.server.*
 import scala.concurrent.duration.*
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -380,8 +380,8 @@ To use JSON, implement `BodyEncoder[A]` and/or `BodyDecoder[A]` for your types:
 
 ```scala
 // Example with circe (not included)
-import in.rcard.yaes.raises
-import in.rcard.yaes.Raise
+import io.yaes.raises
+import io.yaes.Raise
 import io.circe.{Encoder, Decoder}
 import io.circe.syntax.*
 import io.circe.parser.decode
@@ -424,8 +424,8 @@ Note: JSON libraries (circe, upickle, zio-json, etc.) are not included. Choose y
 ### Complete Server Example
 
 ```scala
-import in.rcard.yaes.http.server.*
-import in.rcard.yaes.*
+import io.yaes.http.server.*
+import io.yaes.*
 import scala.concurrent.duration.*
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -487,10 +487,10 @@ object MyServer extends App {
 sbt "server/test"
 
 # Run specific test suite
-sbt "server/testOnly in.rcard.yaes.http.server.HttpParserSpec"
+sbt "server/testOnly io.yaes.http.server.HttpParserSpec"
 
 # Run specific test
-sbt "server/testOnly in.rcard.yaes.http.server.YaesServerSpec -- -z \"start and accept\""
+sbt "server/testOnly io.yaes.http.server.YaesServerSpec -- -z \"start and accept\""
 ```
 
 ## Known Limitations
