@@ -2,10 +2,11 @@
 
 ## Completed
 - #288: build.sbt + CI slug done. organization=io.yaes, homepage=github.com/yaes-io/yaes, codecov slug=yaes-io/yaes.
+- #290: yaes-core migrated. All 39 files moved from in/rcard/yaes → io/yaes. 322 tests pass.
 
 ## Task order (dependency chain)
 1. #288 build.sbt + CI — DONE
-2. #290 yaes-core — must go next (all others depend on it)
+2. #290 yaes-core — DONE
 3. #292 yaes-data
 4. #291 yaes-cats
 5. #293 yaes-slf4j + yaes-test
