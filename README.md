@@ -5,7 +5,7 @@
 [![javadoc](https://javadoc.io/badge2/io.yaes/yaes-core_3/javadoc.svg)](https://javadoc.io/doc/io.yaes/yaes-core_3)
 
 # Yet Another Effect System (λÆS)
-<img align="right" src="./logo.svg" width="230" alt="logo" />
+<img align="right" src="./art/logo-icon-square.svg" width="140" alt="λÆS logo" />
 
 λÆS is an experimental effect system in Scala inspired by the ideas behind Algebraic Effects. Using Scala 3 [context parameters](https://docs.scala-lang.org/scala3/reference/contextual/using-clauses.html) and [context functions](https://docs.scala-lang.org/scala3/reference/contextual/context-functions.html), it provides a way to define and handle effects in a modular and composable manner.
 

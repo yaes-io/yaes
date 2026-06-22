@@ -9,7 +9,7 @@ export default defineConfig({
 		starlight({
 			title: 'λÆS — Yet Another Effect System',
 			logo: {
-				src: './src/assets/logo.svg',
+				src: './src/assets/logo-icon-square.svg',
 			},
 			customCss: ['./src/styles/custom.css'],
 			social: [
