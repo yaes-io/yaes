@@ -6,6 +6,7 @@
 - #292: yaes-data migrated. 3 source + 14 test files moved to io/yaes. 295 tests pass.
 - #291: yaes-cats migrated. 13 source + 6 test files moved to io/yaes. Root package object converted to top-level definitions. 70 tests pass.
 - #293: yaes-slf4j + yaes-test migrated. 2 slf4j sources + 1 test, 4 core-scalatest sources + 4 tests, 2 http-scalatest sources + 1 test moved to io/yaes. 38 tests pass.
+- #294: yaes-http migrated. 68 source + test files across core, server, client, circe, jsoniter sub-modules moved to io/yaes. 256 tests pass.
 
 ## Task order (dependency chain)
 1. #288 build.sbt + CI — DONE
@@ -13,7 +14,7 @@
 3. #292 yaes-data — DONE
 4. #291 yaes-cats — DONE
 5. #293 yaes-slf4j + yaes-test — DONE
-6. #294 yaes-http (server, client, jsoniter, circe)
+6. #294 yaes-http (server, client, jsoniter, circe) — DONE
 7. #289 README + docs
 
 ## Migration pattern per module
