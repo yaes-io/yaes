@@ -15,7 +15,7 @@
 4. #291 yaes-cats — DONE
 5. #293 yaes-slf4j + yaes-test — DONE
 6. #294 yaes-http (server, client, jsoniter, circe) — DONE
-7. #289 README + docs
+7. #289 README + docs — DONE
 
 ## Migration pattern per module
 - Move files: `src/main/scala/in/rcard/yaes/` → `src/main/scala/io/yaes/`
