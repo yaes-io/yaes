@@ -27,7 +27,7 @@ Never use `require`, `assert`, or throw exceptions in public API surfaces.
 
 ### Issue tracker
 
-Issues live in GitHub Issues (`github.com/rcardin/yaes`). See `docs/agents/issue-tracker.md`.
+Issues live in GitHub Issues (`github.com/yaes-io/yaes`). See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 

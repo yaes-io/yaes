@@ -6,9 +6,9 @@ Always prefer readability and maintainability to smartness. Keep It Simple, Stup
 
 | Module | Path | Description |
 |--------|------|-------------|
-| **yaes-core** | `yaes-core/src/main/scala/in/rcard/yaes/` | All effect implementations (foundation layer, no yaes dependencies) |
-| **yaes-data** | `yaes-data/src/main/scala/in/rcard/yaes/` | Data structures for use with effects (depends on yaes-core) |
-| **yaes-cats** | `yaes-cats/src/main/scala/in/rcard/yaes/` | Cats/Cats Effect integration (depends on yaes-core) |
+| **yaes-core** | `yaes-core/src/main/scala/io/yaes/` | All effect implementations (foundation layer, no yaes dependencies) |
+| **yaes-data** | `yaes-data/src/main/scala/io/yaes/` | Data structures for use with effects (depends on yaes-core) |
+| **yaes-cats** | `yaes-cats/src/main/scala/io/yaes/` | Cats/Cats Effect integration (depends on yaes-core) |
 | **yaes-http** | `yaes-http/` | HTTP module with server subproject |
 
 Each module has its own `CLAUDE.md` with implementation details and gotchas specific to that module.
@@ -40,5 +40,5 @@ Avoid using `Thread.sleep` in tests. If you need synchronization, use `CountDown
 
 ## Related Resources
 
-- Main Documentation: https://rcardin.github.io/yaes/
+- Main Documentation: https://yaes-io.github.io/yaes/
 - Code style and documentation standards: `CONVENTIONS.md`

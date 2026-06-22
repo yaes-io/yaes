@@ -1,8 +1,8 @@
 ![Made for Scala 3](https://img.shields.io/badge/Scala%203-%23de3423.svg?logo=scala&logoColor=white)
-![GitHub Workflow Status (with branch)](https://img.shields.io/github/actions/workflow/status/rcardin/yaes/scala.yml?branch=main)
-![Maven Central](https://img.shields.io/maven-central/v/in.rcard.yaes/yaes-slf4j_3)
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/rcardin/yaes)
-[![javadoc](https://javadoc.io/badge2/in.rcard.yaes/yaes-slf4j_3/javadoc.svg)](https://javadoc.io/doc/in.rcard.yaes/yaes-slf4j_3)
+![GitHub Workflow Status (with branch)](https://img.shields.io/github/actions/workflow/status/yaes-io/yaes/scala.yml?branch=main)
+![Maven Central](https://img.shields.io/maven-central/v/io.yaes/yaes-slf4j_3)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/yaes-io/yaes)
+[![javadoc](https://javadoc.io/badge2/io.yaes/yaes-slf4j_3/javadoc.svg)](https://javadoc.io/doc/io.yaes/yaes-slf4j_3)
 
 # λÆS SLF4J
 
@@ -18,8 +18,8 @@ The `yaes-slf4j` module provides an SLF4J-backed handler for the `Log` effect. I
 Replace `Log.run` with `Slf4jLog.run`. That's it — all existing `Log.getLogger`, `logger.info(...)`, etc. calls work unchanged:
 
 ```scala
-import in.rcard.yaes.Log
-import in.rcard.yaes.slf4j.Slf4jLog
+import io.yaes.Log
+import io.yaes.slf4j.Slf4jLog
 
 // Before (built-in console logger)
 Log.run(Log.Level.Info) {
@@ -109,8 +109,8 @@ Slf4jLog.run {
 `Slf4jLog.run` composes with other λÆS effects just like `Log.run`:
 
 ```scala
-import in.rcard.yaes.{Log, Output, Clock}
-import in.rcard.yaes.slf4j.Slf4jLog
+import io.yaes.{Log, Output, Clock}
+import io.yaes.slf4j.Slf4jLog
 
 val result = Output.run {
   Clock.run {
@@ -130,7 +130,7 @@ val result = Output.run {
 To use the `yaes-slf4j` module, add the following dependency to your `build.sbt` file:
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-slf4j" % "0.15.0"
+libraryDependencies += "io.yaes" %% "yaes-slf4j" % "0.15.0"
 ```
 
 You also need an SLF4J backend on the classpath. For example, to use Logback:

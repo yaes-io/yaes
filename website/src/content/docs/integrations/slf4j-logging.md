@@ -28,7 +28,7 @@ Available log levels (in order of severity):
 ### Creating a Logger
 
 ```scala
-import in.rcard.yaes.Log.*
+import io.yaes.Log.*
 
 val logger: Log ?=> Logger = Log.getLogger("MyApp")
 ```
@@ -36,7 +36,7 @@ val logger: Log ?=> Logger = Log.getLogger("MyApp")
 ### Logging Messages
 
 ```scala
-import in.rcard.yaes.Log.*
+import io.yaes.Log.*
 
 def businessLogic(using Log): Unit = {
   val logger = Log.getLogger("BusinessLogic")
@@ -55,7 +55,7 @@ def businessLogic(using Log): Unit = {
 The logging level is set at the handler, controlling which messages are emitted for all loggers within the block:
 
 ```scala
-import in.rcard.yaes.Log.*
+import io.yaes.Log.*
 
 Log.run(Log.Level.Info) {
   val logger = Log.getLogger("InfoLogger")
@@ -83,7 +83,7 @@ The default `ConsoleLogger` outputs messages in this format:
 ### Basic Usage
 
 ```scala
-import in.rcard.yaes.Log.*
+import io.yaes.Log.*
 
 // Default level is Debug
 val result = Log.run() {
@@ -99,7 +99,7 @@ val result = Log.run() {
 ### With Explicit Level
 
 ```scala
-import in.rcard.yaes.Log.*
+import io.yaes.Log.*
 
 val result = Log.run(Log.Level.Info) {
   val logger = Log.getLogger("Application")
@@ -113,7 +113,7 @@ val result = Log.run(Log.Level.Info) {
 You can provide a custom clock for timestamps:
 
 ```scala
-import in.rcard.yaes.Log.*
+import io.yaes.Log.*
 import java.time.Clock
 
 given customClock: Clock = Clock.systemUTC()
@@ -130,8 +130,8 @@ val result = Log.run(Log.Level.Info) {
 ### Application Lifecycle
 
 ```scala
-import in.rcard.yaes.Log.*
-import in.rcard.yaes.System.*
+import io.yaes.Log.*
+import io.yaes.System.*
 
 def startApplication(using Log, System): Unit = {
   val logger = Log.getLogger("Application")
@@ -154,8 +154,8 @@ def startApplication(using Log, System): Unit = {
 ### Error Handling with Logging
 
 ```scala
-import in.rcard.yaes.Log.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Log.*
+import io.yaes.Raise.*
 
 sealed trait ServiceError
 case class DatabaseError(message: String) extends ServiceError
@@ -189,8 +189,8 @@ def processRequest(userId: Int)(using Log, Raise[ServiceError]): String = {
 ### Performance Monitoring
 
 ```scala
-import in.rcard.yaes.Log.*
-import in.rcard.yaes.Clock.*
+import io.yaes.Log.*
+import io.yaes.Clock.*
 
 def monitoredOperation[A](name: String)(operation: => A)(using Log, Clock): A = {
   val logger = Log.getLogger("Performance")
@@ -215,7 +215,7 @@ def monitoredOperation[A](name: String)(operation: => A)(using Log, Clock): A = 
 ### Structured Logging Context
 
 ```scala
-import in.rcard.yaes.Log.*
+import io.yaes.Log.*
 
 case class RequestContext(requestId: String, userId: Option[Int], clientIp: String)
 
@@ -236,7 +236,7 @@ def contextualLogging(context: RequestContext)(using Log): Unit = {
 ### Multiple Loggers
 
 ```scala
-import in.rcard.yaes.Log.*
+import io.yaes.Log.*
 
 def multipleLoggers(using Log): Unit = {
   val accessLogger = Log.getLogger("AccessLog")
@@ -256,9 +256,9 @@ def multipleLoggers(using Log): Unit = {
 Since the log level is a handler concern, configure it at the application entry point using environment variables:
 
 ```scala
-import in.rcard.yaes.Log.*
-import in.rcard.yaes.Log.given
-import in.rcard.yaes.System.*
+import io.yaes.Log.*
+import io.yaes.Log.given
+import io.yaes.System.*
 
 def runWithEnvLevel(block: Log ?=> Unit)(using System): Unit = {
   val levelString = System.env[String]("LOG_LEVEL", "INFO")
@@ -287,7 +287,7 @@ The `yaes-slf4j` module provides an alternative handler that delegates logging t
 Add the `yaes-slf4j` dependency:
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-slf4j" % "0.21.0"
+libraryDependencies += "io.yaes" %% "yaes-slf4j" % "0.21.0"
 ```
 
 And an SLF4J backend, for example Logback:
@@ -301,8 +301,8 @@ libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.5.18"
 Replace `Log.run` with `Slf4jLog.run`. All existing `Log.getLogger` and logger method calls remain unchanged:
 
 ```scala
-import in.rcard.yaes.Log
-import in.rcard.yaes.slf4j.Slf4jLog
+import io.yaes.Log
+import io.yaes.slf4j.Slf4jLog
 
 Slf4jLog.run {
   val logger = Log.getLogger("MyService")

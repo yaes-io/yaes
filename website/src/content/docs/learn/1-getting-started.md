@@ -19,16 +19,16 @@ The library is available on Maven Central. Add the following dependencies to you
 
 ```scala
 libraryDependencies ++= Seq(
-  "in.rcard.yaes" %% "yaes-core"                  % "0.21.0",
-  "in.rcard.yaes" %% "yaes-data"                  % "0.21.0", // Optional: Flow and data structures
-  "in.rcard.yaes" %% "yaes-cats"                  % "0.21.0", // Optional: Cats Effect integration
-  "in.rcard.yaes" %% "yaes-slf4j"                 % "0.21.0", // Optional: SLF4J logging backend
-  "in.rcard.yaes" %% "yaes-http-server"           % "0.21.0", // Optional: HTTP server
-  "in.rcard.yaes" %% "yaes-http-client"           % "0.21.0", // Optional: HTTP client
-  "in.rcard.yaes" %% "yaes-http-circe"            % "0.21.0", // Optional: Circe JSON for HTTP
-  "in.rcard.yaes" %% "yaes-http-jsoniter"         % "0.21.0", // Optional: Jsoniter JSON for HTTP
-  "in.rcard.yaes" %% "yaes-core-test-scalatest"   % "0.21.0" % Test, // Optional: ScalaTest helpers for core effects
-  "in.rcard.yaes" %% "yaes-http-test-scalatest"   % "0.21.0" % Test  // Optional: ScalaTest helpers for HTTP
+  "io.yaes" %% "yaes-core"                  % "0.21.0",
+  "io.yaes" %% "yaes-data"                  % "0.21.0", // Optional: Flow and data structures
+  "io.yaes" %% "yaes-cats"                  % "0.21.0", // Optional: Cats Effect integration
+  "io.yaes" %% "yaes-slf4j"                 % "0.21.0", // Optional: SLF4J logging backend
+  "io.yaes" %% "yaes-http-server"           % "0.21.0", // Optional: HTTP server
+  "io.yaes" %% "yaes-http-client"           % "0.21.0", // Optional: HTTP client
+  "io.yaes" %% "yaes-http-circe"            % "0.21.0", // Optional: Circe JSON for HTTP
+  "io.yaes" %% "yaes-http-jsoniter"         % "0.21.0", // Optional: Jsoniter JSON for HTTP
+  "io.yaes" %% "yaes-core-test-scalatest"   % "0.21.0" % Test, // Optional: ScalaTest helpers for core effects
+  "io.yaes" %% "yaes-http-test-scalatest"   % "0.21.0" % Test  // Optional: ScalaTest helpers for HTTP
 )
 ```
 
@@ -52,8 +52,8 @@ The library is only available for **Scala 3** and is currently in an experimenta
 Let's start with a simple example using the `Random` and `Raise` effects:
 
 ```scala
-import in.rcard.yaes.Random.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Random.*
+import io.yaes.Raise.*
 
 def flipCoin(using Random, Raise[String]): String = {
   val result = Random.nextBoolean
@@ -66,8 +66,8 @@ def flipCoin(using Random, Raise[String]): String = {
 To execute the effectful computation, use handlers:
 
 ```scala
-import in.rcard.yaes.Random.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Random.*
+import io.yaes.Raise.*
 
 val result: String = Raise.run {
   Random.run {

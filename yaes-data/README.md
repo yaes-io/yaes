@@ -1,8 +1,8 @@
 ![Made for Scala 3](https://img.shields.io/badge/Scala%203-%23de3423.svg?logo=scala&logoColor=white)
-![GitHub Workflow Status (with branch)](https://img.shields.io/github/actions/workflow/status/rcardin/yaes/scala.yml?branch=main)
-![Maven Central](https://img.shields.io/maven-central/v/in.rcard.yaes/yaes-data_3)
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/rcardin/yaes)
-[![javadoc](https://javadoc.io/badge2/in.rcard.yaes/yaes-data_3/javadoc.svg)](https://javadoc.io/doc/in.rcard.yaes/yaes-data_3)
+![GitHub Workflow Status (with branch)](https://img.shields.io/github/actions/workflow/status/yaes-io/yaes/scala.yml?branch=main)
+![Maven Central](https://img.shields.io/maven-central/v/io.yaes/yaes-data_3)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/yaes-io/yaes)
+[![javadoc](https://javadoc.io/badge2/io.yaes/yaes-data_3/javadoc.svg)](https://javadoc.io/doc/io.yaes/yaes-data_3)
 
 # λÆS Data
 
@@ -28,7 +28,7 @@ Flows are conceptually similar to Iterators from the Collections framework but e
 There are several ways to create a Flow:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 
 // Create from explicit emits
 val flow1: Flow[Int] = Flow.flow[Int] {
@@ -60,7 +60,7 @@ val flow5: Flow[Array[Byte]] = Flow.fromFile(Paths.get("data.txt"), bufferSize =
 You can collect values from a Flow using the `collect` method:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 import scala.collection.mutable.ArrayBuffer
 
 val result = ArrayBuffer[Int]()
@@ -230,7 +230,7 @@ Flow provides support for reading data from InputStreams and decoding byte strea
 Creates a flow from an InputStream that emits byte arrays:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 import java.io.FileInputStream
 import scala.util.Using
 
@@ -247,7 +247,7 @@ Using(new FileInputStream("data.txt")) { inputStream =>
 Creates a flow from a file that emits byte arrays, with automatic resource management:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 import java.nio.file.Paths
 
 // Read entire file as UTF-8 string
@@ -286,7 +286,7 @@ Key characteristics:
 Decodes byte arrays from a flow into UTF-8 strings, correctly handling multi-byte character boundaries:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 import java.io.FileInputStream
 import scala.util.Using
 
@@ -305,7 +305,7 @@ Using(new FileInputStream("data.txt")) { inputStream =>
 Decodes byte arrays using a specific charset:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets
 
@@ -327,7 +327,7 @@ Flow provides support for encoding strings into byte arrays with various charact
 Encodes strings from a flow into UTF-8 byte arrays:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 import java.nio.charset.StandardCharsets
 
 val flow = Flow("Hello", "World", "!")
@@ -350,7 +350,7 @@ val decoded = result.map(bytes => new String(bytes, StandardCharsets.UTF_8))
 Encodes strings using a specific charset:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 import java.nio.charset.StandardCharsets
 
 // Encoding with UTF-16
@@ -373,7 +373,7 @@ val isoEncoded = isoFlow
 The encoder will throw an `UnmappableCharacterException` if a character cannot be represented in the target charset:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 import java.nio.charset.StandardCharsets
 
 // This will throw an exception because Chinese characters
@@ -395,7 +395,7 @@ Flow provides the `toOutputStream` method to write byte arrays directly to an Ou
 Writes all byte arrays from a flow to an OutputStream:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 import java.io.FileOutputStream
 import scala.util.Using
 
@@ -428,7 +428,7 @@ Note: The caller is responsible for closing the OutputStream, similar to how `fr
 Writes all byte arrays from a flow directly to a file with automatic resource management:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 import java.nio.file.Paths
 
 // Write binary data to a file
@@ -459,7 +459,7 @@ Key characteristics:
 You can combine encoding, writing, reading, and decoding for complete round-trip operations:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.nio.charset.StandardCharsets
 
@@ -489,7 +489,7 @@ Flow provides methods to split byte streams into lines, making it easy to proces
 Splits a UTF-8 encoded byte stream into lines:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 import java.io.FileInputStream
 import scala.util.Using
 
@@ -510,7 +510,7 @@ Using(new FileInputStream("data.txt")) { inputStream =>
 Splits a byte stream into lines using a specific charset:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 import java.io.FileInputStream
 import java.nio.charset.StandardCharsets
 import scala.util.Using
@@ -538,7 +538,7 @@ Key characteristics:
 To use the `yaes-data` module, add the following dependency to your build.sbt file:
 
 ```sbt
-libraryDependencies += "in.rcard.yaes" %% "yaes-data" % "0.21.0"
+libraryDependencies += "io.yaes" %% "yaes-data" % "0.21.0"
 ```
 
 The library is only available for Scala 3 and is currently in an experimental stage. The API is subject to change.
