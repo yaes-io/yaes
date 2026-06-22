@@ -487,10 +487,10 @@ object MyServer extends App {
 sbt "server/test"
 
 # Run specific test suite
-sbt "server/testOnly io.yaes.http.server.HttpParserSpec"
+sbt "server/testOnly io.yaes.http.server.parsing.HttpParserSpec"
 
 # Run specific test
-sbt "server/testOnly io.yaes.http.server.YaesServerSpec -- -z \"start and accept\""
+sbt "server/testOnly io.yaes.http.server.integration.YaesServerSpec -- -z \"start and accept\""
 ```
 
 ## Known Limitations

@@ -9,7 +9,7 @@
 
 λÆS is an experimental effect system in Scala inspired by the ideas behind Algebraic Effects. Using Scala 3 [context parameters](https://docs.scala-lang.org/scala3/reference/contextual/using-clauses.html) and [context functions](https://docs.scala-lang.org/scala3/reference/contextual/context-functions.html), it provides a way to define and handle effects in a modular and composable manner.
 
-You can visit the dedicated [website](https://rcardin.github.io/yaes/) 🌐.
+You can visit the dedicated [website](https://yaes-io.github.io/yaes/) 🌐.
 
 Here is the talk I gave at the **Scalar 2025** about the main concepts behind the library:
 <br clear="both" />
@@ -437,7 +437,7 @@ val result: Either[ShutdownTimedOut, Unit] = Shutdown.run {
 }
 ```
 
-For complete documentation including lifecycle details, deadline configuration, and practical examples, see [Async Effect - Graceful Shutdown](https://rcardin.github.io/yaes/effects/async.html#graceful-shutdown-with-async).
+For complete documentation including lifecycle details, deadline configuration, and practical examples, see [Async Effect - Graceful Shutdown](https://yaes-io.github.io/yaes/effects/async.html#graceful-shutdown-with-async).
 
 ### The `Raise` Effect
 
@@ -2081,7 +2081,7 @@ Key features:
 - **Error propagation**: Flow errors are propagated to subscriber's `onError`
 - **Concurrent**: Uses fibers internally for producer and consumer coordination
 
-For comprehensive documentation including demand management, backpressure patterns, error handling, and best practices, see the [Reactive Streams Integration documentation](https://rcardin.github.io/yaes/data-structures.html#reactive-streams-integration).
+For comprehensive documentation including demand management, backpressure patterns, error handling, and best practices, see the [Reactive Streams Integration documentation](https://yaes-io.github.io/yaes/data-structures.html#reactive-streams-integration).
 
 #### Error Handling
 

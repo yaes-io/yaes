@@ -10,7 +10,7 @@ The HTTP server subproject is defined in `build.sbt` as `lazy val server = proje
 # ✅ CORRECT
 sbt "server/compile"
 sbt "server/test"
-sbt "server/testOnly io.yaes.http.server.HttpParserSpec"
+sbt "server/testOnly io.yaes.http.server.parsing.HttpParserSpec"
 
 # ❌ INCORRECT
 sbt "yaes-http/server/compile"

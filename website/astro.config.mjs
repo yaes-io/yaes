@@ -4,7 +4,7 @@ import starlight from '@astrojs/starlight';
 
 // https://astro.build/config
 export default defineConfig({
-	site: 'https://rcardin.github.io',
+	site: 'https://yaes-io.github.io',
 	base: '/yaes',
 	integrations: [
 		starlight({
