@@ -429,7 +429,8 @@ import io.yaes.*
 import scala.concurrent.duration.*
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object MyServer extends App {
+@main
+def main(): Unit = {
   val userId = param[Int]("userId")
 
   Sync.runBlocking(Duration.Inf) {
@@ -457,7 +458,7 @@ object MyServer extends App {
 
           // Search with query parameter
           GET(p"/search" ? queryParam[String]("q")) { req =>
-            val query = req.queryParam("q").get
+            val query = Query.queryParam("q")
             Response.ok(s"Searching for: $query")
           },
 
