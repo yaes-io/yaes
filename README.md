@@ -137,7 +137,7 @@ The library is only available for Scala 3 and is currently in an experimental st
 
 ### Requirements
 
-- **Java 24 or higher** is required to run λÆS due to its use of modern Java features like Virtual Threads and Structured Concurrency.
+- **Exactly Java 25** is required to run λÆS due to its use of modern Java features like Virtual Threads and preview ones like Structured Concurrency.
 
 ## Usage
 
