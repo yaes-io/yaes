@@ -5,7 +5,7 @@ HTTP server implementation for λÆS.
 ### Route DSL
 
 ```scala
-import in.rcard.yaes.http.server.*
+import io.yaes.http.server.*
 
 // Simple route
 val route1 = GET / "users" -> { req => Response.ok("Users") }

@@ -1,8 +1,8 @@
 ![Made for Scala 3](https://img.shields.io/badge/Scala%203-%23de3423.svg?logo=scala&logoColor=white)
-![GitHub Workflow Status (with branch)](https://img.shields.io/github/actions/workflow/status/rcardin/yaes/scala.yml?branch=main)
-![Maven Central](https://img.shields.io/maven-central/v/in.rcard.yaes/yaes-http-client_3)
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/rcardin/yaes)
-[![javadoc](https://javadoc.io/badge2/in.rcard.yaes/yaes-http-client_3/javadoc.svg)](https://javadoc.io/doc/in.rcard.yaes/yaes-http-client_3)
+![GitHub Workflow Status (with branch)](https://img.shields.io/github/actions/workflow/status/yaes-io/yaes/scala.yml?branch=main)
+![Maven Central](https://img.shields.io/maven-central/v/io.yaes/yaes-http-client_3)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/yaes-io/yaes)
+[![javadoc](https://javadoc.io/badge2/io.yaes/yaes-http-client_3/javadoc.svg)](https://javadoc.io/doc/io.yaes/yaes-http-client_3)
 <br/>
 
 # λÆS HTTP Client
@@ -14,7 +14,7 @@ Effect-based HTTP client built on YAES effects and Java's `java.net.http.HttpCli
 Add the dependency to your `build.sbt`:
 
 ```scala
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-client" % "0.21.0"
+libraryDependencies += "io.yaes" %% "yaes-http-client" % "0.21.0"
 ```
 
 ## Overview
@@ -36,8 +36,8 @@ libraryDependencies += "in.rcard.yaes" %% "yaes-http-client" % "0.21.0"
 ## Quick Start
 
 ```scala
-import in.rcard.yaes.*
-import in.rcard.yaes.http.client.*
+import io.yaes.*
+import io.yaes.http.client.*
 import scala.concurrent.duration.*
 
 Sync.runBlocking(30.seconds) {
@@ -205,7 +205,7 @@ response.header("content-type")    // Option[String] (case-insensitive)
 Use `response.as[A]` to decode the body into a typed value. This raises `HttpError` for non-2xx status codes and a `DecodingError` if decoding fails:
 
 ```scala
-import in.rcard.yaes.http.core.DecodingError
+import io.yaes.http.core.DecodingError
 
 Raise.run[HttpError | DecodingError] {
   val user: String = response.as[String]
@@ -276,7 +276,7 @@ Raised by `response.as[A]` when the status code is outside 2xx:
 Use the `ClientHttpError` and `ServerHttpError` marker traits to match error categories:
 
 ```scala
-import in.rcard.yaes.http.core.DecodingError
+import io.yaes.http.core.DecodingError
 
 val result = Raise.either[HttpError | DecodingError, String] {
   response.as[String]
@@ -294,8 +294,8 @@ Many REST APIs return structured error payloads alongside non-2xx responses (e.g
 
 ```scala
 import io.circe.Decoder
-import in.rcard.yaes.http.circe.given
-import in.rcard.yaes.http.core.DecodingError
+import io.yaes.http.circe.given
+import io.yaes.http.core.DecodingError
 
 case class ApiError(field: String, message: String)
 given Decoder[ApiError] =
@@ -323,8 +323,8 @@ val result: Either[DecodingError, ApiError | User] =
 Use the `uri"..."` string interpolator to construct URIs with path parameters. Each interpolated argument is automatically URL-encoded (spaces become `%20`, slashes become `%2F`, etc.) via the `PathParamStringifier[A]` typeclass. The literal parts of the URI template are validated at **compile time**. Since interpolations are URL-encoded and intended for path segments, the assembled URI is always well-formed when placeholders appear only in path positions — no `Raise` effect is needed at runtime.
 
 ```scala
-import in.rcard.yaes.*
-import in.rcard.yaes.http.client.*
+import io.yaes.*
+import io.yaes.http.client.*
 
 val userId: Int     = 42
 val orderId: String = "ord-99"
@@ -339,8 +339,8 @@ Built-in `PathParamStringifier` instances exist for `String`, `Int`, `Long`, `Bo
 Provide a `given PathParamStringifier[A]` for your own types:
 
 ```scala
-import in.rcard.yaes.*
-import in.rcard.yaes.http.client.*
+import io.yaes.*
+import io.yaes.http.client.*
 
 case class ItemId(value: Int)
 
@@ -422,11 +422,11 @@ The client uses `BodyEncoder[A]` for encoding request bodies (in `post`, `put`, 
 For JSON support, use the `yaes-http-circe` module which provides automatic `BodyEncoder` and `BodyDecoder` instances for types with Circe `Encoder` and `Decoder` respectively:
 
 ```scala
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-circe" % "0.21.0"
+libraryDependencies += "io.yaes" %% "yaes-http-circe" % "0.21.0"
 ```
 
 ```scala
-import in.rcard.yaes.http.circe.given
+import io.yaes.http.circe.given
 import io.circe.{Encoder, Decoder}
 
 case class User(id: Int, name: String) derives Encoder.AsObject, Decoder
@@ -441,9 +441,9 @@ Raise.run[Uri.InvalidUri] {
 ## Complete Example
 
 ```scala
-import in.rcard.yaes.*
-import in.rcard.yaes.http.client.*
-import in.rcard.yaes.http.core.DecodingError
+import io.yaes.*
+import io.yaes.http.client.*
+import io.yaes.http.core.DecodingError
 import scala.concurrent.duration.*
 
 Raise.run[ConnectionError] {
@@ -481,7 +481,7 @@ Raise.run[ConnectionError] {
 sbt "client/test"
 
 # Run specific test suite
-sbt "client/testOnly in.rcard.yaes.http.client.HttpRequestSpec"
+sbt "client/testOnly io.yaes.http.client.HttpRequestSpec"
 ```
 
 ## Requirements

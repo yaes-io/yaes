@@ -13,12 +13,12 @@ sidebar:
 Add the dependency to your `build.sbt`:
 
 ```scala
-libraryDependencies += "in.rcard.yaes" %% "yaes-http-test-scalatest" % "0.21.0" % Test
+libraryDependencies += "io.yaes" %% "yaes-http-test-scalatest" % "0.21.0" % Test
 ```
 
 This module depends only on ScalaTest — no λÆS runtime dependency is pulled in transitively.
 
-> Check [Maven Central](https://central.sonatype.com/artifact/in.rcard.yaes/yaes-http-test-scalatest_3) for the latest version.
+> Check [Maven Central](https://central.sonatype.com/artifact/io.yaes/yaes-http-test-scalatest_3) for the latest version.
 
 ---
 
@@ -27,7 +27,7 @@ This module depends only on ScalaTest — no λÆS runtime dependency is pulled 
 Mix `StubHttpServerSpec` into your spec class to get a running stub server wired into the ScalaTest lifecycle:
 
 ```scala
-import in.rcard.yaes.test.http.scalatest.{StubHttpServerSpec, StubResponse}
+import io.yaes.test.http.scalatest.{StubHttpServerSpec, StubResponse}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import java.net.URI

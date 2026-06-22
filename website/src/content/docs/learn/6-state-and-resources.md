@@ -23,7 +23,7 @@ The `State` effect manages a single piece of state of type `S` throughout a comp
 ### Getting and Setting State
 
 ```scala
-import in.rcard.yaes.State.*
+import io.yaes.State.*
 
 val (finalState, result) = State.run(0) {
   val current = State.get[Int]
@@ -38,7 +38,7 @@ val (finalState, result) = State.run(0) {
 The `update` operation applies a transformation function to the current state and returns the new value:
 
 ```scala
-import in.rcard.yaes.State.*
+import io.yaes.State.*
 
 val (finalState, result) = State.run(10) {
   val doubled = State.update[Int](_ * 2)
@@ -53,7 +53,7 @@ val (finalState, result) = State.run(10) {
 Use `State.use` when you only need to derive a value from state without changing it:
 
 ```scala
-import in.rcard.yaes.State.*
+import io.yaes.State.*
 
 case class User(name: String, age: Int)
 
@@ -68,7 +68,7 @@ val (finalState, nameLength) = State.run(User("Alice", 30)) {
 You can build composable state operations using context parameters:
 
 ```scala
-import in.rcard.yaes.State.*
+import io.yaes.State.*
 
 def increment(using State[Int]): Int = State.update(_ + 1)
 def decrement(using State[Int]): Int = State.update(_ - 1)
@@ -88,7 +88,7 @@ val (finalState, result) = State.run(5) {
 State works well with case classes for modeling domain objects:
 
 ```scala
-import in.rcard.yaes.State.*
+import io.yaes.State.*
 
 case class GameState(score: Int, lives: Int, level: Int)
 
@@ -116,8 +116,8 @@ val (finalState, _) = State.run(GameState(0, 3, 1)) {
 `State` composes naturally with other λÆS effects:
 
 ```scala
-import in.rcard.yaes.State.*
-import in.rcard.yaes.Random.*
+import io.yaes.State.*
+import io.yaes.Random.*
 
 def randomWalk(steps: Int)(using State[Int], Random): Int = {
   if (steps <= 0) State.get[Int]
@@ -176,7 +176,7 @@ The `Writer[W]` effect enables pure, append-only value accumulation during compu
 Use `Writer.write` to append a single value and `Writer.writeAll` to append multiple values at once:
 
 ```scala
-import in.rcard.yaes.Writer.*
+import io.yaes.Writer.*
 
 val (log, result) = Writer.run[String, Int] {
   Writer.write("starting")
@@ -187,7 +187,7 @@ val (log, result) = Writer.run[String, Int] {
 ```
 
 ```scala
-import in.rcard.yaes.Writer.*
+import io.yaes.Writer.*
 
 val (log, _) = Writer.run[Int, Unit] {
   Writer.write(1)
@@ -202,7 +202,7 @@ val (log, _) = Writer.run[Int, Unit] {
 For more concise syntax, you can use the `writes` infix type, similar to `raises` for the Raise effect:
 
 ```scala
-import in.rcard.yaes.{Writer, writes}
+import io.yaes.{Writer, writes}
 
 def computation: Int writes String = {
   Writer.write("log entry")
@@ -220,7 +220,7 @@ val (log, result) = Writer.run[String, Int] {
 The `capture` operation records writes from a block, returning them alongside the block's result. Writes are also forwarded to the outer scope:
 
 ```scala
-import in.rcard.yaes.Writer.*
+import io.yaes.Writer.*
 
 val (outerLog, (innerLog, result)) = Writer.run[String, (Vector[String], Int)] {
   Writer.write("before")
@@ -238,7 +238,7 @@ val (outerLog, (innerLog, result)) = Writer.run[String, (Vector[String], Int)] {
 Captures can be nested — each level records its own writes while forwarding to the outer scope:
 
 ```scala
-import in.rcard.yaes.Writer.*
+import io.yaes.Writer.*
 
 val (outerLog, (middleLog, (innerLog, result))) =
   Writer.run[String, (Vector[String], (Vector[String], Int))] {
@@ -261,8 +261,8 @@ val (outerLog, (middleLog, (innerLog, result))) =
 `Writer` composes naturally with other λÆS effects:
 
 ```scala
-import in.rcard.yaes.Writer.*
-import in.rcard.yaes.State.*
+import io.yaes.Writer.*
+import io.yaes.State.*
 
 val (state, (log, result)) = State.run(0) {
   Writer.run[String, Int] {
@@ -276,8 +276,8 @@ val (state, (log, result)) = State.run(0) {
 ```
 
 ```scala
-import in.rcard.yaes.Writer.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Writer.*
+import io.yaes.Raise.*
 
 val (log, result) = Writer.run[String, Either[String, Int]] {
   Writer.write("before")
@@ -325,7 +325,7 @@ The `Reader` effect manages a single immutable environment value of type `R`. Co
 Use `Reader.read` to access the current environment value:
 
 ```scala
-import in.rcard.yaes.Reader
+import io.yaes.Reader
 
 case class Config(maxRetries: Int, timeout: Int)
 
@@ -342,7 +342,7 @@ val result = Reader.run(Config(3, 5000)) {
 For more concise syntax, use the `reads` infix type, similar to `raises` and `writes`:
 
 ```scala
-import in.rcard.yaes.{Reader, reads}
+import io.yaes.{Reader, reads}
 
 case class Config(maxRetries: Int, timeout: Int)
 
@@ -360,7 +360,7 @@ val result = Reader.run(Config(3, 5000)) {
 The `local` operation runs a block with a modified environment value. The original value is restored after the block completes:
 
 ```scala
-import in.rcard.yaes.Reader
+import io.yaes.Reader
 
 case class Config(maxRetries: Int, timeout: Int)
 
@@ -378,7 +378,7 @@ val result = Reader.run(Config(3, 5000)) {
 Local overrides can be nested — each scope sees its own value, and all restore correctly:
 
 ```scala
-import in.rcard.yaes.Reader
+import io.yaes.Reader
 
 val result = Reader.run(1) {
   val a = Reader.read[Int]                        // 1
@@ -398,7 +398,7 @@ val result = Reader.run(1) {
 `Reader` composes naturally with other λÆS effects:
 
 ```scala
-import in.rcard.yaes.{Raise, Reader, raises, reads}
+import io.yaes.{Raise, Reader, raises, reads}
 
 case class Config(maxRetries: Int)
 
@@ -416,7 +416,7 @@ val result = Reader.run(Config(5)) {
 ```
 
 ```scala
-import in.rcard.yaes.{Reader, Writer, reads, writes}
+import io.yaes.{Reader, Writer, reads, writes}
 
 case class Config(prefix: String)
 
@@ -454,7 +454,7 @@ This is essential for managing files, database connections, network connections,
 For resources implementing `java.lang.AutoCloseable`, use `Resource.acquire`:
 
 ```scala
-import in.rcard.yaes.Resource.*
+import io.yaes.Resource.*
 import java.io.{FileInputStream, FileOutputStream}
 
 def copyFile(source: String, target: String)(using Resource): Unit = {
@@ -477,7 +477,7 @@ def copyFile(source: String, target: String)(using Resource): Unit = {
 Use `Resource.install` for resources with custom cleanup logic:
 
 ```scala
-import in.rcard.yaes.Resource.*
+import io.yaes.Resource.*
 
 def processWithConnection()(using Resource): String = {
   val connection = Resource.install(openDatabaseConnection()) { conn =>
@@ -495,7 +495,7 @@ def processWithConnection()(using Resource): String = {
 Register standalone cleanup actions with `Resource.ensuring`:
 
 ```scala
-import in.rcard.yaes.Resource.*
+import io.yaes.Resource.*
 
 def processData()(using Resource): Unit = {
   Resource.ensuring {
@@ -516,7 +516,7 @@ def processData()(using Resource): Unit = {
 Wrap resource-using code in `Resource.run` to trigger cleanup:
 
 ```scala
-import in.rcard.yaes.Resource.*
+import io.yaes.Resource.*
 
 val result = Resource.run {
   copyFile("source.txt", "target.txt")
@@ -530,7 +530,7 @@ val result = Resource.run {
 Resources are always released in the reverse order they were acquired:
 
 ```scala
-import in.rcard.yaes.Resource.*
+import io.yaes.Resource.*
 
 def nestedResourceExample()(using Resource): Unit = {
   val outer = Resource.acquire(new FileInputStream("outer.txt"))
@@ -557,8 +557,8 @@ Resource.run { nestedResourceExample() }
 Resources are cleaned up even when exceptions or raised errors occur:
 
 ```scala
-import in.rcard.yaes.Resource.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Resource.*
+import io.yaes.Raise.*
 
 def riskyOperation()(using Resource, Raise[String]): String = {
   val resource = Resource.acquire(new FileInputStream("data.txt"))
@@ -577,7 +577,7 @@ def riskyOperation()(using Resource, Raise[String]): String = {
 Resources of different types compose cleanly in a single scope:
 
 ```scala
-import in.rcard.yaes.Resource.*
+import io.yaes.Resource.*
 import java.io.*
 import java.net.*
 
