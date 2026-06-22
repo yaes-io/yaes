@@ -1,8 +1,8 @@
-package in.rcard.yaes.interop
+package io.yaes.interop
 
-import in.rcard.yaes.{Sync => YaesSync, Executor}
-import in.rcard.yaes.Sync as SyncObj
-import in.rcard.yaes.Raise
+import io.yaes.{Sync => YaesSync, Executor}
+import io.yaes.Sync as SyncObj
+import io.yaes.Raise
 import cats.effect.{IO => CatsIO}
 import cats.effect.{Sync => CatsSync}
 import scala.concurrent.{Future, Await}
@@ -16,7 +16,7 @@ import scala.util.Try
   *
   * For extension methods on Cats Effect IO, import the syntax:
   * {{{
-  * import in.rcard.yaes.syntax.catseffect.given
+  * import io.yaes.syntax.catseffect.given
   * }}}
   */
 object catseffect {
@@ -50,8 +50,8 @@ object catseffect {
     *
     * Example with error handling:
     * {{{
-    * import in.rcard.yaes.{Sync => YaesSync, Raise}
-    * import in.rcard.yaes.interop.catseffect
+    * import io.yaes.{Sync => YaesSync, Raise}
+    * import io.yaes.interop.catseffect
     * import cats.effect.IO
     *
     * val yaesProgram: (YaesSync, Raise[Throwable]) ?=> Int = YaesSync {
@@ -85,7 +85,7 @@ object catseffect {
     *   An effect `F[A]` containing the same computation with errors as failures
     * @see [[delay]] for CPU-bound computations without blocking I/O
     */
-  def blocking[F[_]: CatsSync, A](yaesProgram: (in.rcard.yaes.Sync, Raise[Throwable]) ?=> A): F[A] = {
+  def blocking[F[_]: CatsSync, A](yaesProgram: (io.yaes.Sync, Raise[Throwable]) ?=> A): F[A] = {
     CatsSync[F].blocking {
       yaesProgram(using syncUnsafe, Raise.rethrowError)
     }
@@ -110,7 +110,7 @@ object catseffect {
     *   An effect `F[A]` containing the same computation
     * @see [[blocking]] for programs that may perform blocking I/O
     */
-  def delay[F[_]: CatsSync, A](yaesProgram: (in.rcard.yaes.Sync, Raise[Throwable]) ?=> A): F[A] = {
+  def delay[F[_]: CatsSync, A](yaesProgram: (io.yaes.Sync, Raise[Throwable]) ?=> A): F[A] = {
     CatsSync[F].delay {
       yaesProgram(using syncUnsafe, Raise.rethrowError)
     }
@@ -128,7 +128,7 @@ object catseffect {
     * @return
     *   A Cats Effect IO containing the same computation
     */
-  def blockingSync[A](yaesProgram: (in.rcard.yaes.Sync, Raise[Throwable]) ?=> A): CatsIO[A] =
+  def blockingSync[A](yaesProgram: (io.yaes.Sync, Raise[Throwable]) ?=> A): CatsIO[A] =
     blocking[CatsIO, A](yaesProgram)
 
   /** Converts a YAES Sync program to Cats Effect IO, optimized for CPU-bound computations.
@@ -144,7 +144,7 @@ object catseffect {
     *   A Cats Effect IO containing the same computation
     * @see [[blockingSync]] for programs that may perform blocking I/O
     */
-  def delaySync[A](yaesProgram: (in.rcard.yaes.Sync, Raise[Throwable]) ?=> A): CatsIO[A] =
+  def delaySync[A](yaesProgram: (io.yaes.Sync, Raise[Throwable]) ?=> A): CatsIO[A] =
     delay[CatsIO, A](yaesProgram)
 
   /** Converts a Cats Effect IO to a YAES Sync program.
@@ -163,8 +163,8 @@ object catseffect {
     * Example with error handling:
     * {{{
     * import cats.effect.{IO => CatsIO}
-    * import in.rcard.yaes.{Sync => YaesSync, Raise}
-    * import in.rcard.yaes.interop.catseffect
+    * import io.yaes.{Sync => YaesSync, Raise}
+    * import io.yaes.interop.catseffect
     *
     * val catsIO: CatsIO[Int] = CatsIO.raiseError(new RuntimeException("Error"))
     *
@@ -203,7 +203,7 @@ object catseffect {
     * @return
     *   A YAES Sync program that executes the Cats Effect computation and raises exceptions via Raise[Throwable]
     */
-  def value[A](catsIO: CatsIO[A]): (in.rcard.yaes.Sync, Raise[Throwable]) ?=> A = {
+  def value[A](catsIO: CatsIO[A]): (io.yaes.Sync, Raise[Throwable]) ?=> A = {
     valueImpl(catsIO, Duration.Inf)
   }
 
@@ -222,8 +222,8 @@ object catseffect {
     * Example with timeout handling:
     * {{{
     * import cats.effect.{IO => CatsIO}
-    * import in.rcard.yaes.{Sync => YaesSync, Raise}
-    * import in.rcard.yaes.interop.catseffect
+    * import io.yaes.{Sync => YaesSync, Raise}
+    * import io.yaes.interop.catseffect
     * import scala.concurrent.duration._
     *
     * val catsIO: CatsIO[Int] = CatsIO.sleep(10.seconds) *> CatsIO.pure(42)
@@ -255,7 +255,7 @@ object catseffect {
     * @return
     *   A YAES Sync program with timeout protection that raises exceptions via Raise[Throwable]
     */
-  def value[A](catsIO: CatsIO[A], timeout: Duration): (in.rcard.yaes.Sync, Raise[Throwable]) ?=> A = {
+  def value[A](catsIO: CatsIO[A], timeout: Duration): (io.yaes.Sync, Raise[Throwable]) ?=> A = {
     valueImpl(catsIO, timeout)
   }
 
@@ -270,8 +270,8 @@ object catseffect {
     * @return
     *   A YAES Sync program that executes the Cats Effect computation
     */
-  private def valueImpl[A](catsIO: CatsIO[A], timeout: Duration): (in.rcard.yaes.Sync, Raise[Throwable]) ?=> A = {
-    in.rcard.yaes.Sync.apply {
+  private def valueImpl[A](catsIO: CatsIO[A], timeout: Duration): (io.yaes.Sync, Raise[Throwable]) ?=> A = {
+    io.yaes.Sync.apply {
       Raise.catching {
         import cats.effect.unsafe.implicits.global as runtime
         val future = catsIO.unsafeToFuture()(using runtime)

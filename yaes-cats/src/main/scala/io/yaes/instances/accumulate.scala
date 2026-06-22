@@ -1,7 +1,7 @@
-package in.rcard.yaes.instances
+package io.yaes.instances
 
 import cats.data.{NonEmptyChain, NonEmptyList}
-import in.rcard.yaes.Raise.AccumulateCollector
+import io.yaes.Raise.AccumulateCollector
 
 /** Provides AccumulateCollector instances for Cats data types. */
 object accumulate extends AccumulateInstances
@@ -19,9 +19,9 @@ trait AccumulateInstances {
     *
     * Example:
     * {{{
-    * import in.rcard.yaes.Raise
-    * import in.rcard.yaes.Raise.accumulating
-    * import in.rcard.yaes.instances.accumulate.given
+    * import io.yaes.Raise
+    * import io.yaes.Raise.accumulating
+    * import io.yaes.instances.accumulate.given
     * import cats.data.NonEmptyList
     *
     * val result: Either[NonEmptyList[String], Int] = Raise.either {
@@ -45,9 +45,9 @@ trait AccumulateInstances {
     *
     * Example:
     * {{{
-    * import in.rcard.yaes.Raise
-    * import in.rcard.yaes.Raise.accumulating
-    * import in.rcard.yaes.instances.accumulate.given
+    * import io.yaes.Raise
+    * import io.yaes.Raise.accumulating
+    * import io.yaes.instances.accumulate.given
     * import cats.data.NonEmptyChain
     *
     * val result: Either[NonEmptyChain[String], Int] = Raise.either {

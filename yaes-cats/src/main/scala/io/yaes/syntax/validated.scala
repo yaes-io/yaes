@@ -1,8 +1,8 @@
-package in.rcard.yaes.syntax
+package io.yaes.syntax
 
 import cats.data.Validated
 import cats.data.Validated.{Invalid, Valid}
-import in.rcard.yaes.Raise
+import io.yaes.Raise
 
 /** Syntax extensions for Cats Validated types to integrate with YAES Raise effect.
   *
@@ -11,8 +11,8 @@ import in.rcard.yaes.Raise
   *
   * Example:
   * {{{
-  * import in.rcard.yaes.syntax.validated._
-  * import in.rcard.yaes.Raise
+  * import io.yaes.syntax.validated._
+  * import io.yaes.Raise
   * import cats.data.Validated
   *
   * val result = Raise.either {
@@ -38,8 +38,8 @@ trait ValidatedSyntax {
       *
       * Example:
       * {{{
-      * import in.rcard.yaes.syntax.validated._
-      * import in.rcard.yaes.Raise
+      * import io.yaes.syntax.validated._
+      * import io.yaes.Raise
       * import cats.data.Validated
       *
       * val result = Raise.either {

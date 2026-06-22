@@ -1,10 +1,10 @@
-package in.rcard.yaes.syntax
+package io.yaes.syntax
 
 /** Combined syntax extensions for all YAES Cats integrations.
   *
   * Import this object to get all syntax extensions at once:
   * {{{
-  * import in.rcard.yaes.syntax.all.given
+  * import io.yaes.syntax.all.given
   * }}}
   */
 object all extends AllSyntax

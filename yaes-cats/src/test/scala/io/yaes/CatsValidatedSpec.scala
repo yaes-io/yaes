@@ -1,9 +1,9 @@
-package in.rcard.yaes
+package io.yaes
 
 import _root_.cats.data.*
 import _root_.cats.data.Validated.{Invalid, Valid}
-import in.rcard.yaes.cats.validated
-import in.rcard.yaes.syntax.validated.*
+import io.yaes.cats.validated
+import io.yaes.syntax.validated.*
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

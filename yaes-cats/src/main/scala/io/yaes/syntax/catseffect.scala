@@ -1,8 +1,8 @@
-package in.rcard.yaes.syntax
+package io.yaes.syntax
 
 import cats.effect.{IO => CatsIO}
-import in.rcard.yaes.{Sync => YaesSync}
-import in.rcard.yaes.Raise
+import io.yaes.{Sync => YaesSync}
+import io.yaes.Raise
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.annotation.targetName
@@ -14,8 +14,8 @@ import scala.annotation.targetName
   *
   * Example:
   * {{{
-  * import in.rcard.yaes.syntax.catseffect.given
-  * import in.rcard.yaes.{Sync => YaesSync}
+  * import io.yaes.syntax.catseffect.given
+  * import io.yaes.{Sync => YaesSync}
   * import cats.effect.{IO => CatsIO}
   *
   * val catsIO: CatsIO[Int] = CatsIO.pure(42)
@@ -43,9 +43,9 @@ trait CatsEffectSyntax {
       *
       * Example:
       * {{{
-      * import in.rcard.yaes.syntax.catseffect.given
+      * import io.yaes.syntax.catseffect.given
       * import cats.effect.{IO => CatsIO}
-      * import in.rcard.yaes.{Sync => YaesSync, Raise}
+      * import io.yaes.{Sync => YaesSync, Raise}
       *
       * val catsIO: CatsIO[Int] = CatsIO.pure(42)
       *
@@ -60,7 +60,7 @@ trait CatsEffectSyntax {
       *   A YAES Sync program that executes the Cats Effect computation
       */
     @targetName("valueExtension")
-    def value: (in.rcard.yaes.Sync, Raise[Throwable]) ?=> A =
+    def value: (YaesSync, Raise[Throwable]) ?=> A =
       valueImpl(io, Duration.Inf)
 
     /** Converts this Cats Effect IO to a YAES Sync program with a timeout.
@@ -70,9 +70,9 @@ trait CatsEffectSyntax {
       *
       * Example:
       * {{{
-      * import in.rcard.yaes.syntax.catseffect.given
+      * import io.yaes.syntax.catseffect.given
       * import cats.effect.{IO => CatsIO}
-      * import in.rcard.yaes.{Sync => YaesSync, Raise}
+      * import io.yaes.{Sync => YaesSync, Raise}
       * import scala.concurrent.duration._
       *
       * val catsIO: CatsIO[Int] = CatsIO.sleep(10.seconds) *> CatsIO.pure(42)
@@ -94,13 +94,13 @@ trait CatsEffectSyntax {
       *   A YAES Sync program with timeout protection
       */
     @targetName("valueWithTimeoutExtension")
-    def value(timeout: Duration): (in.rcard.yaes.Sync, Raise[Throwable]) ?=> A =
+    def value(timeout: Duration): (YaesSync, Raise[Throwable]) ?=> A =
       valueImpl(io, timeout)
 
   /** Internal implementation for converting Cats Effect IO to YAES Sync.
     */
-  private def valueImpl[A](catsIO: CatsIO[A], timeout: Duration): (in.rcard.yaes.Sync, Raise[Throwable]) ?=> A = {
-    in.rcard.yaes.Sync.apply {
+  private def valueImpl[A](catsIO: CatsIO[A], timeout: Duration): (YaesSync, Raise[Throwable]) ?=> A = {
+    YaesSync.apply {
       Raise.catching {
         import cats.effect.unsafe.implicits.global as runtime
         val future = catsIO.unsafeToFuture()(using runtime)

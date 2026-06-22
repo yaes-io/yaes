@@ -1,9 +1,9 @@
-package in.rcard.yaes
+package io.yaes
 
 import _root_.cats.Semigroup
 import _root_.cats.data.NonEmptyList
-import in.rcard.yaes.cats.{accumulate as catsAccumulate}
-import in.rcard.yaes.syntax.accumulate.*
+import io.yaes.cats.{accumulate as catsAccumulate}
+import io.yaes.syntax.accumulate.*
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

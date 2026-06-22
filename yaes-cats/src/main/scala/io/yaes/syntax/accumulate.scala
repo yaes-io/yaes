@@ -1,9 +1,9 @@
-package in.rcard.yaes.syntax
+package io.yaes.syntax
 
 import cats.Semigroup
 import cats.data.NonEmptyList
-import in.rcard.yaes.Raise
-import in.rcard.yaes.cats.{accumulate as catsAccumulate}
+import io.yaes.Raise
+import io.yaes.cats.{accumulate as catsAccumulate}
 
 /** Object providing accumulation syntax extensions.
   *
@@ -11,7 +11,7 @@ import in.rcard.yaes.cats.{accumulate as catsAccumulate}
   *
   * Example:
   * {{{
-  * import in.rcard.yaes.syntax.accumulate.*
+  * import io.yaes.syntax.accumulate.*
   * import cats.Semigroup
   *
   * given Semigroup[String] = Semigroup.instance(_ + _)
@@ -28,7 +28,7 @@ object accumulate extends AccumulateSyntax
   *
   * Example:
   * {{{
-  * import in.rcard.yaes.syntax.accumulate.*
+  * import io.yaes.syntax.accumulate.*
   * import cats.Semigroup
   *
   * given Semigroup[String] = Semigroup.instance(_ + _)
@@ -48,9 +48,9 @@ trait AccumulateSyntax {
       *
       * Example:
       * {{{
-      * import in.rcard.yaes.Raise
-      * import in.rcard.yaes.syntax.accumulate.*
-      * import in.rcard.yaes.cats.accumulate
+      * import io.yaes.Raise
+      * import io.yaes.syntax.accumulate.*
+      * import io.yaes.cats.accumulate
       * import cats.Semigroup
       *
       * given Semigroup[String] = Semigroup.instance(_ + _)
@@ -94,9 +94,9 @@ trait AccumulateSyntax {
       *
       * Example:
       * {{{
-      * import in.rcard.yaes.Raise
-      * import in.rcard.yaes.syntax.accumulate.*
-      * import in.rcard.yaes.cats.accumulate
+      * import io.yaes.Raise
+      * import io.yaes.syntax.accumulate.*
+      * import io.yaes.cats.accumulate
       * import cats.Semigroup
       * import cats.data.NonEmptyList
       *
@@ -141,9 +141,9 @@ trait AccumulateSyntax {
       *
       * Example:
       * {{{
-      * import in.rcard.yaes.Raise
-      * import in.rcard.yaes.syntax.accumulate.*
-      * import in.rcard.yaes.cats.accumulate
+      * import io.yaes.Raise
+      * import io.yaes.syntax.accumulate.*
+      * import io.yaes.cats.accumulate
       * import cats.data.NonEmptyList
       *
       * val iterableWithInnerRaise: List[Int raises String] =
@@ -183,9 +183,9 @@ trait AccumulateSyntax {
       *
       * Example:
       * {{{
-      * import in.rcard.yaes.Raise
-      * import in.rcard.yaes.syntax.accumulate.*
-      * import in.rcard.yaes.cats.accumulate
+      * import io.yaes.Raise
+      * import io.yaes.syntax.accumulate.*
+      * import io.yaes.cats.accumulate
       * import cats.data.NonEmptyList
       *
       * val iterableWithInnerRaise: NonEmptyList[Int raises String] =

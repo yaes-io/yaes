@@ -1,8 +1,8 @@
-package in.rcard.yaes.instances
+package io.yaes.instances
 
 import cats.ApplicativeError
-import in.rcard.yaes.Raise
-import in.rcard.yaes.instances.raise.given
+import io.yaes.Raise
+import io.yaes.instances.raise.given
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

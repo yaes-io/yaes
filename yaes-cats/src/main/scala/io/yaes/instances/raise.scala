@@ -1,7 +1,7 @@
-package in.rcard.yaes.instances
+package io.yaes.instances
 
 import cats.*
-import in.rcard.yaes.Raise
+import io.yaes.Raise
 
 import scala.annotation.tailrec
 
@@ -23,8 +23,8 @@ trait RaiseInstances {
     * Example:
     * {{{
     * import cats.syntax.all.*
-    * import in.rcard.yaes.{Raise, raises}
-    * import in.rcard.yaes.instances.raise.given
+    * import io.yaes.{Raise, raises}
+    * import io.yaes.instances.raise.given
     *
     * def computation1: Int raises String = Raise.raise("error")
     * def computation2: Int raises String = 42

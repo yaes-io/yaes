@@ -1,7 +1,7 @@
-package in.rcard.yaes.instances
+package io.yaes.instances
 
-import in.rcard.yaes.Raise
-import in.rcard.yaes.instances.raise.RaiseMonadError
+import io.yaes.Raise
+import io.yaes.instances.raise.RaiseMonadError
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

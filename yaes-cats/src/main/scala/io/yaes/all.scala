@@ -1,19 +1,19 @@
-package in.rcard.yaes
+package io.yaes
 
 /** Unified imports for all YAES Cats integrations.
   *
   * For production code, prefer granular imports:
   * {{{
-  * import in.rcard.yaes.interop.catseffect.*
-  * import in.rcard.yaes.syntax.catseffect.given
-  * import in.rcard.yaes.instances.raise.given
+  * import io.yaes.interop.catseffect.*
+  * import io.yaes.syntax.catseffect.given
+  * import io.yaes.instances.raise.given
   * }}}
   *
   * This object is provided for convenience and quick exploration.
   *
   * Example:
   * {{{
-  * import in.rcard.yaes.all.{given, *}
+  * import io.yaes.all.{given, *}
   *
   * // Now have access to all methods and syntax
   * val catsIO = catseffect.blockingIO(yaesProgram)

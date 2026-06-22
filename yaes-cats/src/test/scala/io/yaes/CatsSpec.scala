@@ -1,8 +1,8 @@
-package in.rcard.yaes
+package io.yaes
 
-import in.rcard.yaes.{Sync => YaesSync, Raise}
-import in.rcard.yaes.interop.catseffect
-import in.rcard.yaes.syntax.catseffect.*
+import io.yaes.{Sync => YaesSync, Raise}
+import io.yaes.interop.catseffect
+import io.yaes.syntax.catseffect.*
 import _root_.cats.effect.{IO => CatsIO}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

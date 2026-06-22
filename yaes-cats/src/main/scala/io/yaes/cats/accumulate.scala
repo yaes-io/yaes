@@ -1,8 +1,8 @@
-package in.rcard.yaes.cats
+package io.yaes.cats
 
 import cats.Semigroup
 import cats.data.NonEmptyList
-import in.rcard.yaes.Raise
+import io.yaes.Raise
 
 /** Error accumulation utilities using Cats Semigroup typeclass and NonEmptyList.
   *
@@ -12,7 +12,7 @@ import in.rcard.yaes.Raise
   *
   * For extension methods like `combineErrors` and `combineErrorsS`, import:
   * {{{
-  * import in.rcard.yaes.syntax.accumulate.given
+  * import io.yaes.syntax.accumulate.given
   * }}}
   */
 object accumulate {
@@ -24,8 +24,8 @@ object accumulate {
     *
     * Example:
     * {{{
-    * import in.rcard.yaes.{Raise, raises}
-    * import in.rcard.yaes.cats.accumulate
+    * import io.yaes.{Raise, raises}
+    * import io.yaes.cats.accumulate
     * import cats.Semigroup
     *
     * case class MyError(errors: List[String])
@@ -82,8 +82,8 @@ object accumulate {
     *
     * Example:
     * {{{
-    * import in.rcard.yaes.{Raise, raises}
-    * import in.rcard.yaes.cats.accumulate
+    * import io.yaes.{Raise, raises}
+    * import io.yaes.cats.accumulate
     * import cats.Semigroup
     * import cats.data.NonEmptyList
     *
@@ -142,8 +142,8 @@ object accumulate {
     *
     * Example:
     * {{{
-    * import in.rcard.yaes.{Raise, raises}
-    * import in.rcard.yaes.cats.accumulate
+    * import io.yaes.{Raise, raises}
+    * import io.yaes.cats.accumulate
     * import cats.data.NonEmptyList
     *
     * val block: List[Int] raises NonEmptyList[String] =
@@ -198,8 +198,8 @@ object accumulate {
     *
     * Example:
     * {{{
-    * import in.rcard.yaes.{Raise, raises}
-    * import in.rcard.yaes.cats.accumulate
+    * import io.yaes.{Raise, raises}
+    * import io.yaes.cats.accumulate
     * import cats.data.NonEmptyList
     *
     * val block: NonEmptyList[Int] raises NonEmptyList[String] =

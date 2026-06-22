@@ -1,9 +1,9 @@
-package in.rcard.yaes.cats
+package io.yaes.cats
 
 import cats.data.Validated
 import cats.data.Validated.{Invalid, Valid}
 import cats.data.{NonEmptyChain, NonEmptyList, ValidatedNec, ValidatedNel}
-import in.rcard.yaes.Raise
+import io.yaes.Raise
 
 /** Conversion utilities between YAES Raise effect and Cats Validated types.
   *
@@ -12,7 +12,7 @@ import in.rcard.yaes.Raise
   *
   * For extension methods on Validated types, import the syntax:
   * {{{
-  * import in.rcard.yaes.syntax.validated.given
+  * import io.yaes.syntax.validated.given
   * }}}
   */
 object validated {
@@ -27,8 +27,8 @@ object validated {
     *
     * Example:
     * {{{
-    * import in.rcard.yaes.Raise
-    * import in.rcard.yaes.cats.validated
+    * import io.yaes.Raise
+    * import io.yaes.cats.validated
     * import cats.data.Validated
     *
     * val result = validated.validated {
@@ -64,8 +64,8 @@ object validated {
     *
     * Example:
     * {{{
-    * import in.rcard.yaes.Raise
-    * import in.rcard.yaes.cats.validated
+    * import io.yaes.Raise
+    * import io.yaes.cats.validated
     * import cats.data.{Validated, NonEmptyChain}
     *
     * val result = validated.validatedNec {
@@ -103,8 +103,8 @@ object validated {
     *
     * Example:
     * {{{
-    * import in.rcard.yaes.Raise
-    * import in.rcard.yaes.cats.validated
+    * import io.yaes.Raise
+    * import io.yaes.cats.validated
     * import cats.data.{Validated, NonEmptyList}
     *
     * val result = validated.validatedNel {
