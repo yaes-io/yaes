@@ -20,7 +20,7 @@ Both are part of the `yaes-data` module and integrate seamlessly with λÆS effe
 Add the following dependency to your `build.sbt`:
 
 ```scala
-libraryDependencies += "in.rcard.yaes" %% "yaes-data" % "0.21.0"
+libraryDependencies += "io.yaes" %% "yaes-data" % "0.21.0"
 ```
 
 ---
@@ -49,7 +49,7 @@ A `Flow` is a cold asynchronous data stream that sequentially emits values and c
 #### From Explicit Emissions
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 
 val numbersFlow: Flow[Int] = Flow.flow[Int] {
   Flow.emit(1)
@@ -61,7 +61,7 @@ val numbersFlow: Flow[Int] = Flow.flow[Int] {
 #### From Collections
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 
 val listFlow: Flow[Int] = List(1, 2, 3).asFlow()
 val setFlow: Flow[String] = Set("a", "b", "c").asFlow()
@@ -70,7 +70,7 @@ val setFlow: Flow[String] = Set("a", "b", "c").asFlow()
 #### From Varargs
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 
 val flow: Flow[String] = Flow("hello", "world", "!")
 ```
@@ -80,7 +80,7 @@ val flow: Flow[String] = Flow("hello", "world", "!")
 Create a flow that reads data from an InputStream as byte chunks:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 import java.io.FileInputStream
 
 val inputStream = new FileInputStream("data.bin")
@@ -94,7 +94,7 @@ Note: `fromInputStream` does NOT automatically close the InputStream. Use resour
 Create a flow that reads data from a file with automatic resource management:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 import java.nio.file.Paths
 
 val fileFlow: Flow[Array[Byte]] = Flow.fromFile(Paths.get("data.txt"), bufferSize = 8192)
@@ -103,7 +103,7 @@ val fileFlow: Flow[Array[Byte]] = Flow.fromFile(Paths.get("data.txt"), bufferSiz
 `fromFile` automatically manages the file's InputStream lifecycle — it opens the stream when collection starts and closes it when collection completes (either successfully or due to an exception):
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 import java.nio.file.Paths
 
 // Read entire file as UTF-8 string (stream automatically closed)
@@ -127,7 +127,7 @@ Flow.fromFile(Paths.get("source.txt"))
 Use the `collect` method to observe and consume flow values:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 import scala.collection.mutable.ArrayBuffer
 
 val result = ArrayBuffer[Int]()
@@ -144,7 +144,7 @@ Flow(1, 2, 3).collect { value =>
 Transform each emitted value:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 
 val stringFlow = Flow(1, 2, 3)
   .map(_.toString)
@@ -158,7 +158,7 @@ val stringFlow = Flow(1, 2, 3)
 Keep only values matching a predicate:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 
 val evenNumbers = Flow(1, 2, 3, 4, 5, 6)
   .filter(_ % 2 == 0)
@@ -171,7 +171,7 @@ val evenNumbers = Flow(1, 2, 3, 4, 5, 6)
 Apply complex transformations with full control:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 
 val expandedFlow = Flow(1, 2, 3)
   .transform { value =>
@@ -187,7 +187,7 @@ val expandedFlow = Flow(1, 2, 3)
 Limit the number of emitted values:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 
 val limitedFlow = Flow(1, 2, 3, 4, 5)
   .take(3)
@@ -200,7 +200,7 @@ val limitedFlow = Flow(1, 2, 3, 4, 5)
 Skip the first n values:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 
 val skippedFlow = Flow(1, 2, 3, 4, 5)
   .drop(2)
@@ -213,7 +213,7 @@ val skippedFlow = Flow(1, 2, 3, 4, 5)
 Perform side effects without changing the flow:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 import scala.collection.mutable.ArrayBuffer
 
 val sideEffects = ArrayBuffer[String]()
@@ -233,7 +233,7 @@ val monitoredFlow = Flow(1, 2, 3)
 Execute an action before flow collection starts:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 
 val initFlow = Flow(1, 2, 3)
   .onStart {
@@ -248,7 +248,7 @@ val initFlow = Flow(1, 2, 3)
 Merge multiple flows into a single flow with non-deterministic interleaving:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 
 val flow1 = Flow(1, 2, 3)
 val flow2 = Flow(4, 5, 6)
@@ -272,7 +272,7 @@ Edge cases:
 Accumulate values to a single result:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 
 val sum = Flow(1, 2, 3, 4, 5)
   .fold(0) { (acc, value) => acc + value }
@@ -290,7 +290,7 @@ val product = Flow(1, 2, 3, 4)
 Count the number of emitted values:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 
 val count = Flow("a", "b", "c", "d")
   .filter(_.length > 0)
@@ -308,7 +308,7 @@ Flow provides powerful capabilities for working with InputStreams and decoding b
 Use `fromInputStream` to create a flow from any InputStream:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 import java.io.FileInputStream
 import scala.util.Using
 
@@ -329,7 +329,7 @@ The `bufferSize` parameter controls how much data is read at once. Larger buffer
 The `asUtf8String()` method correctly handles multi-byte UTF-8 character sequences that may be split across chunk boundaries:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 import java.io.FileInputStream
 import scala.util.Using
 
@@ -351,7 +351,7 @@ This is especially important when processing files that contain emoji, non-Latin
 Use `asString()` to decode text with a specific charset:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets
 
@@ -371,7 +371,7 @@ val result = Flow.fromInputStream(input, bufferSize = 2)
 Combine Flow operators to efficiently process large text files:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 import java.io.FileInputStream
 import scala.util.Using
 
@@ -393,7 +393,7 @@ Using(new FileInputStream("large-file.txt")) { inputStream =>
 Use `encodeToUtf8()` to convert strings to UTF-8 byte arrays:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 
 val flow = Flow("Hello", "World", "!")
 
@@ -410,7 +410,7 @@ flow
 Use `encodeTo()` to encode strings with a specific charset:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 import java.nio.charset.StandardCharsets
 
 val flow = Flow("Hello", "世界")
@@ -432,7 +432,7 @@ If a character cannot be represented in the target charset, an `UnmappableCharac
 Flow provides the `toOutputStream` method to write byte arrays directly to an `OutputStream`:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 import java.io.FileOutputStream
 import scala.util.Using
 
@@ -446,7 +446,7 @@ Using(new FileOutputStream("output.bin")) { outputStream =>
 Combine string encoding with `toOutputStream` to write text files:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 import java.io.FileOutputStream
 import scala.util.Using
 
@@ -467,7 +467,7 @@ Key characteristics: terminal operator, skips empty arrays, single flush at the 
 Flow provides the `toFile` method to write byte arrays directly to files with automatic resource management:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 import java.nio.file.Paths
 
 // Write binary data
@@ -494,7 +494,7 @@ Flow provides methods to split byte streams into lines, essential for working wi
 Use `linesInUtf8()` to read UTF-8 encoded text files line by line:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 import java.io.FileInputStream
 import scala.util.Using
 
@@ -514,7 +514,7 @@ Using(new FileInputStream("data.txt")) { inputStream =>
 Use `linesIn()` to handle files with different character encodings:
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 import java.io.FileInputStream
 import java.nio.charset.StandardCharsets
 import scala.util.Using
@@ -539,7 +539,7 @@ Line-reading characteristics:
 #### Data Processing Pipeline
 
 ```scala
-import in.rcard.yaes.Flow
+import io.yaes.Flow
 import scala.collection.mutable.ArrayBuffer
 
 case class User(id: Int, name: String, age: Int)
@@ -567,8 +567,8 @@ users.asFlow()
 #### Async Data Transformation
 
 ```scala
-import in.rcard.yaes.Flow
-import in.rcard.yaes.Async.*
+import io.yaes.Flow
+import io.yaes.Async.*
 
 def processDataAsync(data: List[Int])(using Async): List[String] = {
   val results = scala.collection.mutable.ArrayBuffer[String]()
@@ -593,8 +593,8 @@ val result = Async.run {
 #### Complex Data Pipeline
 
 ```scala
-import in.rcard.yaes.Flow
-import in.rcard.yaes.Raise.*
+import io.yaes.Flow
+import io.yaes.Raise.*
 
 case class RawData(value: String)
 case class ParsedData(number: Int)
@@ -629,11 +629,11 @@ def dataProcessingPipeline(
 Flow works seamlessly with λÆS effects:
 
 ```scala
-import in.rcard.yaes.Flow
-import in.rcard.yaes.Random.*
-import in.rcard.yaes.Output.*
-import in.rcard.yaes.Log.*
-import in.rcard.yaes.Log.given
+import io.yaes.Flow
+import io.yaes.Random.*
+import io.yaes.Output.*
+import io.yaes.Log.*
+import io.yaes.Log.given
 
 def randomDataProcessor(using Random, Output, Log): List[Int] = {
   val logger = Log.getLogger("RandomProcessor")
@@ -697,8 +697,8 @@ Use cases:
 **Cold Execution**: Like YAES Flows, FlowPublisher maintains cold execution semantics — nothing happens until `subscribe()` is called, and each subscription triggers a fresh, independent execution:
 
 ```scala 3
-import in.rcard.yaes.{Flow, FlowPublisher}
-import in.rcard.yaes.Async.*
+import io.yaes.{Flow, FlowPublisher}
+import io.yaes.Async.*
 
 val flow = Flow.flow[Int] {
   println("Flow execution started")
@@ -728,8 +728,8 @@ Async.run {
 #### Basic Creation
 
 ```scala 3
-import in.rcard.yaes.{Flow, FlowPublisher}
-import in.rcard.yaes.Async.*
+import io.yaes.{Flow, FlowPublisher}
+import io.yaes.Async.*
 
 val flow = Flow(1, 2, 3, 4, 5)
 
@@ -742,8 +742,8 @@ Async.run {
 #### Extension Method Syntax
 
 ```scala 3
-import in.rcard.yaes.FlowPublisher.asPublisher
-import in.rcard.yaes.Async.*
+import io.yaes.FlowPublisher.asPublisher
+import io.yaes.Async.*
 
 val flow = Flow(1, 2, 3, 4, 5)
 
@@ -756,8 +756,8 @@ Async.run {
 #### With Custom Buffer Configuration
 
 ```scala 3
-import in.rcard.yaes.{Flow, FlowPublisher, Channel}
-import in.rcard.yaes.FlowPublisher.asPublisher
+import io.yaes.{Flow, FlowPublisher, Channel}
+import io.yaes.FlowPublisher.asPublisher
 
 val flow = Flow(1 to 1000: _*)
 
@@ -776,9 +776,9 @@ val publisher2 = flow.asPublisher(
 #### Complete Example
 
 ```scala 3
-import in.rcard.yaes.{Flow, FlowPublisher, Channel}
-import in.rcard.yaes.FlowPublisher.asPublisher
-import in.rcard.yaes.Async.*
+import io.yaes.{Flow, FlowPublisher, Channel}
+import io.yaes.FlowPublisher.asPublisher
+import io.yaes.Async.*
 import java.util.concurrent.Flow.{Subscriber, Subscription}
 
 val flow = Flow.flow[String] {
@@ -1027,8 +1027,8 @@ Cancellation is idempotent (`cancel()` can be called multiple times safely). Aft
 ```scala 3
 import akka.stream.scaladsl.{Source, Sink, JavaFlowSupport}
 import akka.actor.ActorSystem
-import in.rcard.yaes.{Flow, FlowPublisher}
-import in.rcard.yaes.Async.*
+import io.yaes.{Flow, FlowPublisher}
+import io.yaes.Async.*
 
 given actorSystem: ActorSystem = ActorSystem("reactive-system")
 
@@ -1050,8 +1050,8 @@ Async.run {
 
 ```scala 3
 import reactor.core.publisher.Flux
-import in.rcard.yaes.{Flow, FlowPublisher}
-import in.rcard.yaes.Async.*
+import io.yaes.{Flow, FlowPublisher}
+import io.yaes.Async.*
 
 val yaesFlow = Flow("a", "b", "c", "d", "e")
 
@@ -1070,8 +1070,8 @@ Async.run {
 
 ```scala 3
 import io.reactivex.rxjava3.core.Flowable
-import in.rcard.yaes.{Flow, FlowPublisher}
-import in.rcard.yaes.Async.*
+import io.yaes.{Flow, FlowPublisher}
+import io.yaes.Async.*
 
 val yaesFlow = Flow(1 to 100: _*)
 
@@ -1184,9 +1184,9 @@ Channels support different buffer configurations that control how elements are b
 A channel with unlimited buffer capacity that never suspends the sender:
 
 ```scala
-import in.rcard.yaes.Channel
-import in.rcard.yaes.Async.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Channel
+import io.yaes.Async.*
+import io.yaes.Raise.*
 
 val channel = Channel.unbounded[Int]()
 
@@ -1211,9 +1211,9 @@ Raise.run {
 A channel with a fixed buffer capacity. When the buffer is full, behavior depends on the configured overflow policy:
 
 ```scala
-import in.rcard.yaes.Channel
-import in.rcard.yaes.Async.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Channel
+import io.yaes.Async.*
+import io.yaes.Raise.*
 import scala.concurrent.duration.*
 
 // Default behavior: suspend when full
@@ -1293,9 +1293,9 @@ Raise.run {
 A channel with no buffer. The sender and receiver must meet: `send` suspends until another computation invokes `receive`, and vice versa:
 
 ```scala
-import in.rcard.yaes.Channel
-import in.rcard.yaes.Async.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Channel
+import io.yaes.Async.*
+import io.yaes.Raise.*
 
 val channel = Channel.rendezvous[String]()
 
@@ -1341,8 +1341,8 @@ trait ReceiveChannel[T] {
 As of version 0.11.0, basic channel operations (`send`, `receive`, `cancel`, `foreach`) no longer require an `Async` context parameter:
 
 ```scala
-import in.rcard.yaes.Channel
-import in.rcard.yaes.Raise.*
+import io.yaes.Channel
+import io.yaes.Raise.*
 
 val channel = Channel.unbounded[Int]()
 
@@ -1362,10 +1362,10 @@ Builder functions that fork fibers still require `Async`: `Channel.produce`, `Ch
 The `produce` function provides a convenient DSL for creating channels with producer coroutines:
 
 ```scala
-import in.rcard.yaes.Channel
-import in.rcard.yaes.Channel.Producer
-import in.rcard.yaes.Async.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Channel
+import io.yaes.Channel.Producer
+import io.yaes.Async.*
+import io.yaes.Raise.*
 
 Raise.run {
   Async.run {
@@ -1401,9 +1401,9 @@ val channel = Channel.produceWith(Channel.Type.Bounded(5)) {
 Use the `foreach` extension method to iterate over all elements in a channel:
 
 ```scala
-import in.rcard.yaes.Channel
-import in.rcard.yaes.Async.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Channel
+import io.yaes.Async.*
+import io.yaes.Raise.*
 
 val channel = Channel.unbounded[Int]()
 
@@ -1427,11 +1427,11 @@ Raise.run {
 #### Producer-Consumer Pattern
 
 ```scala
-import in.rcard.yaes.Channel
-import in.rcard.yaes.Async.*
-import in.rcard.yaes.Raise.*
-import in.rcard.yaes.Log.*
-import in.rcard.yaes.Log.given
+import io.yaes.Channel
+import io.yaes.Async.*
+import io.yaes.Raise.*
+import io.yaes.Log.*
+import io.yaes.Log.given
 import scala.concurrent.duration.*
 
 case class Task(id: Int, data: String)
@@ -1475,10 +1475,10 @@ Log.run() {
 #### Pipeline Pattern
 
 ```scala
-import in.rcard.yaes.Channel
-import in.rcard.yaes.Channel.Producer
-import in.rcard.yaes.Async.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Channel
+import io.yaes.Channel.Producer
+import io.yaes.Async.*
+import io.yaes.Raise.*
 
 case class RawData(value: Int)
 case class ProcessedData(result: String)
@@ -1511,9 +1511,9 @@ def pipelineExample(): List[ProcessedData] = {
 #### Fan-Out Pattern (Multiple Consumers)
 
 ```scala
-import in.rcard.yaes.Channel
-import in.rcard.yaes.Async.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Channel
+import io.yaes.Async.*
+import io.yaes.Raise.*
 import scala.concurrent.duration.*
 
 def fanOutExample(): Unit = {
@@ -1640,8 +1640,8 @@ Channels and Flows complement each other. Channels provide concurrent communicat
 The `channelFlow` function creates a cold `Flow` where elements are emitted through a `Producer` context parameter backed by a channel. This combines the concurrent power of channels with the composability of flows:
 
 ```scala
-import in.rcard.yaes.Channel
-import in.rcard.yaes.Async.*
+import io.yaes.Channel
+import io.yaes.Async.*
 
 val flow = Channel.channelFlow[Int] {
   Channel.Producer.send(1)
@@ -1657,8 +1657,8 @@ flow.collect { value => result += value }
 Use `channelFlowWith` to specify a different channel type:
 
 ```scala
-import in.rcard.yaes.Channel
-import in.rcard.yaes.Async.*
+import io.yaes.Channel
+import io.yaes.Async.*
 
 val flow = Channel.channelFlowWith[Int](Channel.Type.Bounded(5)) {
   (1 to 100).foreach(Channel.Producer.send)
@@ -1670,8 +1670,8 @@ val flow = Channel.channelFlowWith[Int](Channel.Type.Bounded(5)) {
 A key advantage of `channelFlow` is support for concurrent emission from multiple fibers:
 
 ```scala
-import in.rcard.yaes.Channel
-import in.rcard.yaes.Async.*
+import io.yaes.Channel
+import io.yaes.Async.*
 
 val flow = Channel.channelFlow[Int] {
   val fiber1 = Async.fork {
@@ -1697,8 +1697,8 @@ flow.collect { value => result += value }
 `channelFlow` is excellent for implementing flow operators that merge multiple sources:
 
 ```scala
-import in.rcard.yaes.{Channel, Flow}
-import in.rcard.yaes.Async.*
+import io.yaes.{Channel, Flow}
+import io.yaes.Async.*
 
 def merge[T](flow1: Flow[T], flow2: Flow[T]): Flow[T] =
   Channel.channelFlow[T] {
@@ -1762,8 +1762,8 @@ Choose `channelFlow` when you need flow composition and cold execution semantics
 The `buffer` operator buffers flow emissions via a channel, allowing the producer (upstream flow) and consumer (downstream collector) to run concurrently. This can significantly improve performance when emissions and collection have different speeds.
 
 ```scala
-import in.rcard.yaes.{Channel, Flow}
-import in.rcard.yaes.Channel.buffer
+import io.yaes.{Channel, Flow}
+import io.yaes.Channel.buffer
 
 val flow = Flow(1, 2, 3, 4, 5)
 
@@ -1781,9 +1781,9 @@ flow.buffer(Channel.Type.Bounded(2)).collect { value => result += value }
 With DROP strategies for sampling scenarios:
 
 ```scala
-import in.rcard.yaes.{Channel, Flow}
-import in.rcard.yaes.Channel.{buffer, OverflowStrategy}
-import in.rcard.yaes.Async.*
+import io.yaes.{Channel, Flow}
+import io.yaes.Channel.{buffer, OverflowStrategy}
+import io.yaes.Async.*
 import scala.concurrent.duration.*
 
 // DROP_OLDEST: drops oldest buffered values when full
@@ -1814,13 +1814,13 @@ Use `buffer` when:
 Channels work seamlessly with λÆS effects:
 
 ```scala
-import in.rcard.yaes.Channel
-import in.rcard.yaes.Channel.Producer
-import in.rcard.yaes.Async.*
-import in.rcard.yaes.Raise.*
-import in.rcard.yaes.Log.*
-import in.rcard.yaes.Log.given
-import in.rcard.yaes.Random.*
+import io.yaes.Channel
+import io.yaes.Channel.Producer
+import io.yaes.Async.*
+import io.yaes.Raise.*
+import io.yaes.Log.*
+import io.yaes.Log.given
+import io.yaes.Random.*
 
 def effectfulChannelExample()(using Log, Random): Unit = {
   val logger = Log.getLogger("ChannelExample")

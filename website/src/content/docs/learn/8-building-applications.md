@@ -19,7 +19,7 @@ By now you've learned each effect individually. This step shows how to wire them
 ### Basic Example
 
 ```scala 3
-import in.rcard.yaes.*
+import io.yaes.*
 
 object MyApp extends YaesApp {
   override def run(using Sync, Output, Input, Random, Clock, System): Unit = {
@@ -37,7 +37,7 @@ object MyApp extends YaesApp {
 Run it:
 
 ```bash
-sbt "runMain in.rcard.yaes.MyApp"
+sbt "runMain io.yaes.MyApp"
 ```
 
 `YaesApp`:
@@ -165,7 +165,7 @@ object ArgsApp extends YaesApp {
 ```
 
 ```bash
-sbt "runMain in.rcard.yaes.ArgsApp arg1 arg2 arg3"
+sbt "runMain io.yaes.ArgsApp arg1 arg2 arg3"
 ```
 
 ---
@@ -298,10 +298,10 @@ The following examples combine multiple effects to show how λÆS handles realis
 Combines `Random`, `Output`, `Input`, and `Raise`:
 
 ```scala 3
-import in.rcard.yaes.Random.*
-import in.rcard.yaes.Output.*
-import in.rcard.yaes.Input.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Random.*
+import io.yaes.Output.*
+import io.yaes.Input.*
+import io.yaes.Raise.*
 import java.io.IOException
 
 def coinFlipGame(using Random, Output, Input, Raise[IOException]): String = {
@@ -339,8 +339,8 @@ val result: Either[IOException, String] = Raise.either {
 Combines `Resource` and `IO` with safe acquire/release:
 
 ```scala 3
-import in.rcard.yaes.Resource.*
-import in.rcard.yaes.IO.*
+import io.yaes.Resource.*
+import io.yaes.IO.*
 import java.io.{FileInputStream, FileOutputStream}
 
 def processFiles(inputPath: String, outputPath: String)(using Resource, IO): Unit = {
@@ -372,10 +372,10 @@ Resource.run {
 Uses `Async` to fetch multiple URLs in parallel:
 
 ```scala 3
-import in.rcard.yaes.Async.*
-import in.rcard.yaes.IO.*
-import in.rcard.yaes.Log.*
-import in.rcard.yaes.Log.given
+import io.yaes.Async.*
+import io.yaes.IO.*
+import io.yaes.Log.*
+import io.yaes.Log.given
 
 def fetchUrl(url: String)(using IO, Log): String = {
   val logger = Log.getLogger("WebScraper")
@@ -413,10 +413,10 @@ val results = Log.run() {
 Combines `System`, `Raise`, and `Log` for safe configuration parsing:
 
 ```scala 3
-import in.rcard.yaes.System.*
-import in.rcard.yaes.Raise.*
-import in.rcard.yaes.Log.*
-import in.rcard.yaes.Log.given
+import io.yaes.System.*
+import io.yaes.Raise.*
+import io.yaes.Log.*
+import io.yaes.Log.given
 
 case class AppConfig(
   host: String,
@@ -455,8 +455,8 @@ val config = Raise.either {
 Typed validation pipeline using `Raise`:
 
 ```scala 3
-import in.rcard.yaes.Raise.*
-import in.rcard.yaes.IO.*
+import io.yaes.Raise.*
+import io.yaes.IO.*
 
 sealed trait ValidationError
 case object InvalidEmail extends ValidationError
@@ -501,11 +501,11 @@ result match {
 Demonstrates stream processing using `Flow` from the `yaes-data` module:
 
 ```scala 3
-import in.rcard.yaes.Flow
-import in.rcard.yaes.Random.*
-import in.rcard.yaes.Output.*
-import in.rcard.yaes.Log.*
-import in.rcard.yaes.Log.given
+import io.yaes.Flow
+import io.yaes.Random.*
+import io.yaes.Output.*
+import io.yaes.Log.*
+import io.yaes.Log.given
 
 case class SensorReading(id: Int, temperature: Double, humidity: Double)
 

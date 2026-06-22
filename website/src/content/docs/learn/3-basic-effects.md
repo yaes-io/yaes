@@ -19,7 +19,7 @@ The `Sync` effect allows for running side-effecting operations while maintaining
 ### Basic Usage
 
 ```scala
-import in.rcard.yaes.Sync.*
+import io.yaes.Sync.*
 
 case class User(name: String)
 
@@ -32,7 +32,7 @@ def saveUser(user: User)(using Sync): Long =
 **Non-blocking Handler** — returns a `Future` without blocking the current thread:
 
 ```scala
-import in.rcard.yaes.Sync.*
+import io.yaes.Sync.*
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -44,7 +44,7 @@ val result: Future[Long] = Sync.run {
 **Blocking Handler** — blocks the current thread until completion:
 
 ```scala
-import in.rcard.yaes.Sync.*
+import io.yaes.Sync.*
 import scala.concurrent.ExecutionContext.Implicits.global
 
 val result: Long = Sync.blockingRun {
@@ -73,7 +73,7 @@ The `Random` effect provides a set of operations to generate random content in a
 ### Basic Usage
 
 ```scala
-import in.rcard.yaes.Random.*
+import io.yaes.Random.*
 
 def flipCoin(using Random): Boolean = Random.nextBoolean
 
@@ -86,7 +86,7 @@ def randomInRange(min: Int, max: Int)(using Random): Int =
 ### Available Operations
 
 ```scala
-import in.rcard.yaes.Random.*
+import io.yaes.Random.*
 
 val randomBoolean: Random ?=> Boolean = Random.nextBoolean
 val randomInt: Random ?=> Int = Random.nextInt
@@ -103,7 +103,7 @@ val randomUuid: Random ?=> String = Random.nextUuid // RFC 4122 v4 UUID
 Use the `Random.run` handler:
 
 ```scala
-import in.rcard.yaes.Random.*
+import io.yaes.Random.*
 
 val result: Boolean = Random.run {
   flipCoin
@@ -115,8 +115,8 @@ val result: Boolean = Random.run {
 **Game Mechanics:**
 
 ```scala
-import in.rcard.yaes.Random.*
-import in.rcard.yaes.Output.*
+import io.yaes.Random.*
+import io.yaes.Output.*
 
 def playGame(using Random, Output): String = {
   val playerRoll = Random.nextInt(6) + 1
@@ -134,7 +134,7 @@ def playGame(using Random, Output): String = {
 **Random Data Generation:**
 
 ```scala
-import in.rcard.yaes.Random.*
+import io.yaes.Random.*
 
 case class TestUser(id: Int, name: String, age: Int)
 
@@ -154,7 +154,7 @@ def generateTestData(count: Int)(using Random): List[TestUser] =
 **Probabilistic Algorithms:**
 
 ```scala
-import in.rcard.yaes.Random.*
+import io.yaes.Random.*
 
 def monteCarloEstimatePi(samples: Int)(using Random): Double = {
   val pointsInCircle = (1 to samples).count { _ =>
@@ -170,9 +170,9 @@ def monteCarloEstimatePi(samples: Int)(using Random): Double = {
 ### Combining with Other Effects
 
 ```scala
-import in.rcard.yaes.Random.*
-import in.rcard.yaes.Raise.*
-import in.rcard.yaes.Output.*
+import io.yaes.Random.*
+import io.yaes.Raise.*
+import io.yaes.Output.*
 
 def riskyGame(using Random, Raise[String], Output): Int = {
   val luck = Random.nextDouble
@@ -212,7 +212,7 @@ The `Input` and `Output` effects provide console I/O operations in a functional 
 The `Output` effect handles writing to the console.
 
 ```scala
-import in.rcard.yaes.Output.*
+import io.yaes.Output.*
 
 val program: Output ?=> Unit = {
   Output.printLn("Hello, world!")
@@ -235,8 +235,8 @@ Output.run {
 The `Input` effect handles reading from the console. Reading can throw `IOException`, so it requires a `Raise[IOException]` context.
 
 ```scala
-import in.rcard.yaes.Input.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Input.*
+import io.yaes.Raise.*
 import java.io.IOException
 
 val userInput: (Input, Raise[IOException]) ?=> String = Input.readLn()
@@ -253,9 +253,9 @@ val result: Either[IOException, String] = Raise.either {
 **Interactive Programs:**
 
 ```scala
-import in.rcard.yaes.Input.*
-import in.rcard.yaes.Output.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Input.*
+import io.yaes.Output.*
+import io.yaes.Raise.*
 import java.io.IOException
 
 def greetUser(using Input, Output, Raise[IOException]): Unit = {
@@ -276,9 +276,9 @@ val result: Either[IOException, Unit] = Raise.either {
 **Form Input with Validation:**
 
 ```scala
-import in.rcard.yaes.Input.*
-import in.rcard.yaes.Output.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Input.*
+import io.yaes.Output.*
+import io.yaes.Raise.*
 import java.io.IOException
 
 case class UserInfo(name: String, email: String, age: Int)
@@ -309,10 +309,10 @@ def readUserInfo(using Input, Output, Raise[String | IOException]): UserInfo = {
 **Console-based Guessing Game:**
 
 ```scala
-import in.rcard.yaes.Input.*
-import in.rcard.yaes.Output.*
-import in.rcard.yaes.Random.*
-import in.rcard.yaes.Raise.*
+import io.yaes.Input.*
+import io.yaes.Output.*
+import io.yaes.Random.*
+import io.yaes.Raise.*
 import java.io.IOException
 
 def guessingGame(using Input, Output, Random, Raise[IOException]): Unit = {
@@ -380,8 +380,8 @@ The `System` effect provides type-safe access to system properties and environme
 **Environment Variables:**
 
 ```scala
-import in.rcard.yaes.System.*
-import in.rcard.yaes.Raise.*
+import io.yaes.System.*
+import io.yaes.Raise.*
 
 // With potential parsing errors
 val port: (System, Raise[NumberFormatException]) ?=> Option[Int] =
@@ -395,8 +395,8 @@ val host: System ?=> String =
 **System Properties:**
 
 ```scala
-import in.rcard.yaes.System.*
-import in.rcard.yaes.Raise.*
+import io.yaes.System.*
+import io.yaes.Raise.*
 
 val serverPort: (System, Raise[NumberFormatException]) ?=> Option[Int] =
   System.property[Int]("server.port")
@@ -410,8 +410,8 @@ val serverHost: System ?=> String =
 **Configuration Example:**
 
 ```scala
-import in.rcard.yaes.System.*
-import in.rcard.yaes.Raise.*
+import io.yaes.System.*
+import io.yaes.Raise.*
 
 case class DatabaseConfig(
   host: String,
@@ -442,7 +442,7 @@ def loadDatabaseConfig(using System, Raise[String]): DatabaseConfig = {
 The `Clock` effect provides time management operations.
 
 ```scala
-import in.rcard.yaes.Clock.*
+import io.yaes.Clock.*
 import java.time.{Instant, Duration}
 
 // Wall-clock time
@@ -455,8 +455,8 @@ val monotonicTime: Clock ?=> Duration = Clock.nowMonotonic()
 **Time Measurement:**
 
 ```scala
-import in.rcard.yaes.Clock.*
-import in.rcard.yaes.Output.*
+import io.yaes.Clock.*
+import io.yaes.Output.*
 
 def measureOperation[A](operation: => A)(using Clock, Output): A = {
   val startTime = Clock.nowMonotonic()
@@ -472,8 +472,8 @@ def measureOperation[A](operation: => A)(using Clock, Output): A = {
 **Timestamped Logging:**
 
 ```scala
-import in.rcard.yaes.Clock.*
-import in.rcard.yaes.Output.*
+import io.yaes.Clock.*
+import io.yaes.Output.*
 
 def logWithTimestamp(message: String)(using Clock, Output): Unit = {
   val timestamp = Clock.now()
@@ -486,10 +486,10 @@ def logWithTimestamp(message: String)(using Clock, Output): Unit = {
 **Application Bootstrap:**
 
 ```scala
-import in.rcard.yaes.System.*
-import in.rcard.yaes.Clock.*
-import in.rcard.yaes.Output.*
-import in.rcard.yaes.Raise.*
+import io.yaes.System.*
+import io.yaes.Clock.*
+import io.yaes.Output.*
+import io.yaes.Raise.*
 
 case class AppInfo(
   name: String,
@@ -528,8 +528,8 @@ val appInfo = Raise.either {
 ### Running Effects
 
 ```scala
-import in.rcard.yaes.System.*
-import in.rcard.yaes.Clock.*
+import io.yaes.System.*
+import io.yaes.Clock.*
 
 val systemResult = System.run { /* system operations */ }
 val clockResult = Clock.run { /* time operations */ }
