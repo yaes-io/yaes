@@ -1,11 +1,11 @@
-package in.rcard.yaes
+package io.yaes
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import scala.concurrent.duration._
-import in.rcard.yaes.Channel.ChannelClosed
-import in.rcard.yaes.Channel.Producer
-import in.rcard.yaes.Async.Cancelled
+import io.yaes.Channel.ChannelClosed
+import io.yaes.Channel.Producer
+import io.yaes.Async.Cancelled
 import java.util.concurrent.LinkedBlockingQueue
 
 class ChannelSpec extends AnyFlatSpec with Matchers {

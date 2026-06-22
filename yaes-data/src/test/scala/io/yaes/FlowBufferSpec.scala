@@ -1,7 +1,7 @@
-package in.rcard.yaes
+package io.yaes
 
-import in.rcard.yaes.Channel.OverflowStrategy
-import in.rcard.yaes.Channel.buffer
+import io.yaes.Channel.OverflowStrategy
+import io.yaes.Channel.buffer
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

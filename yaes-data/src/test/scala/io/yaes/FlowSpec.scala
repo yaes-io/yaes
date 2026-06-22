@@ -1,9 +1,9 @@
-package in.rcard.yaes
+package io.yaes
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import in.rcard.yaes.Flow.asFlow
-import in.rcard.yaes.Async.*
+import io.yaes.Flow.asFlow
+import io.yaes.Async.*
 
 import java.util.concurrent.ConcurrentLinkedQueue
 import scala.concurrent.duration.*

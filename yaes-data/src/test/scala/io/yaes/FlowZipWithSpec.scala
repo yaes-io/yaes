@@ -1,6 +1,6 @@
-package in.rcard.yaes
+package io.yaes
 
-import in.rcard.yaes.Async.*
+import io.yaes.Async.*
 import org.scalacheck.Gen
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

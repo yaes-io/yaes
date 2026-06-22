@@ -1,7 +1,7 @@
-package in.rcard.yaes
+package io.yaes
 
-import in.rcard.yaes.Channel.ChannelClosed
-import in.rcard.yaes.Channel.SendChannel
+import io.yaes.Channel.ChannelClosed
+import io.yaes.Channel.SendChannel
 
 import java.util.LinkedList
 import java.util.Queue
@@ -112,8 +112,8 @@ abstract class Channel[T] extends Channel.ReceiveChannel[T], Channel.SendChannel
   *
   * Example usage:
   * {{{
-  * import in.rcard.yaes.Channel
-  * import in.rcard.yaes.Async
+  * import io.yaes.Channel
+  * import io.yaes.Async
   *
   * // Create an unbounded channel
   * val channel = Channel.unbounded[Int]()

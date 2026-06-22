@@ -1,4 +1,4 @@
-package in.rcard.yaes
+package io.yaes
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

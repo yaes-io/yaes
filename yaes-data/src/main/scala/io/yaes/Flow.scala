@@ -1,4 +1,4 @@
-package in.rcard.yaes
+package io.yaes
 
 import java.util.concurrent.SynchronousQueue
 
