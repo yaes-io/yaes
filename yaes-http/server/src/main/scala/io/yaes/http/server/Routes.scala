@@ -86,9 +86,9 @@ object Routes {
     val exactMap = exact.map { route =>
       val path = extractExactPath(route.pattern.root)
       (route.method, path) -> ((req: Request) => {
-        // For exact routes, both path and query params are the empty named tuple (EmptyTuple).
-        val handler = route.handler.asInstanceOf[(Request, Tuple, Tuple) => Response]
-        handler(req, EmptyTuple, EmptyTuple)
+        val empty = EmptyTuple.asInstanceOf[io.yaes.http.server.params.EmptyParams]
+        val handler = route.handler.asInstanceOf[(Request, io.yaes.http.server.params.EmptyParams, io.yaes.http.server.params.EmptyParams) => Response]
+        handler(req, empty, empty)
       })
     }.toMap
 
