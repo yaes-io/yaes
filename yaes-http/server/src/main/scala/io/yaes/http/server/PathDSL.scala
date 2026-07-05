@@ -42,7 +42,7 @@ class TypedParam[Name <: String & Singleton, Type](val name: Name, val parser: P
   * @return
   *   A typed parameter that can be used in path building
   */
-inline def param[Type](inline name: String)(using parser: PathParamParser[Type]): TypedParam[?, Type] =
+transparent inline def param[Type](inline name: String)(using parser: PathParamParser[Type]): TypedParam[?, Type] =
   ${paramImpl[Type]('name, 'parser)}
 
 private def paramImpl[Type](nameExpr: Expr[String], parserExpr: Expr[PathParamParser[Type]])(using t: scala.quoted.Type[Type], q: Quotes): Expr[TypedParam[?, Type]] = {
