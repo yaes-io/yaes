@@ -318,8 +318,8 @@ class YaesServerSpec extends AnyFlatSpec with Matchers {
             Log.run(level = Log.Level.Info) {
               val userId = param[Int]("userId")
               val server = YaesServer.route(
-                GET(p"/users" / userId) { (req, id: Int) =>
-                  Response.ok(s"User ID: $id")
+                GET(p"/users" / userId) { (req, path, _) =>
+                  Response.ok(s"User ID: ${path.userId}")
                 }
               )
 
@@ -363,11 +363,8 @@ class YaesServerSpec extends AnyFlatSpec with Matchers {
           Async.run {
             Log.run(level = Log.Level.Info) {
               val server = YaesServer.route(
-                GET(p"/search" ? queryParam[String]("q")) { req =>
-                  // Note: In the current implementation, query parameters are extracted
-                  // during routing but not yet passed to the handler. We can only verify
-                  // that the route matches correctly.
-                  Response.ok(s"Search endpoint")
+                GET(p"/search" ? queryParam[String]("q")) { (req, _, query) =>
+                  Response.ok(s"Search endpoint for ${query.q}")
                 }
               )
 
@@ -390,7 +387,7 @@ class YaesServerSpec extends AnyFlatSpec with Matchers {
 
               // Verify response (route matched successfully with query parameter)
               response.statusCode() shouldBe 200
-              response.body() shouldBe "Search endpoint"
+              response.body() shouldBe "Search endpoint for scala"
 
               // Shutdown
               Shutdown.initiateShutdown()

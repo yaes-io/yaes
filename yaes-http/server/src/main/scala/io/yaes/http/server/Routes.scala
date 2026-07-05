@@ -86,9 +86,9 @@ object Routes {
     val exactMap = exact.map { route =>
       val path = extractExactPath(route.pattern.root)
       (route.method, path) -> ((req: Request) => {
-        // For exact routes, we know PathParams is NoParams and QueryParams is NoQueryParams
-        val handler = route.handler.asInstanceOf[RouteHandler[NoParams, NoQueryParams]]
-        handler.handle(req, NoParamValues, Query[NoQueryParams](Map.empty))
+        // For exact routes, both path and query params are the empty named tuple (EmptyTuple).
+        val handler = route.handler.asInstanceOf[(Request, Tuple, Tuple) => Response]
+        handler(req, EmptyTuple, EmptyTuple)
       })
     }.toMap
 
@@ -96,21 +96,21 @@ object Routes {
   }
 
   /** Check if a path segment represents an exact route (no path parameters). */
-  private def isExactRoute(segment: PathSegment[?]): Boolean = segment match {
+  private def isExactRoute(segment: PathSegment): Boolean = segment match {
     case End              => true
     case Literal(_, next) => isExactRoute(next)
     case Param(_, _, _)   => false
   }
 
   /** Check if a query spec has no query parameters. */
-  private def isNoQueryParams(spec: QueryParamSpec[?]): Boolean = spec match {
+  private def isNoQueryParams(spec: QueryParamSpec): Boolean = spec match {
     case EndOfQuery       => true
     case SingleParam(_, _, _) => false
   }
 
   /** Extract the exact path string from a literal-only route. */
-  private def extractExactPath(segment: PathSegment[?]): String = {
-    def loop(segment: PathSegment[?], acc: String): String = segment match {
+  private def extractExactPath(segment: PathSegment): String = {
+    def loop(segment: PathSegment, acc: String): String = segment match {
       case End => acc
       case Literal(value, next) => loop(next, s"$acc/$value")
       case Param(_, _, _) => throw new IllegalArgumentException("Cannot extract exact path from parameterized route")
