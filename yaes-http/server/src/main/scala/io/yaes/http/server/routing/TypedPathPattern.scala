@@ -32,7 +32,7 @@ import scala.NamedTuple.AnyNamedTuple
   * @tparam QueryP
   *   The named-tuple encoding of query parameters in this pattern
   */
-case class PathPattern[PathP <: AnyNamedTuple, QueryP <: AnyNamedTuple](
+case class PathPattern[PathP <: AnyNamedTuple, QueryP <: AnyNamedTuple] private[server](
     root: PathSegment,
     querySpec: QueryParamSpec
 ) {
