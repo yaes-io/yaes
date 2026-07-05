@@ -33,10 +33,16 @@ abstract class MethodBuilder(method: Method) {
 
   /** Define a route with typed path and query parameters.
     *
+    * @tparam PathP
+    *   The path parameters as a named tuple
+    * @tparam QueryP
+    *   The query parameters as a named tuple
     * @param pattern
     *   The path pattern with named-tuple parameter encoding
     * @param handler
     *   Receives the request and the extracted path and query named tuples
+    * @return
+    *   The route bound to this builder's HTTP method
     */
   @targetName("applyWithParams")
   def apply[PathP <: AnyNamedTuple, QueryP <: AnyNamedTuple](
@@ -50,6 +56,8 @@ abstract class MethodBuilder(method: Method) {
     *   The path pattern (literals only)
     * @param handler
     *   Receives just the request
+    * @return
+    *   The route bound to this builder's HTTP method
     */
   @targetName("applyNoParams")
   def apply(
