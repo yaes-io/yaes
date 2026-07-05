@@ -63,7 +63,7 @@ Sync.runBlocking(Duration.Inf) {
     Log.run() {
       val server = YaesServer.route(
         // Response body automatically encoded to JSON
-        GET(p"/users" / param[Int]("id")) { (req, id: Int) =>
+        GET(p"/users" / param[Int]("id")) { (req, _, _) =>
           Response.ok(User("Alice", 30))
           // Response body: {"name":"Alice","age":30}
           // Content-Type: application/json
@@ -200,8 +200,8 @@ object JsonServer extends App {
       Log.run() {
         val server = YaesServer.route(
           // Return a user as JSON
-          GET(p"/users" / userId) { (req, id: Int) =>
-            Response.ok(User(id, "Alice", "alice@example.com"))
+          GET(p"/users" / userId) { (req, path, _) =>
+            Response.ok(User(path.userId, "Alice", "alice@example.com"))
           },
 
           // Parse JSON body and create a user
