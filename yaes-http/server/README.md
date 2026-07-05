@@ -105,7 +105,7 @@ Handlers receive `(request, path, query)`, where `path` and `query` are named tu
 are read by name (`path.userId`), so access is order-independent and self-documenting. The unused
 tuple can be ignored with `_`.
 
-**Supported types:** `String`, `Int`, `Long`, `Boolean`, `Double`
+**Supported types:** `String`, `Int`, `Long` (provide a `given PathParamParser[T]` for other types)
 
 Path parameters are automatically URL-decoded (e.g., `/users/john%20doe` → `"john doe"`).
 

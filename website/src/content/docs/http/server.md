@@ -146,8 +146,8 @@ unused tuple with `_`.
 | `String` | `param[String]("name")` | Text values |
 | `Int` | `param[Int]("id")` | 32-bit integers |
 | `Long` | `param[Long]("id")` | 64-bit integers |
-| `Boolean` | `param[Boolean]("enabled")` | true/false |
-| `Double` | `param[Double]("price")` | Floating-point numbers |
+
+Other types are supported by providing a `given PathParamParser[T]`.
 
 **Path parameters are automatically URL-decoded:**
 - `/users/john%20doe` → `"john doe"`
