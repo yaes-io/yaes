@@ -136,8 +136,34 @@ lazy val server = project
     libraryDependencies ++= commonDependencies
   )
 
+// Scalafix migration rules. Scalafix loads rules in its own Scala 2.13
+// classloader, and `scalafix-core`/`scalafix-testkit` are published only for
+// Scala 2.13 — so the rule module is compiled with Scala 2.13 even though the
+// rest of YAES targets Scala 3. It publishes as `io.yaes:yaes-migration_2.13`,
+// which is exactly what the user's `scalafixDependencies += "io.yaes" %%
+// "yaes-migration"` line resolves (that `%%` binds to Scalafix's 2.13 runtime,
+// not the user's project version). The `input`/`output` sample projects stay on
+// Scala 3 so future slices can exercise Scala 3 syntax in the fixture files.
+lazy val scalafixRuleScalaVersion = "2.13.16"
+lazy val scalafixVersion          = "0.14.3"
+
+lazy val `yaes-migration` = project
+  .in(file("yaes-migration/rules"))
+  .settings(
+    name         := "yaes-migration",
+    moduleName   := "yaes-migration",
+    scalaVersion := scalafixRuleScalaVersion,
+    libraryDependencies ++= Seq(
+      "ch.epfl.scala" %% "scalafix-core" % scalafixVersion,
+      // scalafix-testkit is cross-published with the full Scala patch version,
+      // hence CrossVersion.full rather than the binary `%%`.
+      ("ch.epfl.scala" %% "scalafix-testkit" % scalafixVersion % Test)
+        .cross(CrossVersion.full)
+    )
+  )
+
 lazy val yaes = (project in file("."))
-  .aggregate(`yaes-core`, `yaes-data`, `yaes-cats`, `yaes-slf4j`, `yaes-http`, `yaes-test`)
+  .aggregate(`yaes-core`, `yaes-data`, `yaes-cats`, `yaes-slf4j`, `yaes-http`, `yaes-test`, `yaes-migration`)
   .settings(
     scalaVersion := scala3Version,
     Global / concurrentRestrictions += Tags.limit(Tags.Test, 1)

@@ -1,3 +1,54 @@
+# Scalafix Migration Rule Findings (issue #298 chain: #299/#300/#301)
+
+## Completed
+- #299: `yaes-migration` module scaffold + package declaration rename. DONE.
+  - Module at `yaes-migration/rules`, published `moduleName := "yaes-migration"`.
+  - Rule `io.yaes.migration.MigrateV021ToV022` (SyntacticRule), registered in
+    `META-INF/services/scalafix.v1.Rule`.
+  - `sbt "yaes-migration/test"` = 4 green (package-rename, sub-package-rename,
+    each + idempotency).
+  - publishLocal round-trip verified: throwaway Scala 3 project with
+    `scalafixDependencies += "io.yaes" %% "yaes-migration" % <ver>` +
+    `sbt "scalafix MigrateV021ToV022"` renamed `package in.rcard.yaes` →
+    `package io.yaes`. WORKS.
+
+## CRITICAL: coordinate is `_2.13`, NOT `_3` (contradicts #298/#299/#300/#301 spec)
+The issue text demands `io.yaes:yaes-migration_3:0.23.0`. This is UNBUILDABLE:
+- No `scalafix-core_3` on Maven Central (only `_2.13`, up to 0.14.7). Can't
+  compile a rule against a Scala 3 scalafix-core because it doesn't exist.
+- `scalafix-testkit` is published with the FULL Scala patch suffix only
+  (`scalafix-testkit_2.13.16` for 0.14.3), never Scala 3. `ScalafixTestkitPlugin`
+  binds testkit to the module's own scalaVersion, so a Scala 3 module can't host
+  the testkit suite (it tried to resolve nonexistent `scalafix-testkit_3.8.3`).
+- Decisive: the issue's OWN documented user command
+  `scalafixDependencies += "io.yaes" %% "yaes-migration"` resolves against
+  Scalafix's 2.13 runtime classloader, i.e. `yaes-migration_2.13`. Publishing
+  `_3` breaks that exact command.
+Conclusion: the module MUST be Scala 2.13 and publishes as
+`io.yaes:yaes-migration_2.13`. This is the ecosystem-standard for ALL scalafix
+rules. `_3` should be struck from #300/#301 and parent #298. Flagged to user.
+
+## Design decisions for #300/#301
+- Module Scala version: `2.13.16` (`scalafixRuleScalaVersion` in root build.sbt).
+  scalafix `0.14.3`. Both pinned as `lazy val`s near the `yaes-migration` def.
+- Framework: `AbstractSyntacticRuleSuite` (as spec requires). Its API is MANUAL:
+  `check(rule, name, original, expected)` — it does NOT auto-discover
+  input/output dirs. `runAllTests()` / directory discovery lives only on
+  `AbstractSemanticRuleSuite` (needs semanticdb). So we did NOT use
+  `ScalafixTestkitPlugin` / projectmatrix / input+output sbt projects.
+- Test fixtures: pairs of resource files under
+  `yaes-migration/rules/src/test/resources/migration/<case>/{input,output}.scala`,
+  loaded via `Source.fromResource` and fed to `check`. Add new pairs here for
+  #300 (imports, FQN) and #301 (comments/scaladoc). `check` also gives us free
+  idempotency tests (apply rule to `output`, expect `output`).
+- Rule extension point: `MigrateV021ToV022.fix` currently `doc.tree.collect`s
+  `Pkg` nodes whose `ref.syntax` starts with `in.rcard.yaes`. #300 adds
+  `Importer`/FQN `Term.Select`/`Type.Select` cases; #301 iterates
+  `doc.tokens` for `Token.Comment` and string-replaces inside comment text
+  (tree visitors don't see comments).
+- Testkit `check` compares EXACT output text; keep fixture whitespace/newlines
+  matching what the patch produces.
+
 # Migration Findings (issue #67)
 
 ## Completed
