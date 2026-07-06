@@ -13,20 +13,32 @@
     `package io.yaes`. WORKS.
 
 ## CRITICAL: coordinate is `_2.13`, NOT `_3` (contradicts #298/#299/#300/#301 spec)
-The issue text demands `io.yaes:yaes-migration_3:0.23.0`. This is UNBUILDABLE:
-- No `scalafix-core_3` on Maven Central (only `_2.13`, up to 0.14.7). Can't
-  compile a rule against a Scala 3 scalafix-core because it doesn't exist.
-- `scalafix-testkit` is published with the FULL Scala patch suffix only
-  (`scalafix-testkit_2.13.16` for 0.14.3), never Scala 3. `ScalafixTestkitPlugin`
-  binds testkit to the module's own scalaVersion, so a Scala 3 module can't host
-  the testkit suite (it tried to resolve nonexistent `scalafix-testkit_3.8.3`).
-- Decisive: the issue's OWN documented user command
-  `scalafixDependencies += "io.yaes" %% "yaes-migration"` resolves against
-  Scalafix's 2.13 runtime classloader, i.e. `yaes-migration_2.13`. Publishing
-  `_3` breaks that exact command.
-Conclusion: the module MUST be Scala 2.13 and publishes as
-`io.yaes:yaes-migration_2.13`. This is the ecosystem-standard for ALL scalafix
-rules. `_3` should be struck from #300/#301 and parent #298. Flagged to user.
+The issue text demands `io.yaes:yaes-migration_3:0.23.0`. A `_3` build COMPILES
+and PUBLISHES fine — but it is NOT consumable as an external Scalafix rule, so
+`_2.13` is the correct coordinate. Verified empirically (all proven, not
+theory):
+- `_2.13` rule + the issue's single documented line
+  `scalafixDependencies += "io.yaes" %% "yaes-migration"` on a Scala 3 project →
+  renamed `package in.rcard.yaes` → `package io.yaes`. WORKS.
+- `_3` rule (Scala 3.8.4 + scalafix 0.14.7, `scalafix-core` via `for3Use2_13`,
+  `scalafix-testkit_3.8.4`) + the same single line → sbt-scalafix fetches
+  `yaes-migration_2.13` and FAILS ("Failed to fetch ... yaes-migration_2.13").
+- `_3` rule + `scalafixScalaBinaryVersion := "3"` → STILL fetches `_2.13`.
+Why: external rules (via `scalafixDependencies`) are loaded by the
+`scalafix-reflect_2.13` layer — resolution is 2.13 by design. Scalafix DOES
+support Scala 3, and it ships `scalafix-rules_3` (its OWN rules, compiled with
+Scala 3 via `for3Use2_13` against `scalafix-core_2.13`) — but those ride INSIDE
+`scalafix-cli_3` on the main classpath, not through the external-rule mechanism.
+So "Scalafix supports Scala 3" ≠ "external rules ship as `_3`".
+There is no `scalafix-core_3` at all (404 at every version); Scala 3 scalafix
+support (testkit_3.8.4, cli_3.8.4) starts at 0.14.7 for Scala 3.8.4 / 3.3.x LTS.
+Conclusion: the module MUST publish as `io.yaes:yaes-migration_2.13` — the
+ecosystem standard for ALL external scalafix rules, and what satisfies the
+issue's user story #7 (single build.sbt line). `_3` should be struck from
+#300/#301 and parent #298. Optionally cross-publish `_2.12` for extra reach
+(the developer-setup doc: "cross-publish for all Scala binary versions for which
+scalafix-core is available" = 2.13 + 2.12). Flagged to user; awaiting ack before
+#300/#301.
 
 ## Design decisions for #300/#301
 - Module Scala version: `2.13.16` (`scalafixRuleScalaVersion` in root build.sbt).

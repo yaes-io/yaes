@@ -136,14 +136,15 @@ lazy val server = project
     libraryDependencies ++= commonDependencies
   )
 
-// Scalafix migration rules. Scalafix loads rules in its own Scala 2.13
-// classloader, and `scalafix-core`/`scalafix-testkit` are published only for
-// Scala 2.13 — so the rule module is compiled with Scala 2.13 even though the
-// rest of YAES targets Scala 3. It publishes as `io.yaes:yaes-migration_2.13`,
-// which is exactly what the user's `scalafixDependencies += "io.yaes" %%
-// "yaes-migration"` line resolves (that `%%` binds to Scalafix's 2.13 runtime,
-// not the user's project version). The `input`/`output` sample projects stay on
-// Scala 3 so future slices can exercise Scala 3 syntax in the fixture files.
+// Scalafix migration rules, published as `io.yaes:yaes-migration_2.13`. Even
+// though the rest of YAES targets Scala 3, the rule module is compiled with
+// Scala 2.13: external Scalafix rules (those pulled in via `scalafixDependencies`)
+// are loaded by the `scalafix-reflect_2.13` layer, so the user's documented
+// single line `scalafixDependencies += "io.yaes" %% "yaes-migration"` resolves
+// `_2.13` regardless of the consumer's own Scala version. (A `_3` build compiles
+// — Scalafix's own `scalafix-rules_3` does the same via `for3Use2_13` — but it
+// rides inside the CLI classpath and is not reachable as an external rule, so
+// publishing `_3` would break that one-liner.)
 lazy val scalafixRuleScalaVersion = "2.13.16"
 lazy val scalafixVersion          = "0.14.3"
 
