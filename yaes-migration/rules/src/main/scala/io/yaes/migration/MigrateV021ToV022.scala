@@ -6,9 +6,18 @@ import scala.meta._
 /** Scalafix syntactic rule that migrates YAES sources from the 0.21.0 package layout
   * (`in.rcard.yaes`) to the 0.22.0 layout (`io.yaes`).
   *
-  * This slice handles `package` declarations, including sub-packages such as
-  * `package in.rcard.yaes.cats`. Import statements, fully-qualified type references, and comments
-  * are handled by later slices of the same rule.
+  * This slice handles every code-level occurrence of the old prefix:
+  *   - `package` declarations, including sub-packages (`package in.rcard.yaes.cats`)
+  *   - import statements of every style (`import in.rcard.yaes.Raise`, `import in.rcard.yaes.*`,
+  *     `import in.rcard.yaes.cats.accumulate`)
+  *   - fully-qualified type references in signatures and type positions
+  *     (`in.rcard.yaes.Sync`)
+  *
+  * All of these forms contain the same three-segment `Term.Select` node whose syntax is exactly
+  * `in.rcard.yaes` (as a package ref, an import ref, or the qualifier of a `Type.Select`). Matching
+  * that innermost node and replacing it with `io.yaes` rewrites every case uniformly and stays
+  * idempotent — a migrated source has no such node. Comments and Scaladoc are handled by a later
+  * slice.
   */
 class MigrateV021ToV022 extends SyntacticRule("MigrateV021ToV022") {
 
@@ -17,10 +26,7 @@ class MigrateV021ToV022 extends SyntacticRule("MigrateV021ToV022") {
 
   override def fix(implicit doc: SyntacticDocument): Patch =
     doc.tree.collect {
-      case pkg: Pkg if pkg.ref.syntax.startsWith(OldPrefix) =>
-        Patch.replaceTree(
-          pkg.ref,
-          pkg.ref.syntax.replace(OldPrefix, NewPrefix)
-        )
+      case ref: Term.Select if ref.syntax == OldPrefix =>
+        Patch.replaceTree(ref, NewPrefix)
     }.asPatch
 }

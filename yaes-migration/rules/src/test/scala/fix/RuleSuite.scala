@@ -30,4 +30,9 @@ class RuleSuite extends AbstractSyntacticRuleSuite with AnyFunSuiteLike {
 
   checkPair("package-rename")
   checkPair("sub-package-rename")
+  checkPair("named-import")
+  checkPair("wildcard-import")
+  checkPair("sub-package-import")
+  checkPair("fqn-reference")
+  checkPair("no-op")
 }

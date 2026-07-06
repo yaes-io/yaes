@@ -12,6 +12,17 @@
     `sbt "scalafix MigrateV021ToV022"` renamed `package in.rcard.yaes` →
     `package io.yaes`. WORKS.
 
+- #300: import + FQN reference transformation. DONE.
+  - Unified `fix`: `doc.tree.collect` matches every `Term.Select` whose `syntax ==
+    "in.rcard.yaes"` and replaces with `io.yaes`. That innermost 3-segment node is
+    shared by package refs, import refs, and `Type.Select` qualifiers — one case
+    handles packages/imports/FQN uniformly and stays idempotent (migrated source
+    has no such node). Replaced the old `Pkg`-only matcher.
+  - New fixtures under `resources/migration/`: named-import, wildcard-import,
+    sub-package-import, fqn-reference, no-op. Wired into `RuleSuite`.
+  - `sbt "yaes-migration/test"` = 14 green.
+  - Next: #301 (comments/Scaladoc via `doc.tokens` `Token.Comment` string-replace).
+
 ## CRITICAL: coordinate is `_2.13`, NOT `_3` (contradicts #298/#299/#300/#301 spec)
 The issue text demands `io.yaes:yaes-migration_3:0.23.0`. A `_3` build COMPILES
 and PUBLISHES fine — but it is NOT consumable as an external Scalafix rule, so
