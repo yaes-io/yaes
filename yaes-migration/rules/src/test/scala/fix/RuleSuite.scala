@@ -34,5 +34,8 @@ class RuleSuite extends AbstractSyntacticRuleSuite with AnyFunSuiteLike {
   checkPair("wildcard-import")
   checkPair("sub-package-import")
   checkPair("fqn-reference")
+  checkPair("scaladoc-code-example")
+  checkPair("scaladoc-prose")
+  checkPair("inline-comment")
   checkPair("no-op")
 }

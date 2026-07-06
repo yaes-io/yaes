@@ -21,7 +21,18 @@
   - New fixtures under `resources/migration/`: named-import, wildcard-import,
     sub-package-import, fqn-reference, no-op. Wired into `RuleSuite`.
   - `sbt "yaes-migration/test"` = 14 green.
-  - Next: #301 (comments/Scaladoc via `doc.tokens` `Token.Comment` string-replace).
+
+- #301: comment + Scaladoc transformation. DONE.
+  - `fix` now returns `treePatch + commentPatch`. `commentPatch` iterates
+    `doc.tokens`, matches `Token.Comment` whose `.value` contains the old prefix,
+    and `Patch.replaceToken(comment, comment.text.replace(old, new))`. Tree
+    visitors never see comments, so this is a separate token pass. Idempotent
+    (migrated comment has no old prefix).
+  - Covers inline `//`, Scaladoc prose, and Scaladoc `{{{ }}}` code blocks in one
+    string-replace — no per-style logic needed.
+  - New fixtures: scaladoc-code-example, scaladoc-prose, inline-comment.
+  - `sbt "yaes-migration/test"` = 20 green.
+  - This was the LAST open sub-issue of #298. All three (#299/#300/#301) DONE.
 
 ## CRITICAL: coordinate is `_2.13`, NOT `_3` (contradicts #298/#299/#300/#301 spec)
 The issue text demands `io.yaes:yaes-migration_3:0.23.0`. A `_3` build COMPILES
