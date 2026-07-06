@@ -43,7 +43,7 @@ Shutdown.run {
   Log.run() {
     val server = YaesServer.route(
       // Response body automatically encoded to JSON
-      GET(p"/users" / param[Int]("id")) { (req, id: Int) =>
+      GET(p"/users" / param[Int]("id")) { (req, _, _) =>
         Response.ok(User("Alice", 30))
       },
 
