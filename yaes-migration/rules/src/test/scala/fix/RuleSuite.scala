@@ -15,7 +15,7 @@ class RuleSuite extends AbstractSyntacticRuleSuite with AnyFunSuiteLike {
   private val rule = new MigrateV021ToV022()
 
   private def load(path: String): String = {
-    val source = Source.fromResource(path)
+    val source = Source.fromResource(path)(scala.io.Codec.UTF8)
     try source.mkString
     finally source.close()
   }
