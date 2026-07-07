@@ -142,7 +142,7 @@ lazy val server = project
 // are loaded by the `scalafix-reflect_2.13` layer, so the user's documented
 // single line `scalafixDependencies += "io.yaes" %% "yaes-migration"` resolves
 // `_2.13` regardless of the consumer's own Scala version. (A `_3` build compiles
-// — Scalafix's own `scalafix-rules_3` does the same via `for3Use2_13` — but it
+// (Scalafix's own `scalafix-rules_3` does the same via `for3Use2_13`) but it
 // rides inside the CLI classpath and is not reachable as an external rule, so
 // publishing `_3` would break that one-liner.)
 lazy val scalafixRuleScalaVersion = "2.13.16"
