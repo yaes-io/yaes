@@ -31,11 +31,13 @@ class RuleSuite extends AbstractSyntacticRuleSuite with AnyFunSuiteLike {
   checkPair("package-rename")
   checkPair("sub-package-rename")
   checkPair("named-import")
+  checkPair("braced-import")
   checkPair("wildcard-import")
   checkPair("sub-package-import")
   checkPair("fqn-reference")
   checkPair("scaladoc-code-example")
   checkPair("scaladoc-prose")
   checkPair("inline-comment")
+  checkPair("block-comment")
   checkPair("no-op")
 }
