@@ -545,6 +545,74 @@ object Async {
     }
   }
 
+  /** Runs an asynchronous computation in an unsupervised scope.
+    *
+    * Unlike [[run]], an unsupervised scope does not wait for the fibers forked inside it to
+    * complete naturally, and it does not fail fast when one of those fibers throws. The block runs
+    * to completion; as soon as it returns (or throws), any fiber still running is cancelled via
+    * cooperative interruption, and the method returns only after cancellation has propagated.
+    *
+    * This mirrors an Ox-style unsupervised scope: the supervision model is a property of the active
+    * scope, not of the [[fork]] call, so `Async.fork` is reused unchanged. A fiber that fails and
+    * is never joined does not propagate its exception to the enclosing scope, and sibling fibers
+    * are not cancelled when one of them fails. To observe a fiber's failure, join it explicitly
+    * with [[Fiber.join]] or [[Fiber.value]].
+    *
+    * An exception thrown from the main body of the block still propagates to the caller.
+    *
+    * `Async.unsupervised` is always nested inside an existing scope (e.g. an [[run]] block), whose
+    * scope is saved and restored so the parent scope is left untouched.
+    *
+    * Example:
+    * {{{
+    * Async.run {
+    *   Async.unsupervised {
+    *     // This fiber is never joined; when the block returns it is cancelled
+    *     Async.fork {
+    *       Async.delay(10.seconds)
+    *       neverReached()
+    *     }
+    *     42
+    *   } // returns 42 promptly, then cancels the forked fiber
+    * }
+    * }}}
+    *
+    * @param block
+    *   the async computation to run in the unsupervised scope
+    * @param async
+    *   the async context of the enclosing scope
+    * @tparam A
+    *   the result type of the computation
+    * @return
+    *   the result of the block; still-running fibers are cancelled once it completes
+    */
+  def unsupervised[A](block: Async ?=> A)(using async: Async): A = {
+    val scope = StructuredTaskScope.open[Any, Void](
+      Joiner.awaitAll[Any](),
+      configure => configure.withName("yaes-async-unsupervised")
+    )
+    val prev = JvmAsync.scope.get()
+    JvmAsync.scope.set(scope.asInstanceOf[StructuredTaskScope[Any, Any]])
+    try {
+      val result = block(using async)
+      // Interrupt trick: setting the flag makes join() return immediately so close()
+      // cancels remaining fibers instead of waiting for them to finish naturally.
+      JvmAsync.ensureJoined(scope)
+      Thread.interrupted() // clear the interrupt flag before returning
+      result
+    } catch {
+      case t: Throwable =>
+        JvmAsync.ensureJoined(scope)
+        Thread.interrupted() // clear the interrupt flag before rethrowing, mirrors run
+        throw t
+    } finally {
+      // Always nested inside a parent scope: restore it, do not remove it.
+      if (prev != null) JvmAsync.scope.set(prev)
+      else JvmAsync.scope.remove()
+      scope.close()
+    }
+  }
+
   opaque type Deadline = Duration
   object Deadline {
     def after(duration: Duration): Deadline = duration
