@@ -594,18 +594,13 @@ object Async {
     val prev = JvmAsync.scope.get()
     JvmAsync.scope.set(scope.asInstanceOf[StructuredTaskScope[Any, Any]])
     try {
-      val result = block(using async)
-      // Interrupt trick: setting the flag makes join() return immediately so close()
-      // cancels remaining fibers instead of waiting for them to finish naturally.
-      JvmAsync.ensureJoined(scope)
-      Thread.interrupted() // clear the interrupt flag before returning
-      result
-    } catch {
-      case t: Throwable =>
-        JvmAsync.ensureJoined(scope)
-        Thread.interrupted() // clear the interrupt flag before rethrowing, mirrors run
-        throw t
+      block(using async)
     } finally {
+      // Runs on both the normal and exceptional paths. Interrupt trick: ensureJoined sets
+      // the interrupt flag so join() returns immediately, making close() cancel remaining
+      // fibers instead of waiting for them to finish naturally.
+      JvmAsync.ensureJoined(scope)
+      Thread.interrupted() // clear the interrupt flag before returning or rethrowing
       // Always nested inside a parent scope: restore it, do not remove it.
       if (prev != null) JvmAsync.scope.set(prev)
       else JvmAsync.scope.remove()
