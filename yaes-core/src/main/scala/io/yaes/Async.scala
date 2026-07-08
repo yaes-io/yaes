@@ -601,7 +601,7 @@ object Async {
       // fibers instead of waiting for them to finish naturally.
       JvmAsync.ensureJoined(scope)
       Thread.interrupted() // clear the interrupt flag before returning or rethrowing
-      // Always nested inside a parent scope: restore it, do not remove it.
+      // Restore the previous scope (if any).
       if (prev != null) JvmAsync.scope.set(prev)
       else JvmAsync.scope.remove()
       scope.close()
