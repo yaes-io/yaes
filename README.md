@@ -345,9 +345,9 @@ import java.util.concurrent.ConcurrentLinkedQueue
 
 val actualQueue = Async.run {
   val queue = new ConcurrentLinkedQueue[String]()
-  val fb1 = Async.fork("fb1") {
-    Async.fork("inner-fb") {
-      Async.fork("inner-inner-fb") {
+  val fb1 = Async.forkNamed("fb1") {
+    Async.forkNamed("inner-fb") {
+      Async.forkNamed("inner-inner-fb") {
         Async.delay(6.seconds)
         queue.add("inner-inner-fb")
       }
@@ -358,7 +358,7 @@ val actualQueue = Async.run {
     Async.delay(1.second)
     queue.add("fb1")
   }
-  Async.fork("fb2") {
+  Async.forkNamed("fb2") {
     Async.delay(500.millis)
     fb1.cancel()
     queue.add("fb2")
@@ -368,6 +368,35 @@ val actualQueue = Async.run {
 ```
 
 Trying to get the value from a canceled fiber will raise a `Cancelled` error. However, joining a canceled fiber will not raise any error.
+
+#### Unsupervised Scopes
+
+Sometimes the "wait for every fiber" semantics of `Async.run` is too strong. A daemon fiber that polls forever, or a background task whose result nobody cares about, would keep the scope open indefinitely. For those cases, the `Async` effect provides the `Async.unsupervised` handler:
+
+```scala 3
+import io.yaes.Async.*
+import scala.concurrent.duration.*
+
+Async.run {
+  Async.unsupervised {
+    // This fiber is never joined; when the block returns it is cancelled
+    Async.fork {
+      Async.delay(10.seconds)
+      neverReached()
+    }
+    42
+  } // returns 42 promptly, then cancels the forked fiber
+}
+```
+
+An unsupervised scope differs from `Async.run` in two ways:
+
+- It **does not wait** for the fibers forked inside it. As soon as the block returns, any fiber still running is cancelled through cooperative interruption. The handler returns only once cancellation has propagated.
+- It **does not fail fast**. A fiber that throws and is never joined does not propagate its exception to the enclosing scope, and its siblings are not cancelled. To observe a fiber's failure, join it explicitly with `join()` or `value`.
+
+An exception thrown from the main body of the block still propagates to the caller.
+
+Note that supervision is a property of the active scope, not of the `fork` call. There is no separate "unsupervised fork" operation: `Async.fork` and `Async.forkNamed` are reused unchanged inside the block. Like `Async.run`, `Async.unsupervised` is a standalone handler that provides its own `Async` capability, so it can be used on its own or nested inside an existing scope. When nested, the enclosing scope is saved and restored, and is left untouched.
 
 #### Structured Concurrency Primitives
 
@@ -424,7 +453,7 @@ import scala.concurrent.duration.*
 val result: Either[ShutdownTimedOut, Unit] = Shutdown.run {
   Raise.either {
     Async.withGracefulShutdown(Deadline.after(30.seconds)) {
-      val serverFiber = Async.fork("server") {
+      val serverFiber = Async.forkNamed("server") {
         while (!Shutdown.isShuttingDown()) {
           // Accept and process work
         }

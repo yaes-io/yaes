@@ -289,7 +289,7 @@ Sync.runBlocking(Duration.Inf) {
       )
 
       // Start server in background fiber
-      val serverFiber = Async.fork("server") {
+      val serverFiber = Async.forkNamed("server") {
         server.run(port = 8080)
       }
 
