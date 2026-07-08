@@ -290,6 +290,11 @@ object Async {
 
   /** Creates a new fiber with a specified name.
     *
+    * This method is deliberately not an overload of [[fork]]: a block whose type conforms to
+    * `String` (including `Nothing`, e.g. a block ending in `throw` or `Raise.raise`) would
+    * otherwise bind to the `name` parameter and be evaluated eagerly on the caller thread, with
+    * the remaining parameter list silently eta-expanded to a discarded function value.
+    *
     * @param name
     *   the name of the fiber
     * @param block
@@ -299,7 +304,7 @@ object Async {
     * @return
     *   a [[Fiber]] representing the forked computation
     */
-  def fork[A](name: String)(block: => A)(using async: Async): Fiber[A] =
+  def forkNamed[A](name: String)(block: => A)(using async: Async): Fiber[A] =
     async.fork(name)(block)
 
   /** Creates a new fiber with an automatically generated name.
@@ -450,7 +455,7 @@ object Async {
     */
   def parTraverse[A, B](items: Seq[A])(f: A => B)(using async: Async): Seq[B] = {
     val fibers = items.zipWithIndex.map { case (a, idx) =>
-      fork(s"parTraverse-$idx")(f(a))
+      forkNamed(s"parTraverse-$idx")(f(a))
     }
     try {
       fibers.foreach(_.join())
@@ -479,8 +484,8 @@ object Async {
       async: Async
   ): Either[(R1, Fiber[R2]), (Fiber[R1], R2)] = {
     val promise = CompletableFuture[Either[(R1, Fiber[R2]), (Fiber[R1], R2)]]
-    val fiber1  = fork("fiber1")(block1)
-    val fiber2  = fork("fiber2")(block2)
+    val fiber1  = forkNamed("fiber1")(block1)
+    val fiber2  = forkNamed("fiber2")(block2)
 
     fiber1.onComplete { result1 =>
       promise.complete(Left((result1, fiber2)))
@@ -545,6 +550,69 @@ object Async {
     }
   }
 
+  /** Runs an asynchronous computation in an unsupervised scope.
+    *
+    * Unlike [[run]], an unsupervised scope does not wait for the fibers forked inside it to
+    * complete naturally, and it does not fail fast when one of those fibers throws. The block runs
+    * to completion; as soon as it returns (or throws), any fiber still running is cancelled via
+    * cooperative interruption, and the method returns only after cancellation has propagated.
+    *
+    * This mirrors an Ox-style unsupervised scope: the supervision model is a property of the active
+    * scope, not of the [[fork]] call, so `Async.fork` is reused unchanged. A fiber that fails and
+    * is never joined does not propagate its exception to the enclosing scope, and sibling fibers
+    * are not cancelled when one of them fails. To observe a fiber's failure, join it explicitly
+    * with [[Fiber.join]] or [[Fiber.value]].
+    *
+    * An exception thrown from the main body of the block still propagates to the caller.
+    *
+    * Like [[run]], `Async.unsupervised` is a standalone entry point: it provides its own [[Async]]
+    * capability to the block. It can also be nested inside an existing scope (e.g. an [[run]]
+    * block); the enclosing scope is saved and restored so it is left untouched.
+    *
+    * Example:
+    * {{{
+    * Async.run {
+    *   Async.unsupervised {
+    *     // This fiber is never joined; when the block returns it is cancelled
+    *     Async.fork {
+    *       Async.delay(10.seconds)
+    *       neverReached()
+    *     }
+    *     42
+    *   } // returns 42 promptly, then cancels the forked fiber
+    * }
+    * }}}
+    *
+    * @param block
+    *   the async computation to run in the unsupervised scope
+    * @tparam A
+    *   the result type of the computation
+    * @return
+    *   the result of the block; still-running fibers are cancelled once it completes
+    */
+  def unsupervised[A](block: Async ?=> A): A = {
+    val async = new JvmAsync()
+    val scope = StructuredTaskScope.open[Any, Void](
+      Joiner.awaitAll[Any](),
+      configure => configure.withName("yaes-async-unsupervised")
+    )
+    val prev = JvmAsync.scope.get()
+    JvmAsync.scope.set(scope.asInstanceOf[StructuredTaskScope[Any, Any]])
+    try {
+      block(using async)
+    } finally {
+      // Runs on both the normal and exceptional paths. Interrupt trick: ensureJoined sets
+      // the interrupt flag so join() returns immediately, making close() cancel remaining
+      // fibers instead of waiting for them to finish naturally.
+      JvmAsync.ensureJoined(scope)
+      Thread.interrupted() // clear the interrupt flag before returning or rethrowing
+      // Restore the previous scope (if any).
+      if (prev != null) JvmAsync.scope.set(prev)
+      else JvmAsync.scope.remove()
+      scope.close()
+    }
+  }
+
   opaque type Deadline = Duration
   object Deadline {
     def after(duration: Duration): Deadline = duration
@@ -591,7 +659,7 @@ object Async {
     * Shutdown.run {
     *   Raise.either {
     *     Async.withGracefulShutdown(Deadline.after(30.seconds)) {
-    *       val serverFiber = Async.fork("server") {
+    *       val serverFiber = Async.forkNamed("server") {
     *         while (!Shutdown.isShuttingDown()) {
     *           handleRequest()
     *         }

@@ -83,6 +83,34 @@ val queue = Async.run {
 }
 ```
 
+### Unsupervised Scopes
+
+`Async.unsupervised` is an alternative handler for blocks that fork fibers nobody waits on — daemon loops, fire-and-forget background work. When the block returns, any fiber still running is cancelled through cooperative interruption:
+
+```scala
+import io.yaes.Async.*
+import scala.concurrent.duration.*
+
+Async.run {
+  Async.unsupervised {
+    // Never joined: cancelled as soon as the block returns
+    Async.fork {
+      Async.delay(10.seconds)
+      neverReached()
+    }
+    42
+  } // returns 42 promptly, then cancels the forked fiber
+}
+```
+
+How it differs from `Async.run`:
+
+- **No waiting**: the handler returns as soon as the block does, then cancels the leftover fibers. It returns only once cancellation has propagated.
+- **No fail-fast**: a fiber that throws and is never joined does not propagate its exception to the enclosing scope, and its siblings keep running. To observe a fiber's failure, join it explicitly with `join()` or `value`.
+- **Same exception transparency**: an exception thrown from the main body of the block still propagates to the caller.
+
+Supervision is a property of the scope, not of the fork. There is no separate "unsupervised fork" operation — `Async.fork` and `Async.forkNamed` work unchanged inside the block. Like `Async.run`, `Async.unsupervised` is a standalone handler providing its own `Async` capability, so it can be used on its own or nested in an existing scope. When nested, the enclosing scope is saved and restored, and is left untouched.
+
 ### Concurrency Primitives
 
 **Parallel Execution** — run two computations in parallel:
@@ -144,6 +172,7 @@ val (winner, remaining) = Async.racePair(computation1, computation2)
 - **Cooperative Cancellation**: Based on JVM interruption
 - **Parent-Child Relationships**: Cancelling a parent cancels all children
 - **Exception Transparency**: Exceptions propagate naturally
+- **Unsupervised Scopes**: `Async.unsupervised` opts out of waiting and fail-fast when needed
 
 ---
 
@@ -313,7 +342,7 @@ import scala.concurrent.duration.*
 Shutdown.run {
   Raise.either {
     Async.withGracefulShutdown(Deadline.after(30.seconds)) {
-      val serverFiber = Async.fork("server") {
+      val serverFiber = Async.forkNamed("server") {
         while (!Shutdown.isShuttingDown()) {
           // Process work
           Async.delay(100.millis)
@@ -348,7 +377,7 @@ val result: Either[ShutdownTimedOut, Unit] = Shutdown.run {
   Output.run {
     Raise.either {
       Async.withGracefulShutdown(Deadline.after(3.seconds)) {
-        val slowFiber = Async.fork("slow-work") {
+        val slowFiber = Async.forkNamed("slow-work") {
           Async.delay(10.seconds) // Takes longer than deadline
           Output.printLn("Slow work completed") // Won't print
         }

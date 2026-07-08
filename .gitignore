@@ -103,3 +103,8 @@ docs/plans/*
 
 async-*
 .worktrees/
+
+# Sandcastle
+package-lock.json
+package.json
+node_modules/

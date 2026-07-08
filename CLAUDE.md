@@ -6,7 +6,7 @@
 
 ## Build and Test
 
-Use SBT with `-batch --no-colors` flags for tests. Prefer testing a single class or module for faster feedback.
+Refer to the [TESTS.md](../TESTS.md) file for testing requirements and guidelines.
 
 ## Error Handling Philosophy
 
@@ -21,6 +21,7 @@ Never use `require`, `assert`, or throw exceptions in public API surfaces.
 
 - Architecture and module structure: `ARCHITECTURE.md`
 - Code style and documentation standards: `CONVENTIONS.md`
+- Build and test guidelines: `TESTS.md`
 - Module-specific guidance: `<module>/CLAUDE.md`
 
 ## Agent skills
