@@ -50,6 +50,23 @@ class AsyncUnsupervisedSpec extends AnyFlatSpec with Matchers {
     thrown.getMessage shouldBe "boom"
   }
 
+  it should "not fail the scope when an unjoined forked fiber fails" in {
+    val failed = new CountDownLatch(1)
+
+    val result = Async.run {
+      Async.unsupervised {
+        Async.fork {
+          try throw new RuntimeException("fiber boom")
+          finally failed.countDown()
+        }
+        failed.await(5, java.util.concurrent.TimeUnit.SECONDS) shouldBe true
+        123
+      }
+    }
+
+    result shouldBe 123
+  }
+
   it should "run Async.fork inside the scope without modification and return the block result" in {
     val queue = new ConcurrentLinkedQueue[String]()
 
