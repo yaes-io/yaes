@@ -26,8 +26,7 @@ class AsyncUnsupervisedSpec extends AnyFlatSpec with Matchers {
           }
         }
         // Wait until the fiber is actually running before leaving the block.
-        started.await()
-        42
+        started.await(5, java.util.concurrent.TimeUnit.SECONDS) shouldBe true
       }
     }
 
